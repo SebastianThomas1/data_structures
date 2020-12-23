@@ -133,7 +133,8 @@ class LinkedList(Sequence):
 
     def __add__(self, other):
         if not isinstance(other, self.__class__):
-            raise TypeError('Can only concatenate LinkedList to LinkedList.')
+            raise TypeError('Can only concatenate linked list to linked '
+                            'list.')
 
         result = self.__class__(self)
         result += other
@@ -180,7 +181,8 @@ class LinkedList(Sequence):
             current_node = current_node.successor
             count += 1
 
-        return 'LinkedList({})'.format(reprlib_repr(first_values))
+        return '{}({})'.format(self.__class__.__name__,
+                               reprlib_repr(first_values))
 
     def __str__(self):
         return ' \u2192 '.join(str(value) for value in self)
@@ -192,7 +194,7 @@ class LinkedList(Sequence):
             if key < -length:
                 raise IndexError('Index out of range.')
             else:
-                key += len(self)
+                key += length
 
         # traverse instance, return current node if item at index is
         # reached
@@ -212,7 +214,7 @@ class LinkedList(Sequence):
             if key < -length:
                 raise IndexError('Index out of range.')
             else:
-                key += len(self)
+                key += length
 
         # traverse instance, return current node and predecessor if item
         # at index is reached
@@ -292,7 +294,8 @@ class LinkedList(Sequence):
         # reset head
         self.head = previous_node
 
-    def extend(self, other):
+    def extend_at_tail(self, other):
+        """Extends instance by appending elements from iterable other."""
         if not isinstance(other, Iterable):
             raise TypeError('\'{}\' object is not iterable.'.format(type(other)
                                                                     .__name__))
@@ -309,6 +312,8 @@ class LinkedList(Sequence):
 
         return self
 
+    extend = extend_at_tail
+
     def pop(self, index=0):
         """Removes and returns item at index (default 0)."""
         if self.is_empty():
@@ -324,7 +329,7 @@ class LinkedList(Sequence):
 
         return node.value
 
-    def remove(self, value):
+    def remove_first(self, value):
         """Removes first occurrence of value."""
         if self.is_empty():
             raise ValueError('Can\'t remove from empty linked list.')
@@ -344,3 +349,5 @@ class LinkedList(Sequence):
             current_node = current_node.successor
 
         raise ValueError('{} is not in linked list.'.format(repr(value)))
+
+    remove = remove_first
