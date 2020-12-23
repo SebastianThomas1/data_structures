@@ -1,19 +1,15 @@
 # Sebastian Thomas (datascience at sebastianthomas dot de)
 
 # abstract base classes
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, MutableSequence
 from numbers import Integral
 
 # representations of objects
 from reprlib import repr as reprlib_repr
 
 
-class LinkedList(Sequence):
+class LinkedList(MutableSequence):
     """Class that implements (singly) linked lists."""
-
-    # LinkedList inherits from collections.abc.Sequence. It could also
-    # inherit from collections.abc.MutableSequence if we would use
-    # opposite terminology (ie append instead of prepend, etc).
 
     class Node:
         """Internal node class for (singly) linked lists."""
@@ -104,7 +100,7 @@ class LinkedList(Sequence):
             node, predecessor = self._get_node_with_predecessor(key)
 
             # delete node
-            if predecessor is None:
+            if predecessor is None:  # ie node is self.head
                 self.head = self.head.successor
             else:
                 predecessor.successor = node.successor
@@ -142,7 +138,7 @@ class LinkedList(Sequence):
         return result
 
     def __iadd__(self, other):
-        return self.extend(other)
+        return self.extend_at_tail(other)
 
     def __mul__(self, other):
         result = self.__class__(self)
@@ -255,7 +251,7 @@ class LinkedList(Sequence):
             if stop and stop < 0:
                 stop += length
 
-        # traverse instance, beginning from node with index start, when
+        # traverse instance, beginning from node at index start, when
         # value is reached, return index
         current_node = self._get_node(start)
         idx = start
@@ -270,11 +266,28 @@ class LinkedList(Sequence):
     def insert_after(self, index, value):
         """Inserts value after index."""
         node = self._get_node(index)
-        node.successor = self.Node(value, node.successor)
+        node.successor = self.Node(value, successor=node.successor)
+        self._len += 1
+
+    def insert_before(self, index, value):
+        """Inserts value before index."""
+        node, predecessor = self._get_node_with_predecessor(index)
+        if node is self.head:
+            self.head = self.Node(value, self.head)
+        else:
+            predecessor.successor = self.Node(value, node)
+        self._len += 1
+
+    insert = insert_before
 
     def prepend(self, value):
         """Prepends an item to this instance."""
         self.head = self.Node(value, self.head)
+
+    def append(self, value):
+        """Appends an item to this instance."""
+        tail = self._get_tail()
+        tail.successor = self.Node(value)
 
     def reverse(self):
         """Reverses this instance."""
@@ -293,6 +306,27 @@ class LinkedList(Sequence):
 
         # reset head
         self.head = previous_node
+
+    def extend_at_head(self, other):
+        """Extends instance by prepending elements from iterable other."""
+        if not isinstance(other, Iterable):
+            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
+                                                                    .__name__))
+
+        # convert/copy other to linked list
+        other = self.__class__(other)
+
+        # define the new head/successor of tail of other linked list to
+        # be the head of the instance
+        if self.is_empty():
+            other.head = self.head
+        else:
+            other._get_tail().successor = self.head
+
+        # reset head
+        self.head = other.head
+
+        return self
 
     def extend_at_tail(self, other):
         """Extends instance by appending elements from iterable other."""
