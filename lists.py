@@ -34,11 +34,14 @@ class LinkedList(MutableSequence):
 
             current_node = self.head
             for value in iterator:
-                current_node.successor = self.Node(value, None)
+                current_node.successor = self.Node(value)
                 current_node = current_node.successor
                 self._len += 1
+
+            self.tail = current_node
         else:
             self.head = None
+            self.tail = None
 
     def __bool__(self):
         return not self.is_empty()
@@ -71,7 +74,7 @@ class LinkedList(MutableSequence):
             previous_node = current_node
             current_node = next_node
 
-        self.head = previous_node
+        self.head, self.tail = self.tail, self.head
 
     def __getitem__(self, key):
         if isinstance(key, Integral):
@@ -105,7 +108,8 @@ class LinkedList(MutableSequence):
             else:
                 predecessor.successor = node.successor
 
-            # adjust length
+            if node.successor is None:  # ie node is self.tail
+                self.tail = predecessor
             self._len -= 1
         elif isinstance(key, slice):
             raise NotImplementedError('Access by slices not yet implemented.')
@@ -228,19 +232,6 @@ class LinkedList(MutableSequence):
 
         raise IndexError('Index out of range.')
 
-    def _get_tail(self):
-        """Returns tail."""
-        if self.is_empty():
-            return
-
-        # traverse instance until the successor of the current node
-        # becomes None
-        current_node = self.head
-        while current_node.successor:
-            current_node = current_node.successor
-
-        return current_node
-
     def is_empty(self):
         """Checks whether this instance is the empty linked list."""
         return self.head is None
@@ -270,30 +261,42 @@ class LinkedList(MutableSequence):
         """Inserts value after index."""
         node = self._get_node(index)
         node.successor = self.Node(value, successor=node.successor)
+
+        if node is self.tail:
+            self.tail = self.tail.successor
         self._len += 1
 
     def insert_before(self, index, value):
         """Inserts value before index."""
         node, predecessor = self._get_node_with_predecessor(index)
+
         if node is self.head:
-            self.head = self.Node(value, self.head)
+            self.head = self.Node(value, successor=self.head)
         else:
-            predecessor.successor = self.Node(value, node)
+            predecessor.successor = self.Node(value, successor=node)
+
         self._len += 1
 
     insert = insert_before
 
     def prepend(self, value):
         """Prepends an item to this instance."""
-        self.head = self.Node(value, self.head)
+        self.head = self.Node(value, successor=self.head)
+
+        if self.tail is None:
+            self.tail = self.head
+        self._len += 1
 
     def append(self, value):
         """Appends an item to this instance."""
         if self.is_empty():
             self.head = self.Node(value)
+            self.tail = self.head
         else:
-            tail = self._get_tail()
-            tail.successor = self.Node(value)
+            self.tail.successor = self.Node(value)
+            self.tail = self.tail.successor
+
+        self._len += 1
 
     def reverse(self):
         """Reverses this instance."""
@@ -310,8 +313,7 @@ class LinkedList(MutableSequence):
             previous_node = current_node
             current_node = next_node
 
-        # reset head
-        self.head = previous_node
+        self.head, self.tail = self.tail, self.head
 
     def extend_at_head(self, other):
         """Extends instance by prepending elements from iterable other."""
@@ -325,17 +327,13 @@ class LinkedList(MutableSequence):
         if other.is_empty():
             return self
 
-        # define the new head/successor of tail of other linked list to
-        # be the head of the instance
         if self.is_empty():
-            other.head = self.head
-        else:
-            other._get_tail().successor = self.head
+            self.tail = other.tail
 
-        # reset head
+        # extend
+        other.tail.successor = self.head
+
         self.head = other.head
-
-        # adjust length
         self._len += len(other)
 
         return self
@@ -349,14 +347,13 @@ class LinkedList(MutableSequence):
         # convert/copy other to linked list
         other = self.__class__(other)
 
-        # define the new head/successor of tail to be the head of the
-        # other linked list
+        # extend
         if self.is_empty():
             self.head = other.head
         else:
-            self._get_tail().successor = other.head
+            self.tail.successor = other.head
 
-        # adjust length
+        self.tail = other.tail
         self._len += len(other)
 
         return self
@@ -371,12 +368,14 @@ class LinkedList(MutableSequence):
         node, predecessor = self._get_node_with_predecessor(index)
 
         # remove node
-        if predecessor is None:
+        if predecessor is None:  # ie node is self.head
             self.head = self.head.successor
         else:
             predecessor.successor = node.successor
 
-        # adjust length
+        if node is self.tail:
+            self.tail = predecessor
+
         self._len -= 1
 
         return node.value
@@ -391,12 +390,13 @@ class LinkedList(MutableSequence):
         current_node = self.head
         while current_node:
             if current_node.value == value:
-                if previous_node is None:
+                if previous_node is None:  # ie node is self.head
                     self.head = self.head.successor
                 else:
                     previous_node.successor = current_node.successor
 
-                # adjust length
+                if current_node is self.tail:
+                    self.tail = previous_node
                 self._len -= 1
 
                 return
@@ -407,3 +407,35 @@ class LinkedList(MutableSequence):
         raise ValueError('{} is not in linked list.'.format(repr(value)))
 
     remove = remove_first
+
+    def remove_last(self, value):
+        """Removes last occurrence of value."""
+        if self.is_empty():
+            raise ValueError('Can\'t remove from empty linked list.')
+
+        # traverse instance until value is found, remember node and
+        # predecessor, after traversal remove remembered node
+        predecessor = None
+        node = None
+
+        previous_node = None
+        current_node = self.head
+        while current_node:
+            if current_node.value == value:
+                predecessor = previous_node
+                node = current_node
+
+            previous_node = current_node
+            current_node = current_node.successor
+
+        if node:
+            if predecessor is None:  # ie node is self.head
+                self.head = self.head.successor
+            else:
+                previous_node.successor = current_node.successor
+
+            if node is self.tail:
+                self.tail = predecessor
+            self._len -= 1
+        else:
+            raise ValueError('{} is not in linked list.'.format(repr(value)))
