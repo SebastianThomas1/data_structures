@@ -104,6 +104,9 @@ class LinkedList(MutableSequence):
                 self.head = self.head.successor
             else:
                 predecessor.successor = node.successor
+
+            # adjust length
+            self._len -= 1
         elif isinstance(key, slice):
             raise NotImplementedError('Access by slices not yet implemented.')
         else:
@@ -286,8 +289,11 @@ class LinkedList(MutableSequence):
 
     def append(self, value):
         """Appends an item to this instance."""
-        tail = self._get_tail()
-        tail.successor = self.Node(value)
+        if self.is_empty():
+            self.head = self.Node(value)
+        else:
+            tail = self._get_tail()
+            tail.successor = self.Node(value)
 
     def reverse(self):
         """Reverses this instance."""
@@ -316,6 +322,9 @@ class LinkedList(MutableSequence):
         # convert/copy other to linked list
         other = self.__class__(other)
 
+        if other.is_empty():
+            return self
+
         # define the new head/successor of tail of other linked list to
         # be the head of the instance
         if self.is_empty():
@@ -325,6 +334,9 @@ class LinkedList(MutableSequence):
 
         # reset head
         self.head = other.head
+
+        # adjust length
+        self._len += len(other)
 
         return self
 
@@ -344,6 +356,9 @@ class LinkedList(MutableSequence):
         else:
             self._get_tail().successor = other.head
 
+        # adjust length
+        self._len += len(other)
+
         return self
 
     extend = extend_at_tail
@@ -361,6 +376,9 @@ class LinkedList(MutableSequence):
         else:
             predecessor.successor = node.successor
 
+        # adjust length
+        self._len -= 1
+
         return node.value
 
     def remove_first(self, value):
@@ -377,6 +395,10 @@ class LinkedList(MutableSequence):
                     self.head = self.head.successor
                 else:
                     previous_node.successor = current_node.successor
+
+                # adjust length
+                self._len -= 1
+
                 return
 
             previous_node = current_node
