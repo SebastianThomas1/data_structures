@@ -1,15 +1,214 @@
 # Sebastian Thomas (datascience at sebastianthomas dot de)
 
 # abstract base classes
+from abc import abstractmethod
 from collections.abc import Iterable, MutableSequence
 from numbers import Integral
+
+# copying objects
+from copy import copy
 
 # representations of objects
 from reprlib import repr as reprlib_repr
 
 
-class LinkedList(MutableSequence):
-    """Class that implements (singly) linked lists."""
+__all__ = ['List', 'BasicLinkedList', 'LinkedList', 'CircularLinkedList',
+           'DoublyLinkedList', 'CircularDoublyLinkedList']
+
+
+class List(MutableSequence):
+    """Abstract base class for the abstract data type list.
+
+    Concrete subclasses must provide: __new__ or __init__, __getitem__,
+    __setitem__, __delitem__, __len__, insert_before and insert_after."""
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return False
+
+        # iterate over instance and other in parallel while checking for
+        # equality
+        values_of_self = iter(self)
+        values_of_other = iter(other)
+
+        self_is_empty = False
+        other_is_empty = False
+
+        while True:
+            try:
+                value_of_self = next(values_of_self)
+            except StopIteration:
+                self_is_empty = True
+
+            try:
+                value_of_other = next(values_of_other)
+            except StopIteration:
+                other_is_empty = True
+
+            if self_is_empty:
+                return other_is_empty
+            elif other_is_empty:
+                return False  # self_is_empty is False
+            elif value_of_self != value_of_other:
+                return False
+
+    def __copy__(self):
+        copy_of_self = type(self)()
+        copy_of_self.extend_by_appending(self)
+        return copy_of_self
+
+    def __bool__(self):
+        return not self.is_empty()
+
+    def __add__(self, other):
+        if not isinstance(other, type(self)):
+            raise TypeError('Can only concatenate instances of the same type.')
+
+        result = copy(self)
+        result += other
+
+        return result
+
+    def __iadd__(self, other):
+        self.extend_by_appending(other)
+        return self
+
+    def __mul__(self, other):
+        result = copy(self)
+        result *= other
+
+        return result
+
+    def __rmul__(self, other):
+        return self * other
+
+    def __imul__(self, other):
+        if not isinstance(other, Integral):
+            raise TypeError('Can\'t multiply list by non-integer of '
+                            'type \'{}\'.'.format(type(other).__name__))
+
+        if other < 0:
+            raise ValueError('Can\'t multiply list by negative '
+                             'integer.')
+
+        if other == 0:
+            self.clear()
+        else:
+            copy_of_self = copy(self)
+            self *= other - 1
+            self += copy_of_self
+
+        return self
+
+    def is_empty(self):
+        """Checks whether this instance is an empty list."""
+        return len(self) == 0
+
+    def first_index(self, value, start=0, stop=None):
+        """Returns first index of value."""
+        if self.is_empty():
+            raise ValueError('Can\'t find value in empty list.')
+
+        # check entries until value is found, then return index
+        for idx in range(start, stop):
+            entry = self[idx]
+            if entry is value or entry == value:
+                return idx
+
+        raise ValueError('{} is not in list resp. slice.'.format(repr(value)))
+
+    def last_index(self, value, start=0, stop=None):
+        """Returns first index of value."""
+        if self.is_empty():
+            raise ValueError('Can\'t find value in empty list.')
+
+        # check entries; if value is found, remember index
+        remembered = None
+
+        for idx in range(start, stop):
+            entry = self[idx]
+            if entry is value or entry == value:
+                remembered = idx
+
+        # if value was found, return remembered index
+        if remembered is not None:
+            return remembered
+        else:
+            raise ValueError('{} is not in list resp. '
+                             'slice.'.format(repr(value)))
+
+    def index(self, value, start=0, stop=None):
+        """Alias to first_index: returns first index of value."""
+        return self.first_index(value, start=start, stop=stop)
+
+    @abstractmethod
+    def insert_before(self, index, value):
+        """Inserts value before index."""
+        raise IndexError
+
+    @abstractmethod
+    def insert_after(self, index, value):
+        """Inserts value after index."""
+        raise IndexError
+
+    def insert(self, index, value):
+        """Alias to insert_before: inserts value before index."""
+        self.insert_before(index, value)
+
+    def prepend(self, value):
+        """Prepends value to this instance."""
+        self.insert(0, value)
+
+    def extend_by_prepending(self, other):
+        """Extends this instance by prepending values from iterable other."""
+        if not isinstance(other, Iterable):
+            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
+                                                                    .__name__))
+
+        for value in other:
+            self.prepend(value)
+
+    def extend_by_appending(self, other):
+        """Extends this instance by appending values from iterable other."""
+        if not isinstance(other, Iterable):
+            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
+                                                                    .__name__))
+
+        for value in other:
+            self.append(value)
+
+    def extend(self, other):
+        """Alias to extend_by_appending: extends instance by appending the
+        values from the iterable other."""
+        self.extend_by_appending(other)
+
+    def pop_first(self):
+        """Removes and returns first value."""
+        return self.pop(0)
+
+    def pop_last(self):
+        """Removes and returns last value."""
+        return self.pop(-1)
+
+    def remove_first(self, value):
+        """Removes first occurrence of value."""
+        del self[self.first_index(value)]
+
+    def remove_last(self, value):
+        """Removes last occurrence of value."""
+        del self[self.last_index(value)]
+
+    def remove(self, value):
+        """Alias to remove_first: removes first occurrence of value."""
+        self.remove_first(value)
+
+
+class BasicLinkedList(List):
+    """Class that implements (singly) linked lists in a very basic fashion,
+    saving only a reference to the head node.
+
+    This implementation is more inefficient than necessary from a runtime point
+    of view."""
 
     class Node:
         """Internal node class for (singly) linked lists."""
@@ -25,63 +224,54 @@ class LinkedList(MutableSequence):
             return str(self.value)
 
     def __init__(self, values=None):
-        self._len = 0
+        if values is not None and not isinstance(values, Iterable):
+            raise TypeError('\'{}\' object is not '
+                            'iterable.'.format(type(values).__name__))
+
         if values:
             iterator = iter(values)
 
-            self.head = self.Node(next(iterator))
-            self._len += 1
+            self._head = self.Node(next(iterator))
 
             current_node = self.head
             for value in iterator:
                 current_node.successor = self.Node(value)
                 current_node = current_node.successor
-                self._len += 1
-
-            self.tail = current_node
         else:
-            self.head = None
-            self.tail = None
-
-    def __bool__(self):
-        return not self.is_empty()
+            self._head = None
 
     def __iter__(self):
-        # traverse instance, meanwhile yield values
-        current_node = self.head
-        while current_node:
-            yield current_node.value
-            current_node = current_node.successor
+        for node in self._traversal():
+            yield node.value
 
-    def __reversed__(self):
-        if self.is_empty():
-            return
+    def __copy__(self):
+        return type(self)(self)
 
-        # reverse instance
-        self.reverse()
+    def __len__(self):
+        return sum(1 for _ in self._traversal())
 
-        # reverse reversed instance, while traversing, yield values
-        yield self.head.value
+    def __repr__(self):
+        # determine values of first seven nodes (at most)
+        first_values = []
+        count = 0
+        for value in self:
+            first_values.append(value)
+            count += 1
+            if count == 7:
+                break
 
-        previous_node = self.head
-        current_node = self.head.successor
-        previous_node.successor = None
+        return '{}({})'.format(type(self).__name__,
+                               reprlib_repr(first_values))
 
-        while current_node:
-            yield current_node.value
-            next_node = current_node.successor
-            current_node.successor = previous_node
-            previous_node = current_node
-            current_node = next_node
-
-        self.head, self.tail = self.tail, self.head
+    def __str__(self):
+        return ' \u2192 '.join(str(value) for value in self)
 
     def __getitem__(self, key):
         if isinstance(key, Integral):
             return self._get_node(key).value
         elif isinstance(key, slice):
             # replace this by an efficient implementation
-            # return self.__class__(self[idx]
+            # return type(self)(self[idx]
             #                       for idx in range(*key.indices(len(self))))
             raise NotImplementedError('Access by slices not yet implemented.')
         else:
@@ -98,103 +288,42 @@ class LinkedList(MutableSequence):
     def __delitem__(self, key):
         if isinstance(key, Integral):
             if self.is_empty():
-                raise IndexError('Can\'t delete from empty linked list.')
+                raise IndexError('Can\'t delete from empty list.')
 
             node, predecessor = self._get_node_with_predecessor(key)
-
-            # delete node
-            if predecessor is None:  # ie node is self.head
-                self.head = self.head.successor
-            else:
-                predecessor.successor = node.successor
-
-            if node.successor is None:  # ie node is self.tail
-                self.tail = predecessor
-            self._len -= 1
+            self._remove_node(node, predecessor)
         elif isinstance(key, slice):
             raise NotImplementedError('Access by slices not yet implemented.')
         else:
             raise TypeError('Indices must be integers or slices.')
 
-    def __len__(self):
-        return self._len
+    @property
+    def head(self):
+        return self._head
 
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
+    @property
+    def tail(self):
+        if self.is_empty():
+            return
 
-        # traverse instance and other linked list in parallel while
-        # checking for equality
-        current_node_self = self.head
-        current_node_other = other.head
-        while (current_node_self and current_node_other
-               and  # current_node_self.value is current_node_other.value
-               # or
-               current_node_self.value == current_node_other.value):
-            current_node_self = current_node_self.successor
-            current_node_other = current_node_other.successor
+        # traverse instance until the successor of the current node
+        # becomes None
+        for node in self._traversal():
+            if node.successor is None:
+                return node
 
-        return (current_node_self is current_node_other
-                or current_node_self == current_node_other)
+    def _traversal(self, start_node=None):
+        """Traverses instance, beginning with start_node (default: head)."""
+        if start_node is None:
+            start_node = self.head
 
-    def __add__(self, other):
-        if not isinstance(other, self.__class__):
-            raise TypeError('Can only concatenate linked list to linked '
-                            'list.')
-
-        result = self.__class__(self)
-        result += other
-
-        return result
-
-    def __iadd__(self, other):
-        return self.extend_by_appending(other)
-
-    def __mul__(self, other):
-        result = self.__class__(self)
-        result *= other
-
-        return result
-
-    def __imul__(self, other):
-        if not isinstance(other, Integral):
-            raise TypeError('Can\'t multiply linked list by non-integer of '
-                            'type \'{}\'.'.format(type(other).__name__))
-
-        if other < 0:
-            raise ValueError('Can\'t multiply linked list by negative '
-                             'integer.')
-
-        if other == 0:
-            self.head = None
-        else:
-            copy = self.__class__(self)
-            self *= other - 1
-            self += copy
-
-        return self
-
-    def __rmul__(self, other):
-        return self * other
-
-    def __repr__(self):
-        # determine values of first seven nodes (at most)
-        first_values = []
-        current_node = self.head
-        count = 0
-        while count < 7 and current_node:
-            first_values.append(current_node.value)
+        current_node = start_node
+        while current_node:
+            yield current_node
             current_node = current_node.successor
-            count += 1
 
-        return '{}({})'.format(self.__class__.__name__,
-                               reprlib_repr(first_values))
-
-    def __str__(self):
-        return ' \u2192 '.join(str(value) for value in self)
-
-    def _get_node(self, key):  # assume key is an integer
-        """Returns node at index."""
+    def _validate_and_adjust_key(self, key):
+        """Validates and adjusts integral key."""
         if key < 0:
             length = len(self)
             if key < -length:
@@ -202,108 +331,238 @@ class LinkedList(MutableSequence):
             else:
                 key += length
 
+        return key
+
+    def _validate_and_adjust_slice(self, start, stop):
+        """Validates and adjusts slice."""
+        if start is None:
+            start = 0
+
+        if start < 0 or stop is not None and stop < 0:
+            start, stop, _ = slice(start, stop, 1).indices(len(self))
+
+        if stop is not None and start > stop:
+            raise ValueError('Slice is empty.')
+
+        return start, stop
+
+    def _get_node(self, key):  # assume key is an integer
+        """Returns node at index."""
+        if self.is_empty():
+            raise IndexError('Can\'t access index in empty list.')
+
+        key = self._validate_and_adjust_key(key)
+
         # traverse instance, return current node if item at index is
         # reached
-        current_node = self.head
-        while current_node:
+        for node in self._traversal():
             if key == 0:
-                return current_node
+                return node
             key -= 1
-            current_node = current_node.successor
 
         raise IndexError('Index out of range.')
 
     def _get_node_with_predecessor(self, key):
         """Returns node at index together with predecessor."""
-        if key < 0:
-            length = len(self)
-            if key < -length:
-                raise IndexError('Index out of range.')
-            else:
-                key += length
+        if self.is_empty():
+            raise IndexError('Can\'t access index in empty list.')
+
+        key = self._validate_and_adjust_key(key)
 
         # traverse instance, return current node and predecessor if item
         # at index is reached
-        previous_node = None
-        current_node = self.head
-        while current_node:
+        predecessor = None
+        for node in self._traversal():
             if key == 0:
-                return current_node, previous_node
+                return node, predecessor
             key -= 1
-            previous_node = current_node
-            current_node = current_node.successor
+            predecessor = node
 
         raise IndexError('Index out of range.')
+
+    def _insert_as_predecessor(self, node, value, current_predecessor):
+        """Inserts value before node by reconnecting current predecessor."""
+        if current_predecessor:
+            current_predecessor.successor = self.Node(value, successor=node)
+        else:  # ie node is self.head
+            self._head = self.Node(value, successor=node)
+
+    def _insert_as_successor(self, node, value):
+        """Inserts value after node by reconnecting current successor."""
+        node.successor = self.Node(value, successor=node.successor)
+
+    def _extend_by_prepending(self, other):
+        """Extends this instance by prepending values from instance other."""
+        assert isinstance(other, type(self))
+
+        if other.is_empty():
+            return
+
+        # extend
+        other.tail.successor = self.head
+
+        self._head = other.head
+
+    def _extend_by_appending(self, other):
+        """Extends this instance by appending values from instance other."""
+        assert isinstance(other, type(self))
+
+        if self.is_empty():
+            self._head = other.head
+        else:
+            self.tail.successor = other.head
+
+    def _remove_node(self, node, predecessor):
+        """Removes node by connecting predecessor with successor."""
+        if predecessor:
+            predecessor.successor = node.successor
+        else:  # ie node is self.head
+            self._head = self.head.successor
 
     def is_empty(self):
         """Checks whether this instance is the empty linked list."""
         return self.head is None
 
-    def index(self, value, start=0, stop=None):
+    def first_index(self, value, start=0, stop=None):
         """Returns first index of value."""
         if self.is_empty():
-            raise ValueError('Can\'t find value in empty linked list.')
+            raise ValueError('Can\'t find value in empty list.')
 
-        if start < 0 or stop and stop < 0:
-            length = len(self)
-            if start < 0:
-                start = max(start + length, 0)
-            if stop and stop < 0:
-                stop += length
+        start, stop = self._validate_and_adjust_slice(start, stop)
 
         # traverse instance, beginning from node at index start, when
         # value is reached, return index
-        current_node = self._get_node(start)
-        idx = start
-        while current_node and (stop is None or idx < stop):
-            if current_node.value is value or current_node.value == value:
+        idx = 0
+        for node in self._traversal():
+            if idx >= start and (node.value is value or node.value == value):
                 return idx
-            current_node = current_node.successor
             idx += 1
+            if stop is not None and idx == stop:
+                break
 
-        raise ValueError('{} is not in linked list resp. '
-                         'slice.'.format(repr(value)))
+        raise ValueError('{} is not in list resp. slice.'.format(repr(value)))
 
-    def insert_after(self, index, value):
-        """Inserts value after index."""
-        node = self._get_node(index)
-        node.successor = self.Node(value, successor=node.successor)
+    def last_index(self, value, start=0, stop=None):
+        """Returns first index of value."""
+        if self.is_empty():
+            raise ValueError('Can\'t find value in empty list.')
 
-        if node is self.tail:
-            self.tail = self.tail.successor
-        self._len += 1
+        start, stop = self._validate_and_adjust_slice(start, stop)
+
+        # traverse instance, beginning from node at index start, when
+        # value is found, remember index
+        remembered = None
+
+        idx = 0
+        for node in self._traversal():
+            if idx >= start and (node.value is value or node.value == value):
+                remembered = idx
+            idx += 1
+            if stop is not None and idx == stop:
+                break
+
+        # if value was found, return remembered index
+        if remembered is not None:
+            return remembered
+        else:
+            raise ValueError('{} is not in list resp. '
+                             'slice.'.format(repr(value)))
 
     def insert_before(self, index, value):
         """Inserts value before index."""
         node, predecessor = self._get_node_with_predecessor(index)
+        self._insert_as_predecessor(node, value, predecessor)
 
-        if node is self.head:
-            self.head = self.Node(value, successor=self.head)
-        else:
-            predecessor.successor = self.Node(value, successor=node)
-
-        self._len += 1
-
-    insert = insert_before
+    def insert_after(self, index, value):
+        """Inserts value after index."""
+        node = self._get_node(index)
+        self._insert_as_successor(node, value)
 
     def prepend(self, value):
         """Prepends an item to this instance."""
-        self.head = self.Node(value, successor=self.head)
-
-        if self.tail is None:
-            self.tail = self.head
-        self._len += 1
+        self._head = self.Node(value, successor=self.head)
 
     def append(self, value):
         """Appends an item to this instance."""
         if self.is_empty():
-            self.head = self.Node(value)
-            self.tail = self.head
+            self._head = self.Node(value)
         else:
             self.tail.successor = self.Node(value)
-            self.tail = self.tail.successor
 
-        self._len += 1
+    def extend_by_prepending(self, other):
+        """Extends this instance by prepending values from iterable other."""
+        if not isinstance(other, Iterable):
+            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
+                                                                    .__name__))
+
+        # convert/copy other to linked list
+        other = type(self)(other)
+
+        self._extend_by_prepending(other)
+
+    def extend_by_appending(self, other):
+        """Extends this instance by appending values from iterable other."""
+        if not isinstance(other, Iterable):
+            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
+                                                                    .__name__))
+
+        # convert/copy other to linked list
+        other = type(self)(other)
+
+        self._extend_by_appending(other)
+
+    def pop(self, index=-1):
+        """Removes and returns item at index (default -1)."""
+        if self.is_empty():
+            raise IndexError('Can\'t pop from empty list.')
+
+        node, predecessor = self._get_node_with_predecessor(index)
+        self._remove_node(node, predecessor)
+
+        return node.value
+
+    def clear(self):
+        self._head = None
+
+    def remove_first(self, value):
+        """Removes first occurrence of value."""
+        if self.is_empty():
+            raise ValueError('Can\'t remove from empty list.')
+
+        # traverse instance until value is found, then remove node
+        predecessor = None
+        for node in self._traversal():
+            if node.value is value or node.value == value:
+                self._remove_node(node, predecessor)
+                return
+
+            predecessor = node
+
+        raise ValueError('{} is not in list.'.format(repr(value)))
+
+    def remove_last(self, value):
+        """Removes last occurrence of value."""
+        if self.is_empty():
+            raise ValueError('Can\'t remove from empty list.')
+
+        # traverse instance, beginning from node at index start, when
+        # value is found, remember node and predecessor
+        remembered_predecessor = None
+        remembered_node = None
+
+        predecessor = None
+        for node in self._traversal():
+            if node.value is value or node.value == value:
+                remembered_predecessor = predecessor
+                remembered_node = node
+
+            predecessor = node
+
+        # if value was found, remove remembered node
+        if remembered_node:
+            self._remove_node(remembered_node, remembered_predecessor)
+        else:
+            raise ValueError('{} is not in list.'.format(repr(value)))
 
     def reverse(self):
         """Reverses this instance."""
@@ -311,165 +570,163 @@ class LinkedList(MutableSequence):
             return
 
         # traverse list, meanwhile set successors to former predecessors
-        previous_node = self.head
-        current_node = self.head.successor
-        previous_node.successor = None
+        previous_node = None
+        current_node = self.head
         while current_node:
             next_node = current_node.successor
             current_node.successor = previous_node
             previous_node = current_node
             current_node = next_node
 
-        self.head, self.tail = self.tail, self.head
-
-    def extend_by_prepending(self, other):
-        """Extends instance by prepending elements from iterable other."""
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
-
-        # convert/copy other to linked list
-        other = self.__class__(other)
-
-        if other.is_empty():
-            return self
-
-        if self.is_empty():
-            self.tail = other.tail
-
-        # extend
-        other.tail.successor = self.head
-
-        self.head = other.head
-        self._len += len(other)
-
-        return self
-
-    def extend_by_appending(self, other):
-        """Extends instance by appending elements from iterable other."""
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
-
-        # convert/copy other to linked list
-        other = self.__class__(other)
-
-        # extend
-        if self.is_empty():
-            self.head = other.head
-        else:
-            self.tail.successor = other.head
-
-        self.tail = other.tail
-        self._len += len(other)
-
-        return self
-
-    extend = extend_by_appending
-
-    def pop(self, index=0):
-        """Removes and returns item at index (default 0)."""
-        if self.is_empty():
-            raise IndexError('Can\'t pop from empty linked list.')
-
-        node, predecessor = self._get_node_with_predecessor(index)
-
-        # remove node
-        if predecessor is None:  # ie node is self.head
-            self.head = self.head.successor
-        else:
-            predecessor.successor = node.successor
-
-        if node is self.tail:
-            self.tail = predecessor
-
-        self._len -= 1
-
-        return node.value
-
-    def remove_first(self, value):
-        """Removes first occurrence of value."""
-        if self.is_empty():
-            raise ValueError('Can\'t remove from empty linked list.')
-
-        # traverse instance until value is found, then remove node
-        previous_node = None
-        current_node = self.head
-        while current_node:
-            if current_node.value is value or current_node.value == value:
-                if previous_node is None:  # ie node is self.head
-                    self.head = self.head.successor
-                else:
-                    previous_node.successor = current_node.successor
-
-                if current_node is self.tail:
-                    self.tail = previous_node
-                self._len -= 1
-
-                return
-
-            previous_node = current_node
-            current_node = current_node.successor
-
-        raise ValueError('{} is not in linked list.'.format(repr(value)))
-
-    remove = remove_first
-
-    def remove_last(self, value):
-        """Removes last occurrence of value."""
-        if self.is_empty():
-            raise ValueError('Can\'t remove from empty linked list.')
-
-        # traverse instance until value is found, remember node and
-        # predecessor, after traversal remove remembered node
-        predecessor = None
-        node = None
-
-        previous_node = None
-        current_node = self.head
-        while current_node:
-            if current_node.value is value or current_node.value == value:
-                predecessor = previous_node
-                node = current_node
-
-            previous_node = current_node
-            current_node = current_node.successor
-
-        if node:
-            if predecessor is None:  # ie node is self.head
-                self.head = self.head.successor
-            else:
-                predecessor.successor = node.successor
-
-            if node is self.tail:
-                self.tail = predecessor
-            self._len -= 1
-        else:
-            raise ValueError('{} is not in linked list.'.format(repr(value)))
+        self._head = previous_node
 
 
-class CircularLinkedList(MutableSequence):
-    """Class that implements (singly) circular linked lists."""
+class LinkedList(BasicLinkedList):
+    """Class that implements (singly) linked lists.
 
-    class Node:
-        """Internal node class for (singly) circular linked lists."""
-
-        def __init__(self, value, successor=None):
-            self.value = value
-            self.successor = successor
-
-        def __repr__(self):
-            return repr(self.value)
-
-        def __str__(self):
-            return str(self.value)
+    In contrast to the class BasicLinkedList, in this implementation we save a
+    reference to the tail node as well as the length. This speeds up some of
+    the methods."""
 
     def __init__(self, values=None):
+        if values is not None and not isinstance(values, Iterable):
+            raise TypeError('\'{}\' object is not '
+                            'iterable.'.format(type(values).__name__))
+
         self._len = 0
         if values:
             iterator = iter(values)
 
-            self.head = self.Node(next(iterator))
+            self._head = self.Node(next(iterator))
+            self._len += 1
+
+            current_node = self.head
+            for value in iterator:
+                current_node.successor = self.Node(value)
+                current_node = current_node.successor
+                self._len += 1
+
+            self._tail = current_node
+        else:
+            self._head = None
+            self._tail = None
+
+    def __len__(self):
+        return self._len
+
+    @property
+    def tail(self):
+        return self._tail
+
+    def _validate_and_adjust_key(self, key):
+        """Validates and adjusts integral key."""
+        length = len(self)
+        if key < -length or key >= length:
+            raise IndexError('Index out of range.')
+        elif key < 0:
+            key += length
+
+        return key
+
+    def _validate_and_adjust_slice(self, start, stop):
+        """Validates and adjusts slice."""
+        start, stop, _ = slice(start, stop, 1).indices(len(self))
+
+        if start > stop:
+            raise ValueError('Slice is empty.')
+
+        return start, stop
+
+    def _insert_as_predecessor(self, node, value, current_predecessor):
+        """Inserts value before node by reconnecting current predecessor."""
+        super()._insert_as_predecessor(node, value, current_predecessor)
+
+        self._len += 1
+
+    def _insert_as_successor(self, node, value):
+        """Inserts value after node by reconnecting current successor."""
+        super()._insert_as_successor(node, value)
+
+        if self.tail.successor:  # ie node was self.tail
+            self._tail = self.tail.successor
+
+        self._len += 1
+
+    def _extend_by_prepending(self, other):
+        """Extends this instance by prepending values from instance other."""
+        assert isinstance(other, type(self))
+
+        super()._extend_by_prepending(other)
+
+        if self.tail is None:
+            self._tail = other.tail
+
+        self._len += len(other)
+
+    def _extend_by_appending(self, other):
+        """Extends this instance by appending values from instance other."""
+        assert isinstance(other, type(self))
+
+        super()._extend_by_appending(other)
+
+        self._tail = other.tail
+
+        self._len += len(other)
+
+    def _remove_node(self, node, predecessor):
+        """Removes node by connecting predecessor with successor."""
+        super()._remove_node(node, predecessor)
+
+        if node.successor is None:  # ie node is self.tail
+            self._tail = predecessor
+
+        self._len -= 1
+
+    def prepend(self, value):
+        """Prepends an item to this instance."""
+        super().prepend(value)
+
+        if self.tail is None:
+            self._tail = self.head
+
+        self._len += 1
+
+    def append(self, value):
+        """Appends an item to this instance."""
+        super().append(value)
+
+        if self.tail:
+            self._tail = self.tail.successor
+        else:  # length 1
+            self._tail = self.head
+
+        self._len += 1
+
+    def clear(self):
+        super().clear()
+        self._tail = None
+        self._len = 0
+
+    def reverse(self):
+        """Reverses this instance."""
+        self._tail = self.head
+
+        super().reverse()
+
+
+class CircularLinkedList(BasicLinkedList):
+    """Class that implements (singly) circular linked lists."""
+
+    def __init__(self, values=None):
+        if values is not None and not isinstance(values, Iterable):
+            raise TypeError('\'{}\' object is not '
+                            'iterable.'.format(type(values).__name__))
+
+        self._len = 0
+        if values:
+            iterator = iter(values)
+
+            self._head = self.Node(next(iterator))
             self._len += 1
 
             current_node = self.head
@@ -480,173 +737,10 @@ class CircularLinkedList(MutableSequence):
 
             current_node.successor = self.head
         else:
-            self.head = None
-
-    def __bool__(self):
-        return not self.is_empty()
-
-    def __iter__(self):
-        # traverse instance, meanwhile yield values
-        if self.head:
-            current_node = self.head
-            while True:
-                yield current_node.value
-                current_node = current_node.successor
-                if current_node is self.head:
-                    break
-
-    def __reversed__(self):
-        if self.is_empty():
-            return
-
-        # reverse instance
-        self.reverse()
-
-        # reverse reversed instance, while traversing, yield values
-        yield self.head.value
-
-        predecessor_of_head = None
-
-        previous_node = self.head
-        current_node = self.head.successor
-        previous_node.successor = None
-
-        while current_node is not self.head:
-            yield current_node.value
-            next_node = current_node.successor
-            if next_node is self.head:
-                predecessor_of_head = current_node
-            current_node.successor = previous_node
-            previous_node = current_node
-            current_node = next_node
-
-        self.head.successor = predecessor_of_head
-        self.head = predecessor_of_head
-
-    def __getitem__(self, key):
-        if isinstance(key, Integral):
-            return self._get_node(key).value
-        elif isinstance(key, slice):
-            raise NotImplementedError('Access by slices not yet implemented.')
-        else:
-            raise TypeError('Indices must be integers or slices.')
-
-    def __setitem__(self, key, value):
-        if isinstance(key, Integral):
-            self._get_node(key).value = value
-        elif isinstance(key, slice):
-            raise NotImplementedError('Access by slices not yet implemented.')
-        else:
-            raise TypeError('Indices must be integers or slices.')
-
-    def __delitem__(self, key):
-        if isinstance(key, Integral):
-            if self.is_empty():
-                raise IndexError('Can\'t delete from empty circular linked '
-                                 'list.')
-
-            # delete node
-            if self.head.successor is self.head:  # length 1
-                self.head = None
-            else:
-                node, predecessor = self._get_node_with_predecessor(key)
-
-                predecessor.successor = node.successor
-                if node is self.head:
-                    self.head = self.head.successor
-
-            self._len -= 1
-        elif isinstance(key, slice):
-            raise NotImplementedError('Access by slices not yet implemented.')
-        else:
-            raise TypeError('Indices must be integers or slices.')
+            self._head = None
 
     def __len__(self):
         return self._len
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-
-        if self.is_empty():
-            return other.is_empty()
-        if other.is_empty():
-            return False  # self.is_empty() is False
-
-        # traverse instance and other linked list in parallel while
-        # checking for equality
-        current_node_self = self.head
-        current_node_other = other.head
-        while True:
-            if (current_node_self.value is current_node_other.value
-                    or current_node_self.value == current_node_other.value):
-                current_node_self = current_node_self.successor
-                current_node_other = current_node_other.successor
-            else:
-                return False
-            if current_node_self is self.head:
-                return current_node_other is other.head
-            if current_node_other is other.head:
-                return False  # current_node_self is not self.head
-
-    def __add__(self, other):
-        if not isinstance(other, self.__class__):
-            raise TypeError('Can only concatenate circular linked list to '
-                            'circular linked list.')
-
-        result = self.__class__(self)
-        result += other
-
-        return result
-
-    def __iadd__(self, other):
-        return self.extend_by_appending(other)
-
-    def __mul__(self, other):
-        result = self.__class__(self)
-        result *= other
-
-        return result
-
-    def __imul__(self, other):
-        if not isinstance(other, Integral):
-            raise TypeError('Can\'t multiply circular linked list by '
-                            'non-integer of type \'{}\'.'
-                            .format(type(other).__name__))
-
-        if other < 0:
-            raise ValueError('Can\'t multiply circular linked list by '
-                             'negative integer.')
-
-        if other == 0:
-            self.head = None
-        else:
-            copy = self.__class__(self)
-            self *= other - 1
-            self += copy
-
-        return self
-
-    def __rmul__(self, other):
-        return self * other
-
-    def __repr__(self):
-        if self.is_empty():
-            return '{}([])'.format(self.__class__.__name__)
-
-        # determine values of first seven nodes (at most)
-        first_values = []
-        current_node = self.head
-        count = 0
-        while count < 7:
-            first_values.append(current_node.value)
-            current_node = current_node.successor
-            count += 1
-            if current_node is self.head:
-                break
-
-        return '{}({})'.format(self.__class__.__name__,
-                               reprlib_repr(first_values))
 
     def __str__(self):
         if self.is_empty():
@@ -654,316 +748,236 @@ class CircularLinkedList(MutableSequence):
         else:
             return ' \u2192 '.join(str(value) for value in self) + ' \u2192'
 
-    def _get_node(self, key):  # assume key is an integer
-        """Returns node at index."""
+    @property
+    def tail(self):
+        if self.is_empty():
+            return
+
+        # traverse instance until the successor of the current node
+        # becomes the head
+        for node in self._traversal():
+            if node.successor is self.head:
+                return node
+
+    def _traversal(self, start_node=None):
+        """Traverses instance, beginning with start_node (default: head)."""
+        if not self.is_empty():
+            if start_node is None:
+                start_node = self.head
+
+            current_node = start_node
+            while True:
+                yield current_node
+                current_node = current_node.successor
+                if current_node is self.head:
+                    break
+
+    def _validate_and_adjust_key(self, key):
+        """Validates and adjusts integral key."""
         length = len(self)
-        if length == 0:
-            raise IndexError('Can\'t access node in empty circular linked '
-                             'list.')
+        if key < -length or key >= length:
+            raise IndexError('Index out of range.')
+        elif key < 0:
+            key += length
 
-        key %= length
+        return key
 
-        # traverse instance, return current node if item at index is
-        # reached
-        current_node = self.head
-        while True:
-            if key == 0:
-                return current_node
-            key -= 1
-            current_node = current_node.successor
+    def _validate_and_adjust_slice(self, start, stop):
+        """Validates and adjusts slice."""
+        start, stop, _ = slice(start, stop, 1).indices(len(self))
+
+        if start > stop:
+            raise ValueError('Slice is empty.')
+
+        return start, stop
 
     def _get_node_with_predecessor(self, key):
         """Returns node at index together with predecessor."""
-        length = len(self)
-        if length == 0:
-            raise IndexError('Can\'t access node in empty circular linked '
-                             'list.')
+        if self.is_empty():
+            raise IndexError('Can\'t access index in empty list.')
 
-        key %= length
+        key = self._validate_and_adjust_key(key)
+
         if key == 0:
-            key += length
+            return self.head, self.tail
 
         # traverse instance, return current node and predecessor if item
         # at index is reached
-        previous_node = None
-        current_node = self.head
-        while current_node:
+        predecessor = None
+        for node in self._traversal():
             if key == 0:
-                return current_node, previous_node
+                return node, predecessor
             key -= 1
-            previous_node = current_node
-            current_node = current_node.successor
+            predecessor = node
 
-    @property
-    def _predecessor_of_head(self):
-        """Returns predecessor of instance's head."""
-        if self.head is None:
-            raise IndexError('Can\'t access node in empty circular linked '
-                             'list.')
+        raise IndexError('Index out of range.')
 
-        # traverse instance until the next successor is the head
-        current_node = self.head
-        while current_node.successor is not self.head:
-            current_node = current_node.successor
+    def _insert_as_predecessor(self, node, value, current_predecessor):
+        """Inserts value before node by reconnecting current predecessor."""
+        current_predecessor.successor = self.Node(value, successor=node)
 
-        return current_node
-
-    def is_empty(self):
-        """Checks whether this instance is the empty linked list."""
-        return self.head is None
-
-    def index(self, value, start=0, stop=None):
-        """Returns first index of value."""
-        if self.is_empty():
-            raise ValueError('Can\'t find value in empty circular linked '
-                             'list.')
-
-        length = len(self)
-        start %= length
-        if stop:
-            stop %= length
-
-        # traverse instance, beginning from node at index start, when
-        # value is reached, return index
-        current_node = self._get_node(start)
-        idx = start
-        while stop is None or idx < stop:
-            if current_node.value is value or current_node.value == value:
-                return idx
-            current_node = current_node.successor
-            idx += 1
-            if current_node is self.head:
-                break
-
-        raise ValueError('{} is not in circular linked list resp. slice.'
-                         .format(repr(value)))
-
-    def insert_after(self, index, value):
-        """Inserts value after index."""
-        node = self._get_node(index)
-        node.successor = self.Node(value, successor=node.successor)
-
-        self._len += 1
-
-    def insert_before(self, index, value):
-        """Inserts value before index."""
-        node, predecessor = self._get_node_with_predecessor(index)
-
-        predecessor.successor = self.Node(value, successor=node)
         if node is self.head:
-            self.head = predecessor.successor
+            self._head = current_predecessor.successor
 
         self._len += 1
 
-    insert = insert_before
+    def _insert_as_successor(self, node, value):
+        """Inserts value after node by reconnecting current successor."""
+        super()._insert_as_successor(node, value)
+
+        self._len += 1
+
+    def _extend_by_prepending(self, other):
+        """Extends this instance by prepending values from instance other."""
+        assert isinstance(other, type(self))
+
+        if other.is_empty():
+            return
+
+        # extend
+        if not self.is_empty():
+            other.tail.successor = self.head
+            self.tail.successor = other.head
+
+        self._head = other.head
+        self._len += len(other)
+
+        return
+
+    def _extend_by_appending(self, other):
+        """Extends this instance by appending values from instance other."""
+        if other.is_empty():
+            return
+
+        super()._extend_by_appending(other)
+
+        other.tail.successor = self.head
+
+        self._len += len(other)
+
+    def _remove_node(self, node, predecessor):
+        """Removes node by connecting predecessor with successor."""
+        if node is predecessor:  # length 1
+            self._head = None
+        else:
+            predecessor.successor = node.successor
+
+            if node is self.head:
+                self._head = self.head.successor
+
+        self._len -= 1
 
     def prepend(self, value):
         """Prepends an item to this instance."""
         if self.is_empty():
-            self.head = self.Node(value)
+            super().prepend(value)
             self.head.successor = self.head
         else:
-            predecessor_of_head = self._predecessor_of_head
-            self.head = self.Node(value, successor=self.head)
-            predecessor_of_head.successor = self.head
+            tail = self.tail
+            super().prepend(value)
+            tail.successor = self.head
 
         self._len += 1
 
     def append(self, value):
         """Appends an item to this instance."""
         if self.is_empty():
-            self.head = self.Node(value)
+            self._head = self.Node(value)
             self.head.successor = self.head
         else:
-            self._predecessor_of_head.successor = self.Node(value, self.head)
+            self.tail.successor = self.Node(value, self.head)
 
         self._len += 1
+
+    def clear(self):
+        super().clear()
+        self._len = 0
+
+    def remove_first(self, value):
+        """Removes first occurrence of value."""
+        if self.is_empty():
+            raise ValueError('Can\'t remove from empty circular list.')
+
+        # traverse instance until value is found, then remove node
+        predecessor = None
+        for node in self._traversal():
+            if node.value is value or node.value == value:
+                if predecessor is None:  # ie node is self.head
+                    predecessor = self.tail
+
+                self._remove_node(node, predecessor)
+                return
+
+            predecessor = node
+
+        raise ValueError('{} is not in list.'.format(repr(value)))
+
+    def remove_last(self, value):
+        """Removes last occurrence of value."""
+        if self.is_empty():
+            raise ValueError('Can\'t remove from empty list.')
+
+        # traverse instance, beginning from node at index start, when
+        # value is found, remember node and predecessor
+        remembered_predecessor = None
+        remembered_node = None
+
+        predecessor = None
+        for node in self._traversal():
+            if node.value is value or node.value == value:
+                remembered_predecessor = predecessor
+                remembered_node = node
+
+            predecessor = node
+
+        if remembered_node:
+            if remembered_predecessor is None:
+                # ie remembered_node is self.head
+                remembered_predecessor = self.tail
+            self._remove_node(remembered_node, remembered_predecessor)
+        else:
+            raise ValueError('{} is not in list.'.format(repr(value)))
 
     def reverse(self):
         """Reverses this instance."""
         if self.is_empty():
             return
 
-        if self.head.successor is self.head:  # length 1
-            return
-
-        predecessor_of_head = None
-
         # traverse list, meanwhile set successors to former predecessors
-        previous_node = self.head
-        current_node = self.head.successor
-        previous_node.successor = None
-        while current_node is not self.head:
+        previous_node = None
+        current_node = self.head
+        while True:
             next_node = current_node.successor
-            if next_node is self.head:
-                predecessor_of_head = current_node
             current_node.successor = previous_node
             previous_node = current_node
             current_node = next_node
-
-        self.head.successor = predecessor_of_head
-        self.head = predecessor_of_head
-
-    def extend_by_prepending(self, other):
-        """Extends instance by prepending elements from iterable other."""
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
-
-        # convert/copy other to linked list
-        other = self.__class__(other)
-
-        if other.is_empty():
-            return self
-
-        # extend
-        if not self.is_empty():
-            other._predecessor_of_head.successor = self.head
-            self._predecessor_of_head.successor = other.head
-
-        self.head = other.head
-        self._len += len(other)
-
-        return self
-
-    def extend_by_appending(self, other):
-        """Extends instance by appending elements from iterable other."""
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
-
-        # convert/copy other to linked list
-        other = self.__class__(other)
-
-        if other.is_empty():
-            return self
-
-        # extend
-        if self.is_empty():
-            self.head = other.head
-        else:
-            self._predecessor_of_head.successor = other.head
-
-        other._predecessor_of_head.successor = self.head
-
-        self._len += len(other)
-
-        return self
-
-    extend = extend_by_appending
-
-    def pop(self, index=0):
-        """Removes and returns item at index (default 0)."""
-        if self.is_empty():
-            raise IndexError('Can\'t pop from empty circular linked list.')
-
-        node, predecessor = self._get_node_with_predecessor(index)
-
-        # remove node
-        predecessor.successor = node.successor
-        if self.head.successor is self.head:  # length 1
-            self.head = None
-        elif node is self.head:
-            self.head = self.head.successor
-
-        self._len -= 1
-
-        return node.value
-
-    def remove_first(self, value):
-        """Removes first occurrence of value."""
-        if self.is_empty():
-            raise ValueError('Can\'t remove from empty circular linked list.')
-
-        # traverse instance until value is found, then remove node
-        previous_node = None
-        current_node = self.head
-        while True:
-            if current_node.value is value or current_node.value == value:
-                if self.head.successor is self.head:  # length 1
-                    self.head = None
-                else:
-                    if previous_node is None:  # ie node is self.head
-                        previous_node = self._predecessor_of_head
-                        self.head = self.head.successor
-                    previous_node.successor = current_node.successor
-
-                self._len -= 1
-
-                return
-
-            previous_node = current_node
-            current_node = current_node.successor
-
             if current_node is self.head:
                 break
 
-        raise ValueError('{} is not in circular linked list.'.format(repr(value)))
-
-    remove = remove_first
-
-    def remove_last(self, value):
-        """Removes last occurrence of value."""
-        if self.is_empty():
-            raise ValueError('Can\'t remove from empty circular linked list.')
-
-        # traverse instance until value is found, remember node and
-        # predecessor, after traversal remove remembered node
-        predecessor = None
-        node = None
-
-        previous_node = None
-        current_node = self.head
-        while True:
-            if current_node.value is value or current_node.value == value:
-                if previous_node is None:  # ie current_node is self.head
-                    predecessor = self._predecessor_of_head
-                else:
-                    predecessor = previous_node
-                node = current_node
-
-            previous_node = current_node
-            current_node = current_node.successor
-
-            if current_node is self.head:
-                break
-
-        if node:
-            predecessor.successor = node.successor
-
-            if self.head.successor is self.head:  # length 1
-                self.head = None
-            elif node is self.head:
-                self.head = self.head.successor
-
-            self._len -= 1
-        else:
-            raise ValueError('{} is not in circular linked list.'.format(repr(value)))
+        self.head.successor = previous_node  # former tail
+        self._head = previous_node
 
 
-class DoublyLinkedList(MutableSequence):
+class DoublyLinkedList(LinkedList):
     """Class that implements doubly linked lists."""
 
-    class Node:
+    class Node(BasicLinkedList.Node):
         """Internal node class for doubly linked lists."""
 
         def __init__(self, value, predecessor=None, successor=None):
-            self.value = value
+            super().__init__(value, successor=successor)
             self.predecessor = predecessor
-            self.successor = successor
-
-        def __repr__(self):
-            return repr(self.value)
-
-        def __str__(self):
-            return str(self.value)
 
     def __init__(self, values=None):
+        if values is not None and not isinstance(values, Iterable):
+            raise TypeError('\'{}\' object is not '
+                            'iterable.'.format(type(values).__name__))
+
         self._len = 0
         if values:
             iterator = iter(values)
 
-            self.head = self.Node(next(iterator))
+            self._head = self.Node(next(iterator))
             self._len += 1
 
             current_node = self.head
@@ -973,155 +987,32 @@ class DoublyLinkedList(MutableSequence):
                 current_node = current_node.successor
                 self._len += 1
 
-            self.tail = current_node
+            self._tail = current_node
         else:
-            self.head = None
-            self.tail = None
-
-    def __bool__(self):
-        return not self.is_empty()
-
-    def __iter__(self):
-        # traverse instance, meanwhile yield values
-        current_node = self.head
-        while current_node:
-            yield current_node.value
-            current_node = current_node.successor
+            self._head = None
+            self._tail = None
 
     def __reversed__(self):
         # traverse instance backwards, meanwhile yield values
-        current_node = self.tail
-        while current_node:
-            yield current_node.value
-            current_node = current_node.predecessor
-
-    def __getitem__(self, key):
-        if isinstance(key, Integral):
-            return self._get_node(key).value
-        elif isinstance(key, slice):
-            raise NotImplementedError('Access by slices not yet implemented.')
-        else:
-            raise TypeError('Indices must be integers or slices.')
-
-    def __setitem__(self, key, value):
-        if isinstance(key, Integral):
-            self._get_node(key).value = value
-        elif isinstance(key, slice):
-            raise NotImplementedError('Access by slices not yet implemented.')
-        else:
-            raise TypeError('Indices must be integers or slices.')
-
-    def __delitem__(self, key):
-        if isinstance(key, Integral):
-            if self.is_empty():
-                raise IndexError('Can\'t delete from empty doubly linked list.')
-
-            node = self._get_node(key)
-
-            # delete node
-            if node is self.head and node is self.tail:  # length 1
-                self.head = None
-                self.tail = None
-            elif node is self.head:
-                self.head = self.head.successor
-                if self.head:
-                    self.head.predecessor = None
-            elif node is self.tail:
-                self.tail = self.tail.predecessor
-                if self.tail:
-                    self.tail.successor = None
-            else:
-                predecessor = node.predecessor
-                successor = node.successor
-                predecessor.successor, successor.predecessor \
-                    = successor, predecessor
-
-            self._len -= 1
-        elif isinstance(key, slice):
-            raise NotImplementedError('Access by slices not yet implemented.')
-        else:
-            raise TypeError('Indices must be integers or slices.')
-
-    def __len__(self):
-        return self._len
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-
-        # traverse instance and other linked list in parallel while
-        # checking for equality
-        current_node_self = self.head
-        current_node_other = other.head
-        while (current_node_self and current_node_other
-               and  # current_node_self.value is current_node_other.value
-               # or
-               current_node_self.value == current_node_other.value):
-            current_node_self = current_node_self.successor
-            current_node_other = current_node_other.successor
-
-        return (current_node_self is current_node_other
-                or current_node_self == current_node_other)
-
-    def __add__(self, other):
-        if not isinstance(other, self.__class__):
-            raise TypeError('Can only concatenate doubly linked list to '
-                            'doubly linked list.')
-
-        result = self.__class__(self)
-        result += other
-
-        return result
-
-    def __iadd__(self, other):
-        return self.extend(other)
-
-    def __mul__(self, other):
-        result = self.__class__(self)
-        result *= other
-
-        return result
-
-    def __imul__(self, other):
-        if not isinstance(other, Integral):
-            raise TypeError(
-                'Can\'t multiply doubly linked list by non-integer of '
-                'type \'{}\'.'.format(type(other).__name__))
-
-        if other < 0:
-            raise ValueError('Can\'t multiply doubly linked list by negative '
-                             'integer.')
-
-        if other == 0:
-            self.head = None
-        else:
-            copy = self.__class__(self)
-            self *= other - 1
-            self += copy
-
-        return self
-
-    def __rmul__(self, other):
-        return self * other
-
-    def __repr__(self):
-        # determine values of first seven nodes (at most)
-        first_values = []
-        current_node = self.head
-        count = 0
-        while count < 7 and current_node:
-            first_values.append(current_node.value)
-            current_node = current_node.successor
-            count += 1
-
-        return '{}({})'.format(self.__class__.__name__,
-                               reprlib_repr(first_values))
+        for node in self._reversed_traversal():
+            yield node.value
 
     def __str__(self):
         return ' \u21c4 '.join(str(value) for value in self)
 
-    def _get_node(self, key):
-        """Returns node at index."""
+    def _reversed_traversal(self, start_node=None):
+        """Traverses instance in reverse order, beginning with start_node
+        (default: tail)."""
+        if start_node is None:
+            start_node = self.tail
+
+        current_node = start_node
+        while current_node:
+            yield current_node
+            current_node = current_node.predecessor
+
+    def _validate_and_adjust_key(self, key):
+        """Validates and adjusts integral key."""
         # cast key from Integral to int (so that >=, etc. are defined)
         key = int(key)
 
@@ -1135,99 +1026,139 @@ class DoublyLinkedList(MutableSequence):
         if key < -length // 2:
             key += length
 
+        return key
+
+    def _get_node(self, key):
+        """Returns node at index."""
+        key = self._validate_and_adjust_key(key)
+
         # traverse instance, return current node if item at index is
         # reached
         if key >= 0:
-            # traverse instance forwards, beginning from head
-            current_node = self.head
-            while current_node:
+            # traverse instance forwards
+            for node in self._traversal():
                 if key == 0:
-                    return current_node
+                    return node
                 key -= 1
-                current_node = current_node.successor
         else:
-            # traverse instance backwards, beginning from tail
-            current_node = self.tail
-            while current_node:
+            # traverse instance backwards
+            for node in self._reversed_traversal():
                 if key == -1:
-                    return current_node
+                    return node
                 key += 1
-                current_node = current_node.predecessor
 
-    def is_empty(self):
-        """Checks whether this instance is the empty doubly linked list."""
-        return self.head is None
+    def _get_node_with_predecessor(self, key):
+        node = self._get_node(key)
+        return node, node.predecessor
 
-    def index(self, value, start=0, stop=None):
-        """Returns first index of value."""
-        if self.is_empty():
-            raise ValueError('Can\'t find value in empty doubly linked list.')
+    def _insert_as_predecessor(self, node, value, current_predecessor):
+        """Inserts value before node by reconnecting current predecessor."""
+        assert node.predecessor == current_predecessor
 
-        if start < 0 or stop and stop < 0:
-            length = len(self)
-            if start < 0:
-                start = max(start + length, 0)
-            if stop and stop < 0:
-                stop += length
+        super()._insert_as_predecessor(node, value, current_predecessor)
 
-        # traverse instance, beginning from node at index start, when
-        # value is reached, return index
-        current_node = self._get_node(start)
-        idx = start
-        while current_node and (stop is None or idx < stop):
-            if current_node.value is value or current_node.value == value:
-                return idx
-            current_node = current_node.successor
-            idx += 1
+        if current_predecessor:
+            current_predecessor.successor.predecessor = current_predecessor
+            node.predecessor = current_predecessor.successor
+        else:  # ie node was self.head
+            node.predecessor = self.head
 
-        raise ValueError(
-            '{} is not in doubly linked list.'.format(repr(value)))
+    def _insert_as_successor(self, node, value):
+        """Inserts value after node by reconnecting current successor."""
+        super()._insert_as_successor(node, value)
 
-    def insert_after(self, index, value):
-        """Inserts value after index."""
-        node = self._get_node(index)
-        node.successor = self.Node(value, predecessor=node,
-                                   successor=node.successor)
+        node.successor.predecessor = node
         if node.successor.successor:
             node.successor.successor.predecessor = node.successor
-        if node is self.tail:
-            self.tail = node.successor
-        self._len += 1
 
-    def insert_before(self, index, value):
-        """Inserts value before index."""
-        node = self._get_node(index)
-        node.predecessor = self.Node(value, predecessor=node.predecessor,
-                                     successor=node)
-        if node.predecessor.predecessor:
-            node.predecessor.predecessor.successor = node.predecessor
-        if node is self.head:
-            self.head = node.predecessor
-        self._len += 1
+    def _extend_by_prepending(self, other):
+        """Extends this instance by prepending values from instance other."""
+        head = self.head  # save old head
 
-    insert = insert_before
+        super()._extend_by_prepending(other)
+
+        if head:  # ie self was not empty
+            head.predecessor = other.tail
+
+    def _extend_by_appending(self, other):
+        """Extends this instance by appending values from instance other."""
+        tail = self.tail  # save old tail
+
+        super()._extend_by_appending(other)
+
+        if other:
+            other.head.predecessor = tail
+
+    def _remove_node(self, node, predecessor):
+        """Removes node by connecting predecessor with successor."""
+        assert node.predecessor == predecessor
+
+        super()._remove_node(node, predecessor)
+
+        if node.successor:
+            node.successor.predecessor = predecessor
+
+    def last_index(self, value, start=0, stop=None):
+        """Returns last index of value."""
+        if self.is_empty():
+            raise ValueError('Can\'t find value in empty list.')
+
+        start, stop = self._validate_and_adjust_slice(start, stop)
+
+        # traverse instance in reverse order, beginning from node at
+        # index befor stop, when value is reached, return index
+        idx = len(self) - 1
+        for node in self._reversed_traversal():
+            if idx < stop and (node.value is value or node.value == value):
+                return idx
+            idx -= 1
+            if idx < start:
+                break
+
+        raise ValueError('{} is not in list resp. slice.'.format(repr(value)))
 
     def prepend(self, value):
         """Prepends an item to this instance."""
-        if self.is_empty():
-            self.head = self.Node(value)
-            self.tail = self.head
-        else:
-            self.head = self.Node(value, predecessor=None, successor=self.head)
-            self.head.successor.predecessor = self.head
+        super().prepend(value)
 
-        self._len += 1
+        if self.head.successor:
+            self.head.successor.predecessor = self.head
 
     def append(self, value):
         """Appends an item to this instance."""
-        if self.is_empty():
-            self.head = self.Node(value)
-            self.tail = self.head
-        else:
-            self.tail = self.Node(value, predecessor=self.tail, successor=None)
-            self.tail.predecessor.successor = self.tail
+        tail = self.tail  # save old tail
 
-        self._len += 1
+        super().append(value)
+
+        if tail:
+            tail.predecessor = tail
+
+    def remove_first(self, value):
+        """Removes first occurrence of value."""
+        if self.is_empty():
+            raise ValueError('Can\'t remove from empty list.')
+
+        # traverse instance until value is found, then remove node
+        for node in self._traversal():
+            if node.value is value or node.value == value:
+                self._remove_node(node, node.predecessor)
+                return
+
+        raise ValueError('{} is not in list.'.format(repr(value)))
+
+    def remove_last(self, value):
+        """Removes last occurrence of value."""
+        if self.is_empty():
+            raise ValueError('Can\'t remove from empty list.')
+
+        # traverse instance in reverse order until value is found, then
+        # remove node
+        for node in self._reversed_traversal():
+            if node.value is value or node.value == value:
+                self._remove_node(node, node.predecessor)
+                return
+
+        raise ValueError('{} is not in list.'.format(repr(value)))
 
     def reverse(self):
         """Reverses this instance."""
@@ -1241,185 +1172,26 @@ class DoublyLinkedList(MutableSequence):
                 = current_node.successor, current_node.predecessor
             current_node = current_node.predecessor  # former successor
 
-        self.head, self.tail = self.tail, self.head
-
-    def extend_by_prepending(self, other):
-        """Extends instance by prepending elements from iterable other."""
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
-
-        # convert/copy other to doubly linked list
-        other = self.__class__(other)
-
-        if other.is_empty():
-            return self
-
-        # define the new tail/predecessor of head to be the tail of the
-        # other doubly linked list
-        if self.is_empty():
-            self.tail = other.tail
-        else:
-            self.head.predecessor = other.tail
-            other.tail.successor = self.head
-
-        self.head = other.head
-
-        self._len += len(other)
-
-        return self
-
-    def extend_by_appending(self, other):
-        """Extends instance by appending elements from iterable other."""
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
-
-        # convert/copy other to doubly linked list
-        other = self.__class__(other)
-
-        if other.is_empty():
-            return self
-
-        # define the new head/successor of tail to be the head of the
-        # other doubly linked list
-        if self.is_empty():
-            self.head = other.head
-        else:
-            self.tail.successor = other.head
-            other.head.predecessor = self.tail
-
-        self.tail = other.tail
-
-        self._len += len(other)
-
-        return self
-
-    extend = extend_by_appending
-
-    def pop(self, index=-1):
-        """Removes and returns item at index (default -1)."""
-        if self.is_empty():
-            raise IndexError('Can\'t pop from empty doubly linked list.')
-
-        node = self._get_node(index)
-
-        # remove node
-        if node is self.head and node is self.tail:
-            self.head = None
-            self.tail = None
-        elif node is self.head:
-            self.head = self.head.successor
-            self.head.predecessor = None
-        elif node is self.tail:
-            self.tail = self.tail.predecessor
-            self.tail.successor = None
-        else:
-            predecessor = node.predecessor
-            successor = node.successor
-            predecessor.successor, successor.predecessor \
-                = successor, predecessor
-
-        self._len -= 1
-
-        return node.value
-
-    def remove_first(self, value):
-        """Removes first occurrence of value."""
-        if self.is_empty():
-            raise ValueError('Can\'t remove from empty doubly linked list.')
-
-        # traverse instance until value is found, then remove node
-        current_node = self.head
-        while current_node:
-            if current_node.value is value or current_node.value == value:
-                if current_node is self.head and current_node is self.tail:
-                    self.head = None
-                    self.tail = None
-                elif current_node is self.head:
-                    self.head = self.head.successor
-                    if self.head:
-                        self.head.predecessor = None
-                elif current_node is self.tail:
-                    self.tail = self.tail.predecessor
-                    if self.tail:
-                        self.tail.successor = None
-                else:
-                    predecessor = current_node.predecessor
-                    successor = current_node.successor
-                    predecessor.successor, successor.predecessor \
-                        = successor, predecessor
-
-                self._len -= 1
-
-                return
-
-            current_node = current_node.successor
-
-        raise ValueError(
-            '{} is not in doubly linked list.'.format(repr(value)))
-
-    remove = remove_first
-
-    def remove_last(self, value):
-        """Removes last occurrence of value."""
-        if self.is_empty():
-            raise ValueError('Can\'t remove from empty doubly linked list.')
-
-        # traverse instance backwards until value is found, then remove node
-        current_node = self.tail
-        while current_node:
-            if current_node.value is value or current_node.value == value:
-                if current_node is self.head and current_node is self.tail:
-                    self.head = None
-                    self.tail = None
-                elif current_node is self.tail:
-                    self.tail = self.tail.predecessor
-                    if self.tail:
-                        self.tail.successor = None
-                elif current_node is self.head:
-                    self.head = self.head.successor
-                    if self.head:
-                        self.head.predecessor = None
-                else:
-                    predecessor = current_node.predecessor
-                    successor = current_node.successor
-                    predecessor.successor, successor.predecessor \
-                        = successor, predecessor
-
-                self._len -= 1
-
-                return
-
-            current_node = current_node.predecessor
-
-        raise ValueError(
-            '{} is not in doubly linked list.'.format(repr(value)))
+        self._head, self._tail = self.tail, self.head
 
 
-class CircularDoublyLinkedList(MutableSequence):
+class CircularDoublyLinkedList(CircularLinkedList):
     """Class that implements circular doubly linked lists."""
 
-    class Node:
-        """Internal node class for circular doubly linked lists."""
-
-        def __init__(self, value, predecessor=None, successor=None):
-            self.value = value
-            self.predecessor = predecessor
-            self.successor = successor
-
-        def __repr__(self):
-            return repr(self.value)
-
-        def __str__(self):
-            return str(self.value)
+    class Node(DoublyLinkedList.Node):
+        """Internal node class for doubly linked lists."""
+        pass
 
     def __init__(self, values=None):
+        if values is not None and not isinstance(values, Iterable):
+            raise TypeError('\'{}\' object is not '
+                            'iterable.'.format(type(values).__name__))
+
         self._len = 0
         if values:
             iterator = iter(values)
 
-            self.head = self.Node(next(iterator))
+            self._head = self.Node(next(iterator))
             self._len += 1
 
             current_node = self.head
@@ -1432,158 +1204,12 @@ class CircularDoublyLinkedList(MutableSequence):
             current_node.successor = self.head
             self.head.predecessor = current_node
         else:
-            self.head = None
-
-    def __bool__(self):
-        return not self.is_empty()
-
-    def __iter__(self):
-        # traverse instance, meanwhile yield values
-        if self.head:
-            current_node = self.head
-            while True:
-                yield current_node.value
-                current_node = current_node.successor
-                if current_node is self.head:
-                    break
+            self._head = None
 
     def __reversed__(self):
         # traverse instance backwards, meanwhile yield values
-        if self.head:
-            current_node = self.head.predecessor
-            while True:
-                yield current_node.value
-                current_node = current_node.predecessor
-                if current_node is self.head.predecessor:
-                    break
-
-    def __getitem__(self, key):
-        if isinstance(key, Integral):
-            return self._get_node(key).value
-        elif isinstance(key, slice):
-            raise NotImplementedError('Access by slices not yet implemented.')
-        else:
-            raise TypeError('Indices must be integers or slices.')
-
-    def __setitem__(self, key, value):
-        if isinstance(key, Integral):
-            self._get_node(key).value = value
-        elif isinstance(key, slice):
-            raise NotImplementedError('Access by slices not yet implemented.')
-        else:
-            raise TypeError('Indices must be integers or slices.')
-
-    def __delitem__(self, key):
-        if isinstance(key, Integral):
-            if self.is_empty():
-                raise IndexError('Can\'t delete from empty circular doubly '
-                                 'linked list.')
-
-            # delete node
-            if self.head.successor is self.head:  # length 1
-                self.head = None
-            else:
-                node = self._get_node(key)
-
-                predecessor = node.predecessor
-                successor = node.successor
-                predecessor.successor, successor.predecessor \
-                    = successor, predecessor
-                if node is self.head:
-                    self.head = self.head.successor
-
-            self._len -= 1
-        elif isinstance(key, slice):
-            raise NotImplementedError('Access by slices not yet implemented.')
-        else:
-            raise TypeError('Indices must be integers or slices.')
-
-    def __len__(self):
-        return self._len
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-
-        if self.is_empty():
-            return other.is_empty()
-        if other.is_empty():
-            return False  # self.is_empty() is False
-
-        # traverse instance and other linked list in parallel while
-        # checking for equality
-        current_node_self = self.head
-        current_node_other = other.head
-        while True:
-            if (current_node_self.value is current_node_other.value
-                    or current_node_self.value == current_node_other.value):
-                current_node_self = current_node_self.successor
-                current_node_other = current_node_other.successor
-            else:
-                return False
-            if current_node_self is self.head:
-                return current_node_other is other.head
-            if current_node_other is other.head:
-                return False  # current_node_self is not self.head
-
-    def __add__(self, other):
-        if not isinstance(other, self.__class__):
-            raise TypeError('Can only concatenate circular doubly linked list '
-                            'to circular doubly linked list.')
-
-        result = self.__class__(self)
-        result += other
-
-        return result
-
-    def __iadd__(self, other):
-        return self.extend(other)
-
-    def __mul__(self, other):
-        result = self.__class__(self)
-        result *= other
-
-        return result
-
-    def __imul__(self, other):
-        if not isinstance(other, Integral):
-            raise TypeError(
-                'Can\'t multiply circular doubly linked list by non-integer '
-                'of type \'{}\'.'.format(type(other).__name__))
-
-        if other < 0:
-            raise ValueError('Can\'t multiply circular doubly linked list by '
-                             'negative integer.')
-
-        if other == 0:
-            self.head = None
-        else:
-            copy = self.__class__(self)
-            self *= other - 1
-            self += copy
-
-        return self
-
-    def __rmul__(self, other):
-        return self * other
-
-    def __repr__(self):
-        if self.is_empty():
-            return '{}([])'.format(self.__class__.__name__)
-
-        # determine values of first seven nodes (at most)
-        first_values = []
-        current_node = self.head
-        count = 0
-        while count < 7:
-            first_values.append(current_node.value)
-            current_node = current_node.successor
-            count += 1
-            if current_node is self.head:
-                break
-
-        return '{}({})'.format(self.__class__.__name__,
-                               reprlib_repr(first_values))
+        for node in self._reversed_traversal():
+            yield node.value
 
     def __str__(self):
         if self.is_empty():
@@ -1591,17 +1217,33 @@ class CircularDoublyLinkedList(MutableSequence):
         else:
             return ' \u21c4 '.join(str(value) for value in self) + ' \u21c4'
 
-    def _get_node(self, key):
-        """Returns node at index."""
-        length = len(self)
-        if length == 0:
-            raise IndexError('Can\'t access node in empty circular doubly '
-                             'linked list.')
+    @property
+    def tail(self):
+        if self.is_empty():
+            return
+        else:
+            return self.head.predecessor
 
-        # cast key from Integral to int (so that >=, etc. are defined)
+    def _reversed_traversal(self, start_node=None):
+        """Traverses instance in reverse order, beginning with start_node
+        (default: tail)."""
+        if not self.is_empty():
+            if start_node is None:
+                start_node = self.tail
+
+            current_node = start_node
+            while True:
+                yield current_node
+                current_node = current_node.predecessor
+                if current_node is self.tail:
+                    break
+
+    def _validate_and_adjust_key(self, key):
         key = int(key)
 
-        key %= length
+        length = len(self)
+        if key < -length or key >= length:
+            raise IndexError('Index out of range.')
 
         # prepare key for efficient traverse
         if key >= length // 2:
@@ -1609,89 +1251,142 @@ class CircularDoublyLinkedList(MutableSequence):
         if key < -length // 2:
             key += length
 
+        return key
+
+    def _get_node(self, key):
+        """Returns node at index."""
+        key = self._validate_and_adjust_key(key)
+
         # traverse instance, return current node if item at index is
         # reached
-        current_node = self.head
-        while current_node:
-            if key == 0:
-                return current_node
-            elif key > 0:
-                # traverse instance forwards
+        if key >= 0:
+            # traverse instance forwards
+            for node in self._traversal():
+                if key == 0:
+                    return node
                 key -= 1
-                current_node = current_node.successor
-            else:
-                # traverse instance backwards
+        else:
+            # traverse instance backwards
+            for node in self._reversed_traversal():
+                if key == -1:
+                    return node
                 key += 1
-                current_node = current_node.predecessor
 
-    def is_empty(self):
-        """Checks whether this instance is the empty doubly linked list."""
-        return self.head is None
+    def _get_node_with_predecessor(self, key):
+        """Returns node at index."""
+        node = self._get_node(key)
+        return node, node.predecessor
 
-    def index(self, value, start=0, stop=None):
-        """Returns first index of value."""
+    def _insert_as_predecessor(self, node, value, current_predecessor):
+        """Inserts value before node by reconnecting current predecessor."""
+        assert node.predecessor == current_predecessor
+
+        super()._insert_as_predecessor(node, value, current_predecessor)
+
+        current_predecessor.successor.predecessor = current_predecessor
+        node.predecessor = current_predecessor.successor
+
+    def _insert_as_successor(self, node, value):
+        """Inserts value after node by reconnecting current successor."""
+        super()._insert_as_successor(node, value)
+
+        node.successor.predecessor = node  # vorher None
+        node.successor.successor.predecessor = node.successor  # vorher node
+
+    def _extend_by_prepending(self, other):
+        """Extends this instance by prepending values from instance other."""
+        # save old head and tail
+        head = self.head
+        tail = self.tail
+
+        super()._extend_by_prepending(other)
+
+        if head:  # ie self was not empty
+            head.predecessor = other.tail
+            self.head.predecessor = tail
+
+    def _extend_by_appending(self, other):
+        """Extends this instance by appending values from instance other."""
+        # save tails of self and other
+        tail_of_self = self.tail
+        tail_of_other = other.tail
+
+        super()._extend_by_appending(other)
+
+        if other:
+            other.head.predecessor = tail_of_self
+            self.head.predecessor = tail_of_other
+
+    def _remove_node(self, node, predecessor):
+        """Removes node by connecting predecessor with successor."""
+        assert node.predecessor == predecessor
+
+        super()._remove_node(node, predecessor)
+
+        node.successor.predecessor = predecessor
+
+    def last_index(self, value, start=0, stop=None):
+        """Returns last index of value."""
         if self.is_empty():
-            raise ValueError('Can\'t find value in empty circular doubly '
-                             'linked list.')
+            raise ValueError('Can\'t find value in empty list.')
 
-        length = len(self)
-        start %= length
-        if stop:
-            stop %= length
+        start, stop = self._validate_and_adjust_slice(start, stop)
 
-        # traverse instance, beginning from node at index start, when
-        # value is reached, return index
-        current_node = self._get_node(start)
-        idx = start
-        while stop is None or idx < stop:
-            if current_node.value is value or current_node.value == value:
+        # traverse instance in reverse order, beginning from node at
+        # index befor stop, when value is reached, return index
+        idx = len(self) - 1
+        for node in self._reversed_traversal():
+            if idx < stop and (node.value is value or node.value == value):
                 return idx
-            current_node = current_node.successor
-            idx += 1
-            if current_node is self.head:
+            idx -= 1
+            if idx < start:
                 break
 
-        raise ValueError('{} is not in circular doubly linked list resp. '
-                         'slice.'.format(repr(value)))
-
-    def insert_after(self, index, value):
-        """Inserts value after index."""
-        node = self._get_node(index)
-        node.successor = self.Node(value, predecessor=node,
-                                   successor=node.successor)
-        node.successor.successor.predecessor = node.successor
-        self._len += 1
-
-    def insert_before(self, index, value):
-        """Inserts value before index."""
-        node = self._get_node(index)
-        node.predecessor = self.Node(value, predecessor=node.predecessor,
-                                     successor=node)
-        node.predecessor.predecessor.successor = node.predecessor
-        if node is self.head:
-            self.head = node.predecessor
-        self._len += 1
-
-    insert = insert_before
+        raise ValueError('{} is not in list resp. slice.'.format(repr(value)))
 
     def prepend(self, value):
         """Prepends an item to this instance."""
-        if self.is_empty():
-            self.head = self.Node(value)
-            self.head.predecessor = self.head
-            self.head.successor = self.head
-        else:
-            self.head = self.Node(value, predecessor=self.head.predecessor,
-                                  successor=self.head)
-            self.head.predecessor.successor = self.head
-            self.head.successor.predecessor = self.head
+        tail = self.tail  # save old tail
 
-        self._len += 1
+        super().prepend(value)
+
+        # ie self was not empty
+        self.head.predecessor = tail if tail else self.head
+
+        if self.head.successor:
+            self.head.successor.predecessor = self.head
 
     def append(self, value):
         """Appends an item to this instance."""
         self.prepend(value)
-        self.head = self.head.successor
+        self._head = self.head.successor
+
+    def remove_first(self, value):
+        """Removes first occurrence of value."""
+        if self.is_empty():
+            raise ValueError('Can\'t remove from empty list.')
+
+        # traverse instance until value is found, then remove node
+        for node in self._traversal():
+            if node.value is value or node.value == value:
+                self._remove_node(node, node.predecessor)
+                return
+
+        raise ValueError('{} is not in list.'.format(repr(value)))
+
+    def remove_last(self, value):
+        """Removes last occurrence of value."""
+        if self.is_empty():
+            raise ValueError('Can\'t remove from empty list.')
+
+        # traverse instance in reverse order until value is found, then
+        # remove node
+        for node in self._reversed_traversal():
+            if node.value is value or node.value == value:
+                self._remove_node(node, node.predecessor)
+                return
+
+        raise ValueError('{} is not in list.'.format(repr(value)))
 
     def reverse(self):
         """Reverses this instance."""
@@ -1707,144 +1402,4 @@ class CircularDoublyLinkedList(MutableSequence):
             if current_node is self.head:
                 break
 
-        self.head = self.head.successor
-
-    def extend_by_prepending(self, other):
-        """Extends instance by prepending elements from iterable other."""
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
-
-        # convert/copy other to doubly linked list
-        other = self.__class__(other)
-
-        if other.is_empty():
-            return self
-
-        # define the new tail/predecessor of head to be the tail of the
-        # other doubly linked list
-        if not self.is_empty():
-            other.head.predecessor.successor = self.head
-            self.head.predecessor.successor = other.head
-            self.head.predecessor, other.head.predecessor \
-                = other.head.predecessor, self.head.predecessor
-
-        self.head = other.head
-
-        self._len += len(other)
-
-        return self
-
-    def extend_by_appending(self, other):
-        """Extends instance by appending elements from iterable other."""
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
-
-        # convert/copy other to doubly linked list
-        other = self.__class__(other)
-
-        if other.is_empty():
-            return self
-
-        # define the new head/successor of tail to be the head of the
-        # other doubly linked list
-        if self.is_empty():
-            self.head = other.head
-        else:
-            self.head.predecessor.successor = other.head
-            other.head.predecessor.successor = self.head
-            self.head.predecessor, other.head.predecessor \
-                = other.head.predecessor, self.head.predecessor
-
-        self._len += len(other)
-
-        return self
-
-    extend = extend_by_appending
-
-    def pop(self, index=-1):
-        """Removes and returns item at index (default -1)."""
-        if self.is_empty():
-            raise IndexError('Can\'t pop from empty doubly linked list.')
-
-        node = self._get_node(index)
-
-        # remove node
-        if self.head.successor is self.head:  # length 1
-            self.head = None
-        else:
-            if node is self.head:
-                self.head = self.head.successor
-            node.predecessor.successor = node.successor
-            node.successor.predecessor = node.predecessor
-
-        self._len -= 1
-
-        return node.value
-
-    def remove_first(self, value):
-        """Removes first occurrence of value."""
-        if self.is_empty():
-            raise ValueError('Can\'t remove from empty circular doubly linked '
-                             'list.')
-
-        # traverse instance until value is found, then remove node
-        current_node = self.head
-        while True:
-            if current_node.value is value or current_node.value == value:
-                if self.head.successor is self.head: # length 1
-                    self.head = None
-                else:
-                    predecessor = current_node.predecessor
-                    successor = current_node.successor
-                    predecessor.successor, successor.predecessor \
-                        = successor, predecessor
-                    if current_node is self.head:
-                        self.head = successor
-
-                self._len -= 1
-
-                return
-
-            current_node = current_node.successor
-
-            if current_node is self.head:
-                break
-
-        raise ValueError(
-            '{} is not in circular doubly linked list.'.format(repr(value)))
-
-    remove = remove_first
-
-    def remove_last(self, value):
-        """Removes last occurrence of value."""
-        if self.is_empty():
-            raise ValueError('Can\'t remove from empty circular doubly linked '
-                             'list.')
-
-        # traverse instance until value is found, then remove node
-        current_node = self.head.predecessor
-        while True:
-            if current_node.value is value or current_node.value == value:
-                if self.head.successor is self.head:  # length 1
-                    self.head = None
-                else:
-                    predecessor = current_node.predecessor
-                    successor = current_node.successor
-                    predecessor.successor, successor.predecessor \
-                        = successor, predecessor
-                    if current_node is self.head:
-                        self.head = successor
-
-                self._len -= 1
-
-                return
-
-            current_node = current_node.predecessor
-
-            if current_node is self.head.predecessor:
-                break
-
-        raise ValueError(
-            '{} is not in circular doubly linked list.'.format(repr(value)))
+        self._head = self.head.successor
