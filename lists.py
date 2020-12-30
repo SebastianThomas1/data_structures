@@ -12,8 +12,9 @@ from copy import copy
 from reprlib import repr as reprlib_repr
 
 
-__all__ = ['List', 'BasicLinkedList', 'LinkedList', 'CircularLinkedList',
-           'DoublyLinkedList', 'CircularDoublyLinkedList']
+__all__ = ['List', 'ArrayList', 'BasicLinkedList', 'LinkedList',
+           'CircularLinkedList', 'DoublyLinkedList',
+           'CircularDoublyLinkedList']
 
 
 class List(MutableSequence):
@@ -100,6 +101,25 @@ class List(MutableSequence):
 
         return self
 
+    def _validate_and_adjust_key(self, key):
+        """Validates and adjusts integral key."""
+        length = len(self)
+        if key < -length or key >= length:
+            raise IndexError('Index out of range.')
+        elif key < 0:
+            key += length
+
+        return key
+
+    def _validate_and_adjust_slice(self, start, stop):
+        """Validates and adjusts slice."""
+        start, stop, _ = slice(start, stop, 1).indices(len(self))
+
+        if start > stop:
+            raise ValueError('Slice is empty.')
+
+        return start, stop
+
     def is_empty(self):
         """Checks whether this instance is an empty list."""
         return len(self) == 0
@@ -108,6 +128,8 @@ class List(MutableSequence):
         """Returns first index of value."""
         if self.is_empty():
             raise ValueError('Can\'t find value in empty list.')
+
+        start, stop = self._validate_and_adjust_slice(start, stop)
 
         # check entries until value is found, then return index
         for idx in range(start, stop):
@@ -121,6 +143,8 @@ class List(MutableSequence):
         """Returns first index of value."""
         if self.is_empty():
             raise ValueError('Can\'t find value in empty list.')
+
+        start, stop = self._validate_and_adjust_slice(start, stop)
 
         # check entries; if value is found, remember index
         remembered = None
@@ -201,6 +225,116 @@ class List(MutableSequence):
     def remove(self, value):
         """Alias to remove_first: removes first occurrence of value."""
         self.remove_first(value)
+
+
+class ArrayList(List):
+    """Class that implements array lists (dynamic array).
+
+    It is essentially a wrapper for Python's builtin lists."""
+
+    def __init__(self, values=None):
+        if values is not None and not isinstance(values, Iterable):
+            raise TypeError('\'{}\' object is not '
+                            'iterable.'.format(type(values).__name__))
+
+        if values:
+            self._values = list(values)
+        else:
+            self._values = list()
+
+    def __iter__(self):
+        return iter(self._values)
+
+    def __reversed__(self):
+        return reversed(self._values)
+
+    def __copy__(self):
+        return type(self)(self)
+
+    def __bool__(self):
+        return bool(self._values)
+
+    def __len__(self):
+        return len(self._values)
+
+    def __repr__(self):
+        return '{}({})'.format(type(self).__name__,
+                               reprlib_repr(self._values))
+
+    def __str__(self):
+        return str(self._values)
+
+    def __getitem__(self, key):
+        if isinstance(key, Integral):
+            return self._values[int(key)]
+        elif isinstance(key, slice):
+            return ArrayList(self._values[key])
+        else:
+            raise TypeError('Indices must be integers or slices.')
+
+    def __setitem__(self, key, value):
+        if isinstance(key, Integral):
+            self._values[int(key)] = value
+        elif isinstance(key, slice):
+            if isinstance(value, Iterable):
+                self._values[key] = value
+            else:
+                raise TypeError('Can only assign an iterable.')
+        else:
+            raise TypeError('Indices must be integers or slices.')
+
+    def __delitem__(self, key):
+        if isinstance(key, Integral):
+            del self._values[int(key)]
+        elif isinstance(key, slice):
+            del self._values[key]
+        else:
+            raise TypeError('Indices must be integers or slices.')
+
+    def is_empty(self):
+        return not bool(self)
+
+    def first_index(self, value, start=0, stop=None):
+        start, stop = self._validate_and_adjust_slice(start, stop)
+        return self._values.index(value, start, stop)
+
+    def insert_before(self, index, value):
+        if self.is_empty():
+            raise IndexError('Can\'t access index in empty list.')
+
+        index = self._validate_and_adjust_key(index)
+        self._values.insert(index, value)
+
+    def insert_after(self, index, value):
+        if self.is_empty():
+            raise IndexError('Can\'t access index in empty list.')
+
+        index = self._validate_and_adjust_key(index)
+        self._values.insert(index + 1, value)
+
+    def prepend(self, value):
+        self._values = [value] + self._values
+
+    def append(self, value):
+        self._values.append(value)
+
+    def extend_by_prepending(self, other):
+        self._values = list(other) + self._values
+
+    def extend_by_appending(self, other):
+        self._values.extend(other)
+
+    def pop(self, index=-1):
+        self._values.pop(index)
+
+    def clear(self):
+        self._values.clear()
+
+    def remove_first(self, value):
+        self._values.remove(value)
+
+    def reverse(self):
+        self._values.reverse()
 
 
 class BasicLinkedList(List):
@@ -620,22 +754,11 @@ class LinkedList(BasicLinkedList):
 
     def _validate_and_adjust_key(self, key):
         """Validates and adjusts integral key."""
-        length = len(self)
-        if key < -length or key >= length:
-            raise IndexError('Index out of range.')
-        elif key < 0:
-            key += length
-
-        return key
+        return List._validate_and_adjust_key(self, key)
 
     def _validate_and_adjust_slice(self, start, stop):
         """Validates and adjusts slice."""
-        start, stop, _ = slice(start, stop, 1).indices(len(self))
-
-        if start > stop:
-            raise ValueError('Slice is empty.')
-
-        return start, stop
+        return List._validate_and_adjust_slice(self, start, stop)
 
     def _insert_as_predecessor(self, node, value, current_predecessor):
         """Inserts value before node by reconnecting current predecessor."""
@@ -774,22 +897,11 @@ class CircularLinkedList(BasicLinkedList):
 
     def _validate_and_adjust_key(self, key):
         """Validates and adjusts integral key."""
-        length = len(self)
-        if key < -length or key >= length:
-            raise IndexError('Index out of range.')
-        elif key < 0:
-            key += length
-
-        return key
+        return List._validate_and_adjust_key(self, key)
 
     def _validate_and_adjust_slice(self, start, stop):
         """Validates and adjusts slice."""
-        start, stop, _ = slice(start, stop, 1).indices(len(self))
-
-        if start > stop:
-            raise ValueError('Slice is empty.')
-
-        return start, stop
+        return List._validate_and_adjust_slice(self, start, stop)
 
     def _get_node_with_predecessor(self, key):
         """Returns node at index together with predecessor."""

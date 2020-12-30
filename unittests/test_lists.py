@@ -932,6 +932,25 @@ class TestList(unittest.TestCase):
         self.assertEqual(self.list, self.tested_class([42, 2, -3, 42, 1]))
 
 
+class TestArrayList(TestList):
+    def __init__(self, method_name):
+        super().__init__(method_name=method_name, tested_class=ArrayList)
+
+    def test_init(self):
+        self.assertEqual(self.empty_list._values, [])
+        self.assertEqual(self.list_length_1._values, [0])
+        self.assertEqual(self.range_list._values, [0, 1, 2, 3])
+        self.assertEqual(self.list._values, [1, 42, -3, 2, 42])
+
+    def test_str(self):
+        self.assertEqual(str(self.empty_list), '[]')
+        self.assertEqual(str(self.list_length_1), '[0]')
+        self.assertEqual(str(self.range_list), '[0, 1, 2, 3]')
+        self.assertEqual(str(self.list), '[1, 42, -3, 2, 42]')
+        self.assertEqual(str(self.tested_class(range(10))),
+                         '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]')
+
+
 class TestBasicLinkedListNode(unittest.TestCase):
     def setUp(self):
         self.node1 = BasicLinkedList.Node(1)
@@ -962,16 +981,15 @@ class TestBasicLinkedList(TestList):
         super().__init__(method_name=method_name, tested_class=BasicLinkedList)
 
     def test_init(self):
-        # testing empty linked list
         self.assertEqual(self.empty_list.head, None)
         self.assertEqual(self.empty_list.tail, None)
         self.assertEqual(len(self.empty_list), 0)
-        # testing linked list of length 1
+
         self.assertEqual(self.list_length_1.head, self.list_length_1.tail)
         self.assertEqual(self.list_length_1.tail.value, 0)
         self.assertEqual(self.list_length_1.tail.successor, None)
         self.assertEqual(len(self.list_length_1), 1)
-        # testing linked list constructed by range
+
         self.assertEqual(self.range_list.head.value, 0)
         self.assertEqual(self.range_list.head.successor.value, 1)
         self.assertEqual(self.range_list.head.successor.successor.value, 2)
@@ -980,7 +998,7 @@ class TestBasicLinkedList(TestList):
         self.assertEqual(self.range_list.tail.value, 3)
         self.assertEqual(self.range_list.tail.successor, None)
         self.assertEqual(len(self.range_list), 4)
-        # testing linked list constructed by list
+
         self.assertEqual(self.list.head.value, 1)
         self.assertEqual(self.list.head.successor.value, 42)
         self.assertEqual(self.list.head.successor.successor.value, -3)
@@ -1033,17 +1051,16 @@ class TestLinkedList(TestList):
         super().__init__(method_name=method_name, tested_class=LinkedList)
 
     def test_init(self):
-        # testing empty linked list
         self.assertEqual(self.empty_list.head, None)
         self.assertEqual(self.empty_list.tail, None)
         self.assertEqual(len(self.empty_list), 0)
-        # testing linked list of length 1
+
         self.assertEqual(self.list_length_1.head.value, 0)
         self.assertEqual(self.list_length_1.head.successor, None)
         self.assertEqual(self.list_length_1.tail.value, 0)
         self.assertEqual(self.list_length_1.tail.successor, None)
         self.assertEqual(len(self.list_length_1), 1)
-        # testing linked list constructed by range
+
         self.assertEqual(self.range_list.head.value, 0)
         self.assertEqual(self.range_list.head.successor.value, 1)
         self.assertEqual(self.range_list.head.successor.successor.value, 2)
@@ -1052,7 +1069,7 @@ class TestLinkedList(TestList):
         self.assertEqual(self.range_list.tail.value, 3)
         self.assertEqual(self.range_list.tail.successor, None)
         self.assertEqual(len(self.range_list), 4)
-        # testing linked list constructed by list
+
         self.assertEqual(self.list.head.value, 1)
         self.assertEqual(self.list.head.successor.value, 42)
         self.assertEqual(self.list.head.successor.successor.value, -3)
@@ -1334,7 +1351,8 @@ if __name__ == '__main__':
     suite = unittest.TestSuite()
 
     # add test methods as separate tests to test suite
-    for test_case in [TestBasicLinkedListNode, TestBasicLinkedList,
+    for test_case in [TestArrayList,
+                      TestBasicLinkedListNode, TestBasicLinkedList,
                       TestLinkedListNode, TestLinkedList,
                       TestCircularLinkedListNode, TestCircularLinkedList,
                       TestDoublyLinkedListNode, TestDoublyLinkedList,
