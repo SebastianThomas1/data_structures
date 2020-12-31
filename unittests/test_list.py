@@ -1,7 +1,7 @@
 # Sebastian Thomas (datascience at sebastianthomas dot de)
 
 # custom modules
-from list import *
+from datastructures.list import *
 
 # copying objects
 from copy import copy

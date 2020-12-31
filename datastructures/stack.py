@@ -8,8 +8,8 @@ from collections.abc import Iterable
 from reprlib import repr as reprlib_repr
 
 # custom modules
-from base import Collection
-from node import LinkedNode
+from datastructures.base import Collection
+from datastructures.node import LinkedNode
 
 
 __all__ = ['Stack', 'ArrayStack', 'LinkedStack', 'EmptyStackException']

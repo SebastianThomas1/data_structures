@@ -12,7 +12,7 @@ from copy import copy
 from reprlib import repr as reprlib_repr
 
 # custom modules
-from node import LinkedNode, DoublyLinkedNode
+from datastructures.node import LinkedNode, DoublyLinkedNode
 
 
 __all__ = ['List', 'ArrayList', 'BasicLinkedList', 'LinkedList',
