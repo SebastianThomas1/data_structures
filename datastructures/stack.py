@@ -61,9 +61,6 @@ class ArrayStack(Stack):
     def __iter__(self):
         return reversed(self._values)
 
-    def __bool__(self):
-        return bool(self._values)
-
     def __len__(self):
         return len(self._values)
 

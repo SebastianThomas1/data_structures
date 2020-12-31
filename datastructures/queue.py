@@ -38,12 +38,12 @@ class Queue(Collection):
 
     @abstractmethod
     def enqueue(self, value):
-        """Enqueues an item on the queue."""
+        """Enqueues an item on the rear of the queue."""
         pass
 
     @abstractmethod
     def dequeue(self):
-        """Dequeues an item from the queue."""
+        """Dequeues an item from the front of the queue."""
         pass
 
 
@@ -56,9 +56,6 @@ class ArrayQueue(Queue):
 
     def __iter__(self):
         return iter(self._values)
-
-    def __bool__(self):
-        return bool(self._values)
 
     def __len__(self):
         return len(self._values)
@@ -80,7 +77,7 @@ class ArrayQueue(Queue):
         return self
 
     def is_empty(self):
-        """Checks whether this instance is an empty stack."""
+        """Checks whether this instance is an empty queue."""
         return not bool(self._values)
 
     def peek(self):
@@ -91,11 +88,11 @@ class ArrayQueue(Queue):
         return self._values[0]
 
     def enqueue(self, value):
-        """Enqueues an item on the queue."""
+        """Enqueues an item on the rear of the queue."""
         self._values.append(value)
 
     def dequeue(self):
-        """Dequeues an item from the queue."""
+        """Dequeues an item from the front of the queue."""
         if self.is_empty():
             raise EmptyQueueException('Can\'t dequeue from empty queue.')
 
@@ -124,6 +121,7 @@ class LinkedQueue(Queue):
         return self._len
 
     def is_empty(self):
+        """Checks whether this instance is an empty queue."""
         return self._front is None
 
     def peek(self):
@@ -134,7 +132,7 @@ class LinkedQueue(Queue):
         return self._front.value
 
     def enqueue(self, value):
-        """Enqueues an item on the queue."""
+        """Enqueues an item on the rear of the queue."""
         if self.is_empty():
             self._rear = self.Node(value)
             self._front = self._rear
@@ -145,7 +143,7 @@ class LinkedQueue(Queue):
         self._len += 1
 
     def dequeue(self):
-        """Dequeus an item from the queue."""
+        """Dequeus an item from the front of the queue."""
         if self.is_empty():
             raise EmptyQueueException('Can\'t dequeue from empty queue.')
 

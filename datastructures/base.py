@@ -76,5 +76,5 @@ class Collection(PyCollection, metaclass=ABCMeta):
         return False
 
     def is_empty(self):
-        """Checks whether this instance is an empty stack."""
+        """Checks whether this instance is empty."""
         return len(self) == 0

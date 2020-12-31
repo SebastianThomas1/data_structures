@@ -13,7 +13,7 @@ import unittest
 class TestList(unittest.TestCase):
     def __new__(cls, method_name, tested_class=None):
         if cls is TestList:
-            raise TypeError('Class TestList may not be instantiated')
+            raise TypeError('Class TestList may not be instantiated.')
         return super().__new__(cls)
 
     def __init__(self, method_name, tested_class=None):
