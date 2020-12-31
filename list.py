@@ -234,7 +234,7 @@ class List(MutableSequence):
 
 
 class ArrayList(List):
-    """Class that implements array lists (dynamic array).
+    """Class that implements array lists (dynamic arrays).
 
     It is essentially a wrapper for Python's builtin lists."""
 

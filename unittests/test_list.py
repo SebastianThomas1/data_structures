@@ -1,7 +1,7 @@
 # Sebastian Thomas (datascience at sebastianthomas dot de)
 
 # custom modules
-from lists import *
+from list import *
 
 # copying objects
 from copy import copy
@@ -11,12 +11,12 @@ import unittest
 
 
 class TestList(unittest.TestCase):
-    def __new__(cls, method_name, tested_class=LinkedList):
-        #if cls is TestList:
-        #    raise TypeError('Class TestList may not be instantiated')
+    def __new__(cls, method_name, tested_class=None):
+        if cls is TestList:
+            raise TypeError('Class TestList may not be instantiated')
         return super().__new__(cls)
 
-    def __init__(self, method_name, tested_class=LinkedList):
+    def __init__(self, method_name, tested_class=None):
         super().__init__(methodName=method_name)
         self.tested_class = tested_class
 
@@ -1364,4 +1364,3 @@ if __name__ == '__main__':
     # run the tests
     runner = unittest.TextTestRunner()
     runner.run(suite)
-    # unittest.main()
