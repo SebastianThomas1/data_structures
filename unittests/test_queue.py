@@ -10,7 +10,7 @@ import unittest
 class TestQueue(unittest.TestCase):
     def __new__(cls, method_name, tested_class=None):
         if cls is TestQueue:
-            raise TypeError('Class TestQueue may not be instantiated')
+            raise TypeError('Class TestQueue may not be instantiated.')
         return super().__new__(cls)
 
     def __init__(self, method_name, tested_class=None):
@@ -255,6 +255,7 @@ class TestLinkedQueue(TestQueue):
 
         self.assertEqual(self.queue_length_1._front, self.queue_length_1._rear)
         self.assertEqual(self.queue_length_1._rear.value, 0)
+        self.assertEqual(self.queue_length_1._rear.successor, None)
 
         self.assertEqual(self.range_queue._front.value, 0)
         self.assertEqual(self.range_queue._front.successor.value, 1)
@@ -262,6 +263,7 @@ class TestLinkedQueue(TestQueue):
         self.assertEqual(self.range_queue._front.successor.successor.successor,
                          self.range_queue._rear)
         self.assertEqual(self.range_queue._rear.value, 3)
+        self.assertEqual(self.range_queue._rear.successor, None)
 
         self.assertEqual(self.queue._front.value, 1)
         self.assertEqual(self.queue._front.successor.value, 42)
@@ -271,6 +273,7 @@ class TestLinkedQueue(TestQueue):
         self.assertEqual(self.queue._front.successor.successor.successor
                          .successor, self.queue._rear)
         self.assertEqual(self.queue._rear.value, 42)
+        self.assertEqual(self.queue._rear.successor, None)
 
 
 if __name__ == '__main__':

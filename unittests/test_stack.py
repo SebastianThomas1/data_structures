@@ -10,7 +10,7 @@ import unittest
 class TestStack(unittest.TestCase):
     def __new__(cls, method_name, tested_class=None):
         if cls is TestStack:
-            raise TypeError('Class TestStack may not be instantiated')
+            raise TypeError('Class TestStack may not be instantiated.')
         return super().__new__(cls)
 
     def __init__(self, method_name, tested_class=None):
@@ -253,12 +253,15 @@ class TestLinkedStack(TestStack):
         self.assertEqual(self.empty_stack._top, None)
 
         self.assertEqual(self.stack_length_1._top.value, 0)
+        self.assertEqual(self.stack_length_1._top.successor, None)
 
         self.assertEqual(self.range_stack._top.value, 3)
         self.assertEqual(self.range_stack._top.successor.value, 2)
         self.assertEqual(self.range_stack._top.successor.successor.value, 1)
         self.assertEqual(self.range_stack._top.successor.successor.successor
                          .value, 0)
+        self.assertEqual(self.range_stack._top.successor.successor.successor
+                         .successor, None)
 
         self.assertEqual(self.stack._top.value, 42)
         self.assertEqual(self.stack._top.successor.value, 2)
@@ -267,6 +270,8 @@ class TestLinkedStack(TestStack):
                          42)
         self.assertEqual(self.stack._top.successor.successor.successor
                          .successor.value, 1)
+        self.assertEqual(self.stack._top.successor.successor.successor
+                         .successor.successor, None)
 
 
 if __name__ == '__main__':
