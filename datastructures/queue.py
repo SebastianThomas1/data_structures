@@ -110,7 +110,7 @@ class LinkedQueue(Queue):
         pass
 
     def __init__(self):
-        self._back = None
+        self._rear = None
         self._front = None
         self._len = 0
 
@@ -136,11 +136,11 @@ class LinkedQueue(Queue):
     def enqueue(self, value):
         """Enqueues an item on the queue."""
         if self.is_empty():
-            self._back = self.Node(value)
-            self._front = self._back
+            self._rear = self.Node(value)
+            self._front = self._rear
         else:
-            self._back.successor = self.Node(value)
-            self._back = self._back.successor
+            self._rear.successor = self.Node(value)
+            self._rear = self._rear.successor
 
         self._len += 1
 

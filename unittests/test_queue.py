@@ -251,17 +251,17 @@ class TestLinkedQueue(TestQueue):
 
     def test_init(self):
         self.assertEqual(self.empty_queue._front, None)
-        self.assertEqual(self.empty_queue._back, None)
+        self.assertEqual(self.empty_queue._rear, None)
 
-        self.assertEqual(self.queue_length_1._front, self.queue_length_1._back)
-        self.assertEqual(self.queue_length_1._back.value, 0)
+        self.assertEqual(self.queue_length_1._front, self.queue_length_1._rear)
+        self.assertEqual(self.queue_length_1._rear.value, 0)
 
         self.assertEqual(self.range_queue._front.value, 0)
         self.assertEqual(self.range_queue._front.successor.value, 1)
         self.assertEqual(self.range_queue._front.successor.successor.value, 2)
         self.assertEqual(self.range_queue._front.successor.successor.successor,
-                         self.range_queue._back)
-        self.assertEqual(self.range_queue._back.value, 3)
+                         self.range_queue._rear)
+        self.assertEqual(self.range_queue._rear.value, 3)
 
         self.assertEqual(self.queue._front.value, 1)
         self.assertEqual(self.queue._front.successor.value, 42)
@@ -269,8 +269,8 @@ class TestLinkedQueue(TestQueue):
         self.assertEqual(self.queue._front.successor.successor.successor.value,
                          2)
         self.assertEqual(self.queue._front.successor.successor.successor
-                         .successor, self.queue._back)
-        self.assertEqual(self.queue._back.value, 42)
+                         .successor, self.queue._rear)
+        self.assertEqual(self.queue._rear.value, 42)
 
 
 if __name__ == '__main__':
