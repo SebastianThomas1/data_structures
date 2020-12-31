@@ -2,12 +2,13 @@
 
 # abstract base classes
 from abc import abstractmethod
-from collections.abc import Iterable, Collection
+from collections.abc import Iterable
 
 # representations of objects
 from reprlib import repr as reprlib_repr
 
 # custom modules
+from base import Collection
 from node import LinkedNode
 
 
@@ -18,49 +19,6 @@ class Stack(Collection):
     """Abstract base class for the abstract data type stack.
 
     Concrete subclasses must provide: __new__ or __init__, __iter__."""
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return False
-
-        # iterate over instance and other in parallel while checking for
-        # equality
-        values_of_self = iter(self)
-        values_of_other = iter(other)
-
-        self_is_empty = False
-        other_is_empty = False
-
-        while True:
-            try:
-                value_of_self = next(values_of_self)
-            except StopIteration:
-                self_is_empty = True
-
-            try:
-                value_of_other = next(values_of_other)
-            except StopIteration:
-                other_is_empty = True
-
-            if self_is_empty:
-                return other_is_empty
-            elif other_is_empty:
-                return False  # self_is_empty is False
-            elif value_of_self != value_of_other:
-                return False
-
-    def __bool__(self):
-        return not self.is_empty()
-
-    def __len__(self):
-        return sum(1 for _ in self)
-
-    def __contains__(self, value):
-        for entry in self:
-            if entry is value or entry == value:
-                return True
-
-        return False
 
     def __iadd__(self, other):
         if not isinstance(other, Iterable):
@@ -81,10 +39,6 @@ class Stack(Collection):
     def pop(self):
         """Removes and returns value on top of the stack."""
         pass
-
-    def is_empty(self):
-        """Checks whether this instance is an empty stack."""
-        return len(self) == 0
 
     def peek(self):
         """Returns item on top of the stack."""
@@ -138,7 +92,7 @@ class ArrayStack(Stack):
     def peek(self):
         """Returns item on top of the stack."""
         if self.is_empty():
-            raise EmptyStackException('Can\'t peek on top of empty stack.')
+            raise EmptyStackException('Can\'t peek at empty stack.')
 
         return self._values[-1]
 
@@ -149,7 +103,7 @@ class ArrayStack(Stack):
     def pop(self):
         """Removes and returns value on top of the stack."""
         if self.is_empty():
-            raise EmptyStackException('Can\'t pop from top of empty stack.')
+            raise EmptyStackException('Can\'t pop from empty stack.')
 
         return self._values.pop()
 
@@ -206,7 +160,7 @@ class LinkedStack(Stack):
     def pop(self):
         """Removes and returns value on top of the stack."""
         if self.is_empty():
-            raise EmptyStackException('Can\'t peek at empty stack.')
+            raise EmptyStackException('Can\'t pop from empty stack.')
 
         value = self._top.value
         self._top = self._top.successor
