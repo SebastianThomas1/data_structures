@@ -18,7 +18,8 @@ __all__ = ['Stack', 'ArrayStack', 'LinkedStack', 'EmptyStackException']
 class Stack(Collection):
     """Abstract base class for the abstract data type stack.
 
-    Concrete subclasses must provide: __new__ or __init__, __iter__."""
+    Concrete subclasses must provide: __new__ or __init__, __iter__, push,
+    pop."""
 
     def __iadd__(self, other):
         if not isinstance(other, Iterable):
@@ -69,9 +70,6 @@ class ArrayStack(Stack):
     def __repr__(self):
         return '{}({})'.format(type(self).__name__,
                                reprlib_repr(self._values[::-1]))
-
-    def __str__(self):
-        return str(self._values[::-1])[1:-1]
 
     def __contains__(self, value):
         return value in self._values
@@ -140,9 +138,6 @@ class LinkedStack(Stack):
 
         return '{}({})'.format(type(self).__name__,
                                reprlib_repr(first_values))
-
-    def __str__(self):
-        return ' \u2192 '.join(str(value) for value in self)
 
     def peek(self):
         """Returns item on top of the stack."""

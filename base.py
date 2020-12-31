@@ -4,6 +4,9 @@
 from abc import abstractmethod, ABCMeta
 from collections.abc import Iterable, Collection as PyCollection
 
+# representations of objects
+from reprlib import repr as reprlib_repr
+
 
 __all__ = ['Collection']
 
@@ -45,6 +48,22 @@ class Collection(PyCollection, metaclass=ABCMeta):
 
     def __bool__(self):
         return not self.is_empty()
+
+    def __repr__(self):
+        # determine first seven values (at most)
+        first_values = []
+        count = 0
+        for value in self:
+            first_values.append(value)
+            count += 1
+            if count == 7:
+                break
+
+        return '{}({})'.format(type(self).__name__,
+                               reprlib_repr(first_values))
+
+    def __str__(self):
+        return ' '.join(str(value) for value in self)
 
     def __len__(self):
         return sum(1 for _ in self)

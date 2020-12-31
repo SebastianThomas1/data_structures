@@ -79,6 +79,12 @@ class TestStack(unittest.TestCase):
         self.assertEqual(repr(self.stack),
                          '{}([42, 2, -3, 42, 1])'.format(class_name))
 
+    def test_str(self):
+        self.assertEqual(str(self.empty_stack), '')
+        self.assertEqual(str(self.stack_length_1), '0')
+        self.assertEqual(str(self.range_stack), '3 2 1 0')
+        self.assertEqual(str(self.stack), '42 2 -3 42 1')
+
     def test_contains(self):
         self.assertFalse(0 in self.empty_stack)
         self.assertTrue(0 in self.stack_length_1)
@@ -238,12 +244,6 @@ class TestArrayStack(TestStack):
         self.assertEqual(self.range_stack._values, [0, 1, 2, 3])
         self.assertEqual(self.stack._values, [1, 42, -3, 2, 42])
 
-    def test_str(self):
-        self.assertEqual(str(self.empty_stack), '')
-        self.assertEqual(str(self.stack_length_1), '0')
-        self.assertEqual(str(self.range_stack), '3, 2, 1, 0')
-        self.assertEqual(str(self.stack), '42, 2, -3, 42, 1')
-
 
 class TestLinkedStack(TestStack):
     def __init__(self, method_name):
@@ -267,13 +267,6 @@ class TestLinkedStack(TestStack):
                          42)
         self.assertEqual(self.stack._top.successor.successor.successor
                          .successor.value, 1)
-
-    def test_str(self):
-        self.assertEqual(str(self.empty_stack), '')
-        self.assertEqual(str(self.stack_length_1), '0')
-        self.assertEqual(str(self.range_stack), '3 \u2192 2 \u2192 1 \u2192 0')
-        self.assertEqual(str(self.stack), '42 \u2192 2 \u2192 -3 \u2192 '
-                                          '42 \u2192 1')
 
 
 if __name__ == '__main__':
