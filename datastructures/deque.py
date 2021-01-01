@@ -18,8 +18,8 @@ __all__ = ['Deque', 'ArrayDeque', 'LinkedDeque', 'EmptyDequeException']
 class Deque(Collection):
     """Abstract base class for the abstract data type queue.
 
-    Concrete subclasses must provide: __new__ or __init__, __iter__, enqueue,
-    dequeue."""
+    Concrete subclasses must provide: __new__ or __init__, __iter__,
+    enqueue_rear, enqueue_front, dequeue_rear, dequeue_front."""
 
     def __iadd__(self, other):
         if not isinstance(other, Iterable):
