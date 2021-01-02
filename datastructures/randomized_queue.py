@@ -8,8 +8,8 @@ from collections.abc import Iterable
 from reprlib import repr as reprlib_repr
 
 # randomization
-from random import choice, randrange, seed
-from numpy.random import permutation, seed as np_seed
+from random import choice, randrange
+from numpy.random import permutation
 
 # custom modules
 from datastructures.base import Collection
@@ -65,10 +65,8 @@ class ArrayRandomizedQueue(RandomizedQueue):
     def __init__(self, random_state=None):
         self._values = []
         self.random_state = random_state
-        seed(random_state)
 
     def __iter__(self):
-        np_seed(self.random_state)
         for idx in permutation(len(self)):
             yield self._values[idx]
 
@@ -131,10 +129,8 @@ class LinkedRandomizedQueue(RandomizedQueue):
         self._front = None
         self._len = 0
         self.random_state = random_state
-        seed(random_state)
 
     def __iter__(self):
-        np_seed(self.random_state)
         for idx in permutation(len(self)):
             yield self._get_node(idx).value
 
