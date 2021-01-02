@@ -8,8 +8,8 @@ from collections.abc import Iterable
 from reprlib import repr as reprlib_repr
 
 # randomization
-from random import choice, randrange
-from numpy.random import permutation
+from random import choice, randrange, seed
+from numpy.random import permutation, seed as np_seed
 
 # custom modules
 from datastructures.base import Collection
@@ -64,9 +64,14 @@ class ArrayRandomizedQueue(RandomizedQueue):
 
     def __init__(self, random_state=None):
         self._values = []
-        self.random_state = random_state
+        self._random_state = random_state
 
     def __iter__(self):
+        seed(self._random_state)
+        np_seed(self._random_state)
+        if self._random_state:
+            self._random_state += randrange(-1000000, 1000000)
+
         for idx in permutation(len(self)):
             yield self._values[idx]
 
@@ -103,6 +108,10 @@ class ArrayRandomizedQueue(RandomizedQueue):
             raise EmptyRandomizedQueueException('Can\'t access entries of '
                                                 'empty randomized queue.')
 
+        seed(self._random_state)
+        if self._random_state:
+            self._random_state += randrange(-1000000, 1000000)
+
         return choice(self._values)
 
     def enqueue(self, value):
@@ -114,6 +123,10 @@ class ArrayRandomizedQueue(RandomizedQueue):
         if self.is_empty():
             raise EmptyRandomizedQueueException('Can\'t dequeue from empty '
                                                 'randomized queue.')
+
+        seed(self._random_state)
+        if self._random_state:
+            self._random_state += randrange(-1000000, 1000000)
 
         return self._values.pop(randrange(len(self)))
 
@@ -128,9 +141,14 @@ class LinkedRandomizedQueue(RandomizedQueue):
     def __init__(self, random_state=None):
         self._front = None
         self._len = 0
-        self.random_state = random_state
+        self._random_state = random_state
 
     def __iter__(self):
+        seed(self._random_state)
+        np_seed(self._random_state)
+        if self._random_state:
+            self._random_state += randrange(-1000000, 1000000)
+
         for idx in permutation(len(self)):
             yield self._get_node(idx).value
 
@@ -213,6 +231,10 @@ class LinkedRandomizedQueue(RandomizedQueue):
             raise EmptyRandomizedQueueException('Can\'t access entries of '
                                                 'empty randomized queue.')
 
+        seed(self._random_state)
+        if self._random_state:
+            self._random_state += randrange(-1000000, 1000000)
+
         return self._get_node(randrange(len(self))).value
 
     def enqueue(self, value):
@@ -225,6 +247,10 @@ class LinkedRandomizedQueue(RandomizedQueue):
         if self.is_empty():
             raise EmptyRandomizedQueueException('Can\'t dequeue from empty '
                                                 'randomized queue.')
+
+        seed(self._random_state)
+        if self._random_state:
+            self._random_state += randrange(-1000000, 1000000)
 
         node, predecessor = \
             self._get_node_with_predecessor(randrange(len(self)))
