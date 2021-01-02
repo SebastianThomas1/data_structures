@@ -361,11 +361,107 @@ class TestLinkedRandomizedQueue(TestRandomizedQueue):
         self.assertEqual(self.queue.dequeue(), 1)
 
 
+class TestDoublyLinkedRandomizedQueue(TestRandomizedQueue):
+    def __init__(self, method_name):
+        super().__init__(method_name=method_name,
+                         tested_class=DoublyLinkedRandomizedQueue)
+
+    def test_init(self):
+        self.assertEqual(self.empty_queue._current_node, None)
+
+        self.assertEqual(self.queue_length_1._current_node.value, 0)
+        self.assertEqual(self.queue_length_1._current_node.predecessor,
+                         self.queue_length_1._current_node)
+        self.assertEqual(self.queue_length_1._current_node.successor,
+                         self.queue_length_1._current_node)
+
+        self.assertEqual(self.range_queue._current_node.value, 3)
+        self.assertEqual(self.range_queue._current_node.predecessor.value, 0)
+        self.assertEqual(self.range_queue._current_node.successor.value, 2)
+        self.assertEqual(self.range_queue._current_node.successor.predecessor
+                         .value, 3)
+        self.assertEqual(self.range_queue._current_node.successor.successor
+                         .value, 1)
+        self.assertEqual(self.range_queue._current_node.successor.successor
+                         .predecessor.value, 2)
+        self.assertEqual(self.range_queue._current_node.successor.successor
+                         .successor.value, 0)
+        self.assertEqual(self.range_queue._current_node.successor.successor
+                         .successor.predecessor.value, 1)
+        self.assertEqual(self.range_queue._current_node.successor.successor
+                         .successor.successor, self.range_queue._current_node)
+
+        self.assertEqual(self.queue._current_node.value, 42)
+        self.assertEqual(self.queue._current_node.predecessor.value, 1)
+        self.assertEqual(self.queue._current_node.successor.value, 2)
+        self.assertEqual(self.queue._current_node.successor.predecessor.value,
+                         42)
+        self.assertEqual(self.queue._current_node.successor.successor.value,
+                         -3)
+        self.assertEqual(self.queue._current_node.successor.successor
+                         .predecessor.value, 2)
+        self.assertEqual(self.queue._current_node.successor.successor
+                         .successor.value, 42)
+        self.assertEqual(self.queue._current_node.successor.successor.successor
+                         .predecessor.value, -3)
+        self.assertEqual(self.queue._current_node.successor.successor.successor
+                         .successor.value, 1)
+        self.assertEqual(self.queue._current_node.successor.successor.successor
+                         .successor.predecessor.value, 42)
+        self.assertEqual(self.queue._current_node.successor.successor.successor
+                         .successor.successor, self.queue._current_node)
+
+    def test_iter(self):
+        super().test_iter()
+
+        self.assertEqual(list(iter(self.range_queue)), [1, 0, 3, 2])
+        self.assertEqual(list(iter(self.queue)), [2, -3, 42, 1, 42])
+
+    def test_repr(self):
+        class_name = self.tested_class.__name__
+        self.assertEqual(repr(self.empty_queue), '{}([])'.format(class_name))
+        self.assertEqual(repr(self.queue_length_1),
+                         '{}([0])'.format(class_name))
+        self.assertEqual(repr(self.range_queue),
+                         '{}([3, 2, 1, 0])'.format(class_name))
+        self.assertEqual(repr(self.queue),
+                         '{}([42, 2, -3, 42, 1])'.format(class_name))
+
+    def test_str(self):
+        self.assertEqual(str(self.empty_queue), '')
+        self.assertEqual(str(self.queue_length_1), '0')
+        self.assertEqual(str(self.range_queue), '3 2 1 0')
+        self.assertEqual(str(self.queue), '42 2 -3 42 1')
+
+    def test_choice(self):
+        super().test_choice()
+
+        self.assertEqual(self.range_queue.choice(), 3)
+        self.assertEqual(self.queue.choice(), 1)
+
+    def test_dequeue(self):
+        super().test_dequeue()
+
+        self.setUp()
+
+        self.assertEqual(self.range_queue.dequeue(), 0)
+        self.assertEqual(self.range_queue.dequeue(), 1)
+        self.assertEqual(self.range_queue.dequeue(), 2)
+        self.assertEqual(self.range_queue.dequeue(), 3)
+
+        self.assertEqual(self.queue.dequeue(), 42)
+        self.assertEqual(self.queue.dequeue(), 2)
+        self.assertEqual(self.queue.dequeue(), 1)
+        self.assertEqual(self.queue.dequeue(), 42)
+        self.assertEqual(self.queue.dequeue(), -3)
+
+
 if __name__ == '__main__':
     suite = unittest.TestSuite()
 
     # add test methods as separate tests to test suite
-    for test_case in [TestArrayRandomizedQueue, TestLinkedRandomizedQueue]:
+    for test_case in [TestArrayRandomizedQueue, TestLinkedRandomizedQueue,
+                      TestDoublyLinkedRandomizedQueue]:
         for name in unittest.defaultTestLoader.getTestCaseNames(test_case):
             suite.addTest(test_case(name))
 

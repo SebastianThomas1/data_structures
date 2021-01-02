@@ -13,11 +13,11 @@ from numpy.random import permutation, seed as np_seed
 
 # custom modules
 from datastructures.base import Collection
-from datastructures.node import LinkedNode
+from datastructures.node import LinkedNode, DoublyLinkedNode
 
 
 __all__ = ['RandomizedQueue', 'ArrayRandomizedQueue', 'LinkedRandomizedQueue',
-           'EmptyRandomizedQueueException']
+           'DoublyLinkedRandomizedQueue', 'EmptyRandomizedQueueException']
 
 
 class RandomizedQueue(Collection):
@@ -277,7 +277,7 @@ class LinkedRandomizedQueue(RandomizedQueue):
 
     def enqueue(self, value):
         """Enqueues an item on the randomized queue."""
-        self._front = self.Node(value, self._front)
+        self._front = self.Node(value, successor=self._front)
         self._len += 1
         if self._len == 1:
             self._current_idx = 0
@@ -307,6 +307,169 @@ class LinkedRandomizedQueue(RandomizedQueue):
         self._len = 0
         self._current_idx = None
         self._current_node = None
+
+
+class DoublyLinkedRandomizedQueue(RandomizedQueue):
+    """Class that implements randomized queues based on doubly linked nodes."""
+
+    class Node(DoublyLinkedNode):
+        """Internal node class for linked randomized queues."""
+        pass
+
+    def __init__(self, random_state=None):
+        # self._front = None
+        self._current_node = None
+        self._len = 0
+        self._random_state = random_state
+
+    def __iter__(self):
+        seed(self._random_state)
+        np_seed(self._random_state)
+        if self._random_state is not None:
+            self._random_state = randrange(2**32)
+
+        moves = permutation(len(self))
+        for idx in range(len(self) - 1, 0, - 1):
+            moves[idx] = moves[idx] - moves[idx - 1]
+
+        for idx, steps in enumerate(moves):
+            if steps > len(self) // 2:
+                moves[idx] -= len(self)
+            elif steps < -(len(self) // 2):
+                moves[idx] += len(self)
+
+        for steps in moves:
+            self._move_to_node(steps)
+            yield self._current_node.value
+
+    def __repr__(self):
+        # determine first seven values (at most)
+        first_values = []
+        count = 0
+        for _ in range(len(self)):
+            first_values.append(self._current_node.value)
+            count += 1
+            self._current_node = self._current_node.successor
+            if count == 7:
+                break
+
+        return '{}({})'.format(type(self).__name__,
+                               reprlib_repr(first_values))
+
+    def __str__(self):
+        values = []
+        for _ in range(len(self)):
+            values.append(self._current_node.value)
+            self._current_node = self._current_node.successor
+        return ' '.join(str(value) for value in values)
+
+    def __len__(self):
+        return self._len
+
+    def _move_to_node(self, steps):
+        # assume key is an integer, count of steps to make
+        """Returns node at index."""
+        if self.is_empty():
+            raise IndexError('Can\'t access index in empty randomized queue.')
+
+        # traverse instance, return current node if item at index is
+        # reached
+        if steps >= 0:
+            # traverse instance forwards
+            for _ in range(len(self)):
+                if steps == 0:
+                    return
+                steps -= 1
+                self._current_node = self._current_node.successor
+        else:
+            # traverse instance backwards
+            for _ in range(len(self)):
+                if steps == 0:
+                    return
+                steps += 1
+                self._current_node = self._current_node.predecessor
+
+        raise IndexError('Index out of range.')
+
+    def _insert_as_predecessor(self, value):
+        """Inserts value before current node by reconnecting predecessor."""
+        self._current_node.predecessor.successor \
+            = self.Node(value, predecessor=self._current_node.predecessor,
+                        successor=self._current_node)
+        self._current_node.predecessor \
+            = self._current_node.predecessor.successor
+
+        self._current_node = self._current_node.predecessor
+
+        self._len += 1
+
+    def _remove_current_node(self):
+        """Removes current node by connecting predecessor with successor."""
+        if self._current_node.successor == self._current_node:  # length 1
+            self._current_node = None
+        else:
+            self._current_node.predecessor.successor \
+                = self._current_node.successor
+            self._current_node.successor.predecessor \
+                = self._current_node.predecessor
+            self._current_node = self._current_node.successor
+
+        self._len -= 1
+
+    def is_empty(self):
+        """Checks whether this instance is an empty queue."""
+        return self._current_node is None
+
+    def choice(self):
+        """Returns a random item of the randomized queue (but does not remove
+        it)."""
+        if self.is_empty():
+            raise EmptyRandomizedQueueException('Can\'t access entries of '
+                                                'empty randomized queue.')
+
+        seed(self._random_state)
+        if self._random_state is not None:
+            self._random_state = randrange(2**32)
+
+        move = randrange(len(self))  # count of steps to make
+        if move > len(self) // 2:
+            move -= len(self)
+
+        self._move_to_node(randrange(len(self)))
+
+        return self._current_node.value
+
+    def enqueue(self, value):
+        """Enqueues an item on the randomized queue."""
+        if self.is_empty():
+            self._current_node = self.Node(value)
+            self._current_node.predecessor = self._current_node
+            self._current_node.successor = self._current_node
+            self._len += 1
+        else:
+            self._insert_as_predecessor(value)
+
+    def dequeue(self):
+        """Dequeues a random item from the randomized queue."""
+        if self.is_empty():
+            raise EmptyRandomizedQueueException('Can\'t dequeue from empty '
+                                                'randomized queue.')
+
+        seed(self._random_state)
+        if self._random_state is not None:
+            self._random_state = randrange(2**32)
+
+        self._move_to_node(randrange(len(self)))
+
+        value = self._current_node.value
+        self._remove_current_node()
+
+        return value
+
+    def clear(self):
+        """Removes all items."""
+        self._current_node = None
+        self._len = 0
 
 
 class EmptyRandomizedQueueException(Exception):
