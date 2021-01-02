@@ -18,8 +18,8 @@ __all__ = ['Queue', 'ArrayQueue', 'LinkedQueue', 'EmptyQueueException']
 class Queue(OrderedCollection):
     """Abstract base class for the abstract data type queue.
 
-    Concrete subclasses must provide: __new__ or __init__, __iter__, peek,
-    enqueue, dequeue."""
+    Concrete subclasses must provide: __new__ or __init__,
+    predictable __iter__, peek, enqueue, dequeue."""
 
     def __iadd__(self, other):
         if not isinstance(other, Iterable):

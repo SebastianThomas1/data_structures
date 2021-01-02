@@ -18,8 +18,8 @@ __all__ = ['Stack', 'ArrayStack', 'LinkedStack', 'EmptyStackException']
 class Stack(OrderedCollection):
     """Abstract base class for the abstract data type stack.
 
-    Concrete subclasses must provide: __new__ or __init__, __iter__, push,
-    pop."""
+    Concrete subclasses must provide: __new__ or __init__,
+    predictable __iter__, push, pop."""
 
     def __iadd__(self, other):
         if not isinstance(other, Iterable):
