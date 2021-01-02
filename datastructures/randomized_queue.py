@@ -77,8 +77,8 @@ class ArrayRandomizedQueue(RandomizedQueue):
     def __iter__(self):
         seed(self._random_state)
         np_seed(self._random_state)
-        if self._random_state:
-            self._random_state += randrange(-1000000, 1000000)
+        if self._random_state is not None:
+            self._random_state = randrange(2**32)
 
         for idx in permutation(len(self)):
             yield self._values[idx]
@@ -117,8 +117,8 @@ class ArrayRandomizedQueue(RandomizedQueue):
                                                 'empty randomized queue.')
 
         seed(self._random_state)
-        if self._random_state:
-            self._random_state += randrange(-1000000, 1000000)
+        if self._random_state is not None:
+            self._random_state = randrange(2**32)
 
         return choice(self._values)
 
@@ -133,8 +133,8 @@ class ArrayRandomizedQueue(RandomizedQueue):
                                                 'randomized queue.')
 
         seed(self._random_state)
-        if self._random_state:
-            self._random_state += randrange(-1000000, 1000000)
+        if self._random_state is not None:
+            self._random_state = randrange(2**32)
 
         return self._values.pop(randrange(len(self)))
 
@@ -152,19 +152,23 @@ class LinkedRandomizedQueue(RandomizedQueue):
 
     def __init__(self, random_state=None):
         self._front = None
+        self._current_node = None
+        self._current_idx = None
         self._len = 0
         self._random_state = random_state
 
     def __iter__(self):
         seed(self._random_state)
         np_seed(self._random_state)
-        if self._random_state:
-            self._random_state += randrange(-1000000, 1000000)
+        if self._random_state is not None:
+            self._random_state = randrange(2**32)
 
         for idx in permutation(len(self)):
             yield self._get_node(idx).value
 
     def __repr__(self):
+        self._reset_current_node()
+
         # determine first seven values (at most)
         first_values = []
         count = 0
@@ -178,28 +182,38 @@ class LinkedRandomizedQueue(RandomizedQueue):
                                reprlib_repr(first_values))
 
     def __str__(self):
+        self._reset_current_node()
         return ' '.join(str(node.value) for node in self._traversal())
 
     def __len__(self):
         return self._len
 
-    def _traversal(self, start_node=None):
-        """Traverses instance, beginning with start_node (default: front)."""
-        if start_node is None:
-            start_node = self._front
+    def _reset_current_node(self):
+        if self:
+            self._current_idx = 0
+            self._current_node = self._front
+        else:
+            self._current_idx = None
+            self._current_node = None
 
-        current_node = start_node
-        while current_node:
-            yield current_node
-            current_node = current_node.successor
+    def _traversal(self):
+        """Traverses instance, beginning at current node."""
+        while self._current_node:
+            yield self._current_node
+            self._current_idx += 1
+            self._current_node = self._current_node.successor
 
     def _get_node(self, key):  # assume key is an integer
         """Returns node at index."""
         if self.is_empty():
             raise IndexError('Can\'t access index in empty randomized queue.')
 
+        if key < self._current_idx:
+            self._reset_current_node()
+
         # traverse instance, return current node if item at index is
         # reached
+        key -= self._current_idx
         for node in self._traversal():
             if key == 0:
                 return node
@@ -212,8 +226,12 @@ class LinkedRandomizedQueue(RandomizedQueue):
         if self.is_empty():
             raise IndexError('Can\'t access index in empty randomized queue.')
 
+        if key <= self._current_idx:
+            self._reset_current_node()
+
         # traverse instance, return current node and predecessor if item
         # at index is reached
+        key -= self._current_idx
         predecessor = None
         for node in self._traversal():
             if key == 0:
@@ -232,6 +250,14 @@ class LinkedRandomizedQueue(RandomizedQueue):
 
         self._len -= 1
 
+        if self:
+            if self._current_node is node:
+                self._current_idx += 1
+                self._current_node = self._current_node.successor
+        else:
+            self._current_idx = None
+            self._current_node = None
+
     def is_empty(self):
         """Checks whether this instance is an empty queue."""
         return self._front is None
@@ -244,8 +270,8 @@ class LinkedRandomizedQueue(RandomizedQueue):
                                                 'empty randomized queue.')
 
         seed(self._random_state)
-        if self._random_state:
-            self._random_state += randrange(-1000000, 1000000)
+        if self._random_state is not None:
+            self._random_state = randrange(2**32)
 
         return self._get_node(randrange(len(self))).value
 
@@ -253,6 +279,11 @@ class LinkedRandomizedQueue(RandomizedQueue):
         """Enqueues an item on the randomized queue."""
         self._front = self.Node(value, self._front)
         self._len += 1
+        if self._len == 1:
+            self._current_idx = 0
+            self._current_node = self._front
+        else:
+            self._current_idx += 1
 
     def dequeue(self):
         """Dequeues a random item from the randomized queue."""
@@ -261,8 +292,8 @@ class LinkedRandomizedQueue(RandomizedQueue):
                                                 'randomized queue.')
 
         seed(self._random_state)
-        if self._random_state:
-            self._random_state += randrange(-1000000, 1000000)
+        if self._random_state is not None:
+            self._random_state = randrange(2**32)
 
         node, predecessor = \
             self._get_node_with_predecessor(randrange(len(self)))
@@ -274,9 +305,8 @@ class LinkedRandomizedQueue(RandomizedQueue):
         """Removes all items."""
         self._front = None
         self._len = 0
-
-
-# noch DoublyLinked machen? für schnelleren access?
+        self._current_idx = None
+        self._current_node = None
 
 
 class EmptyRandomizedQueueException(Exception):

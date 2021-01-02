@@ -245,8 +245,8 @@ class TestArrayRandomizedQueue(TestRandomizedQueue):
     def test_iter(self):
         super().test_iter()
 
-        self.assertEqual(list(iter(self.range_queue)), [2, 3, 1, 0])
-        self.assertEqual(list(iter(self.queue)), [-3, 1, 42, 2, 42])
+        self.assertEqual(list(iter(self.range_queue)), [2, 3, 0, 1])
+        self.assertEqual(list(iter(self.queue)), [-3, 2, 42, 1, 42])
 
     def test_repr(self):
         class_name = self.tested_class.__name__
@@ -267,8 +267,8 @@ class TestArrayRandomizedQueue(TestRandomizedQueue):
     def test_choice(self):
         super().test_choice()
 
-        self.assertEqual(self.range_queue.choice(), 3)
-        self.assertEqual(self.queue.choice(), 2)
+        self.assertEqual(self.range_queue.choice(), 2)
+        self.assertEqual(self.queue.choice(), -3)
 
     def test_dequeue(self):
         super().test_dequeue()
@@ -276,15 +276,15 @@ class TestArrayRandomizedQueue(TestRandomizedQueue):
         self.setUp()
 
         self.assertEqual(self.range_queue.dequeue(), 3)
-        self.assertEqual(self.range_queue.dequeue(), 1)
         self.assertEqual(self.range_queue.dequeue(), 2)
+        self.assertEqual(self.range_queue.dequeue(), 1)
         self.assertEqual(self.range_queue.dequeue(), 0)
 
         self.assertEqual(self.queue.dequeue(), 2)
-        self.assertEqual(self.queue.dequeue(), 42)
-        self.assertEqual(self.queue.dequeue(), 42)
         self.assertEqual(self.queue.dequeue(), -3)
+        self.assertEqual(self.queue.dequeue(), 42)
         self.assertEqual(self.queue.dequeue(), 1)
+        self.assertEqual(self.queue.dequeue(), 42)
 
 
 class TestLinkedRandomizedQueue(TestRandomizedQueue):
@@ -319,8 +319,8 @@ class TestLinkedRandomizedQueue(TestRandomizedQueue):
     def test_iter(self):
         super().test_iter()
 
-        self.assertEqual(list(iter(self.range_queue)), [1, 0, 2, 3])
-        self.assertEqual(list(iter(self.queue)), [-3, 42, 2, 42, 1])
+        self.assertEqual(list(iter(self.range_queue)), [1, 0, 3, 2])
+        self.assertEqual(list(iter(self.queue)), [-3, 42, 1, 42, 2])
 
     def test_repr(self):
         class_name = self.tested_class.__name__
@@ -341,8 +341,8 @@ class TestLinkedRandomizedQueue(TestRandomizedQueue):
     def test_choice(self):
         super().test_choice()
 
-        self.assertEqual(self.range_queue.choice(), 0)
-        self.assertEqual(self.queue.choice(), 42)
+        self.assertEqual(self.range_queue.choice(), 1)
+        self.assertEqual(self.queue.choice(), -3)
 
     def test_dequeue(self):
         super().test_dequeue()
@@ -350,15 +350,15 @@ class TestLinkedRandomizedQueue(TestRandomizedQueue):
         self.setUp()
 
         self.assertEqual(self.range_queue.dequeue(), 0)
-        self.assertEqual(self.range_queue.dequeue(), 2)
         self.assertEqual(self.range_queue.dequeue(), 1)
+        self.assertEqual(self.range_queue.dequeue(), 2)
         self.assertEqual(self.range_queue.dequeue(), 3)
 
         self.assertEqual(self.queue.dequeue(), 42)
-        self.assertEqual(self.queue.dequeue(), 1)
-        self.assertEqual(self.queue.dequeue(), 2)
         self.assertEqual(self.queue.dequeue(), -3)
+        self.assertEqual(self.queue.dequeue(), 2)
         self.assertEqual(self.queue.dequeue(), 42)
+        self.assertEqual(self.queue.dequeue(), 1)
 
 
 if __name__ == '__main__':
