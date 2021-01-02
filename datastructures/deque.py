@@ -8,14 +8,14 @@ from collections.abc import Iterable
 from reprlib import repr as reprlib_repr
 
 # custom modules
-from datastructures.base import Collection
+from datastructures.base import OrderedCollection
 from datastructures.node import DoublyLinkedNode
 
 
 __all__ = ['Deque', 'ArrayDeque', 'LinkedDeque', 'EmptyDequeException']
 
 
-class Deque(Collection):
+class Deque(OrderedCollection):
     """Abstract base class for the abstract data type queue.
 
     Concrete subclasses must provide: __new__ or __init__, __iter__,

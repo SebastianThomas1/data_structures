@@ -16,36 +16,6 @@ class Collection(PyCollection, metaclass=ABCMeta):
 
     Concrete subclasses must provide: __new__ or __init__, __iter__."""
 
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return False
-
-        # iterate over instance and other in parallel while checking for
-        # equality
-        values_of_self = iter(self)
-        values_of_other = iter(other)
-
-        self_is_empty = False
-        other_is_empty = False
-
-        while True:
-            try:
-                value_of_self = next(values_of_self)
-            except StopIteration:
-                self_is_empty = True
-
-            try:
-                value_of_other = next(values_of_other)
-            except StopIteration:
-                other_is_empty = True
-
-            if self_is_empty:
-                return other_is_empty
-            elif other_is_empty:
-                return False  # self_is_empty is False
-            elif value_of_self != value_of_other:
-                return False
-
     def __bool__(self):
         return not self.is_empty()
 
@@ -78,3 +48,43 @@ class Collection(PyCollection, metaclass=ABCMeta):
     def is_empty(self):
         """Checks whether this instance is empty."""
         return len(self) == 0
+
+
+class OrderedCollection(Collection, metaclass=ABCMeta):
+    """Abstract base class for the abstract data type ordered collection.
+
+    Concrete subclasses must provide: __new__ or __init__ and predictable
+    __iter__."""
+
+    def __eq__(self, other):
+        if self is other:
+            return True
+
+        if not isinstance(other, type(self)):
+            return False
+
+        # iterate over instance and other in parallel while checking for
+        # equality
+        values_of_self = iter(self)
+        values_of_other = iter(other)
+
+        self_is_empty = False
+        other_is_empty = False
+
+        while True:
+            try:
+                value_of_self = next(values_of_self)
+            except StopIteration:
+                self_is_empty = True
+
+            try:
+                value_of_other = next(values_of_other)
+            except StopIteration:
+                other_is_empty = True
+
+            if self_is_empty:
+                return other_is_empty
+            elif other_is_empty:
+                return False  # self_is_empty is False
+            elif value_of_self != value_of_other:
+                return False
