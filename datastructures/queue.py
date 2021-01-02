@@ -51,6 +51,14 @@ class Queue(OrderedCollection):
         """Dequeues an item from the front of the queue."""
         pass
 
+    def clear(self):
+        """Removes all items."""
+        try:
+            while True:
+                self.dequeue()
+        except EmptyQueueException:
+            pass
+
 
 class ArrayQueue(Queue):
     """Class that implements queues based on an internal dynamic array (python
@@ -103,6 +111,10 @@ class ArrayQueue(Queue):
 
         return self._values.pop(0)
 
+    def clear(self):
+        """Removes all items."""
+        self._values.clear()
+
 
 class LinkedQueue(Queue):
     """Class that implements queues based on linked nodes."""
@@ -112,8 +124,8 @@ class LinkedQueue(Queue):
         pass
 
     def __init__(self):
-        self._rear = None
         self._front = None
+        self._rear = None
         self._len = 0
 
     def __iter__(self):
@@ -158,6 +170,12 @@ class LinkedQueue(Queue):
         self._len -= 1
 
         return value
+
+    def clear(self):
+        """Removes all items."""
+        self._front = None
+        self._rear = None
+        self._len = 0
 
 
 class EmptyQueueException(Exception):

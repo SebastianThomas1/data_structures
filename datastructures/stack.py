@@ -51,6 +51,14 @@ class Stack(OrderedCollection):
         """Removes and returns value on top of the stack."""
         pass
 
+    def clear(self):
+        """Removes all items."""
+        try:
+            while True:
+                self.pop()
+        except EmptyStackException:
+            pass
+
     def peek(self):
         """Returns item on top of the stack."""
         if self.is_empty():
@@ -116,6 +124,10 @@ class ArrayStack(Stack):
             raise EmptyStackException('Can\'t pop from empty stack.')
 
         return self._values.pop()
+
+    def clear(self):
+        """Removes all items."""
+        self._values.clear()
 
 
 class LinkedStack(Stack):
@@ -190,6 +202,11 @@ class LinkedStack(Stack):
         self._len -= 1
 
         return value
+
+    def clear(self):
+        """Removes all items."""
+        self._top = None
+        self._len = 0
 
 
 class EmptyStackException(Exception):

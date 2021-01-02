@@ -242,6 +242,17 @@ class TestQueue(unittest.TestCase):
         with self.assertRaises(EmptyQueueException):
             self.queue.dequeue()
 
+    def test_clear(self):
+        self.empty_queue.clear()
+        self.queue_length_1.clear()
+        self.range_queue.clear()
+        self.queue.clear()
+
+        self.assertEqual(self.empty_queue, self.tested_class())
+        self.assertEqual(self.queue_length_1, self.tested_class())
+        self.assertEqual(self.range_queue, self.tested_class())
+        self.assertEqual(self.queue, self.tested_class())
+
 
 class TestArrayQueue(TestQueue):
     def __init__(self, method_name):

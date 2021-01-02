@@ -57,6 +57,14 @@ class RandomizedQueue(Collection):
         """Dequeues a random item from the randomized queue."""
         pass
 
+    def clear(self):
+        """Removes all items."""
+        try:
+            while True:
+                self.dequeue()
+        except EmptyRandomizedQueueException:
+            pass
+
 
 class ArrayRandomizedQueue(RandomizedQueue):
     """Class that implements randomized queues based on an internal dynamic
@@ -129,6 +137,10 @@ class ArrayRandomizedQueue(RandomizedQueue):
             self._random_state += randrange(-1000000, 1000000)
 
         return self._values.pop(randrange(len(self)))
+
+    def clear(self):
+        """Removes all items."""
+        self._values.clear()
 
 
 class LinkedRandomizedQueue(RandomizedQueue):
@@ -257,6 +269,11 @@ class LinkedRandomizedQueue(RandomizedQueue):
         self._remove_node(node, predecessor)
 
         return node.value
+
+    def clear(self):
+        """Removes all items."""
+        self._front = None
+        self._len = 0
 
 
 # noch DoublyLinked machen? für schnelleren access?

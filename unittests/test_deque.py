@@ -299,6 +299,17 @@ class TestDeque(unittest.TestCase):
         with self.assertRaises(EmptyDequeException):
             self.deque.dequeue_front()
 
+    def test_clear(self):
+        self.empty_deque.clear()
+        self.deque_length_1.clear()
+        self.range_deque.clear()
+        self.deque.clear()
+
+        self.assertEqual(self.empty_deque, self.tested_class())
+        self.assertEqual(self.deque_length_1, self.tested_class())
+        self.assertEqual(self.range_deque, self.tested_class())
+        self.assertEqual(self.deque, self.tested_class())
+
 
 class TestArrayDeque(TestDeque):
     def __init__(self, method_name):

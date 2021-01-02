@@ -56,6 +56,14 @@ class Deque(OrderedCollection):
         """Dequeues an item from the front of the deque."""
         pass
 
+    def clear(self):
+        """Removes all items."""
+        try:
+            while True:
+                self.dequeue_rear()
+        except EmptyDequeException:
+            pass
+
     def peek_rear(self):
         """Returns item at rear of the deque."""
         if self.is_empty():
@@ -144,6 +152,10 @@ class ArrayDeque(Deque):
 
         return self._values.pop(0)
 
+    def clear(self):
+        """Removes all items."""
+        self._values.clear()
+
 
 class LinkedDeque(Deque):
     """Class that implements deques based on linked nodes."""
@@ -153,8 +165,8 @@ class LinkedDeque(Deque):
         pass
 
     def __init__(self):
-        self._rear = None
         self._front = None
+        self._rear = None
         self._len = 0
 
     def __iter__(self):
@@ -238,6 +250,12 @@ class LinkedDeque(Deque):
         self._len -= 1
 
         return value
+
+    def clear(self):
+        """Removes all items."""
+        self._front = None
+        self._rear = None
+        self._len = 0
 
 
 class EmptyDequeException(Exception):

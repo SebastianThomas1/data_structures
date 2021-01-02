@@ -242,6 +242,17 @@ class TestStack(unittest.TestCase):
         with self.assertRaises(EmptyStackException):
             self.stack.pop()
 
+    def test_clear(self):
+        self.empty_stack.clear()
+        self.stack_length_1.clear()
+        self.range_stack.clear()
+        self.stack.clear()
+
+        self.assertEqual(self.empty_stack, self.tested_class())
+        self.assertEqual(self.stack_length_1, self.tested_class())
+        self.assertEqual(self.range_stack, self.tested_class())
+        self.assertEqual(self.stack, self.tested_class())
+
 
 class TestArrayStack(TestStack):
     def __init__(self, method_name):
