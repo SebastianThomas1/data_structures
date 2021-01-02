@@ -337,6 +337,7 @@ class ArrayList(List):
         self._values.pop(index)
 
     def clear(self):
+        """Removes all items."""
         self._values.clear()
 
     def remove_first(self, value):
@@ -656,6 +657,7 @@ class BasicLinkedList(List):
         return node.value
 
     def clear(self):
+        """Removes all items."""
         self._head = None
 
     def remove_first(self, value):
@@ -826,6 +828,7 @@ class LinkedList(BasicLinkedList):
         self._len += 1
 
     def clear(self):
+        """Removes all items."""
         super().clear()
         self._tail = None
         self._len = 0
@@ -1002,6 +1005,7 @@ class CircularLinkedList(BasicLinkedList):
         self._len += 1
 
     def clear(self):
+        """Removes all items."""
         super().clear()
         self._len = 0
 

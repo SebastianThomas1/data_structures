@@ -775,6 +775,30 @@ class TestList(unittest.TestCase):
                                                              -1, -2, -3]))
         self.assertEqual(self.list, self.tested_class([1, 42, -3, 2, 42, 0]))
 
+    def test_pop_first(self):
+        with self.assertRaises(IndexError):
+            self.empty_list.pop_first()
+
+        self.list_length_1.pop_first()
+        self.range_list.pop_first()
+        self.list.pop_first()
+
+        self.assertEqual(self.list_length_1, self.tested_class())
+        self.assertEqual(self.range_list, self.tested_class([1, 2, 3]))
+        self.assertEqual(self.list, self.tested_class([42, -3, 2, 42]))
+
+    def test_pop_last(self):
+        with self.assertRaises(IndexError):
+            self.empty_list.pop_last()
+
+        self.list_length_1.pop_last()
+        self.range_list.pop_last()
+        self.list.pop_last()
+
+        self.assertEqual(self.list_length_1, self.tested_class())
+        self.assertEqual(self.range_list, self.tested_class([0, 1, 2]))
+        self.assertEqual(self.list, self.tested_class([1, 42, -3, 2]))
+
     def test_pop(self):
         with self.assertRaises(IndexError):
             self.empty_list.pop()
@@ -806,30 +830,6 @@ class TestList(unittest.TestCase):
         self.list.pop()
         with self.assertRaises(IndexError):
             self.list.pop()
-
-    def test_pop_first(self):
-        with self.assertRaises(IndexError):
-            self.empty_list.pop_first()
-
-        self.list_length_1.pop_first()
-        self.range_list.pop_first()
-        self.list.pop_first()
-
-        self.assertEqual(self.list_length_1, self.tested_class())
-        self.assertEqual(self.range_list, self.tested_class([1, 2, 3]))
-        self.assertEqual(self.list, self.tested_class([42, -3, 2, 42]))
-
-    def test_pop_last(self):
-        with self.assertRaises(IndexError):
-            self.empty_list.pop_last()
-
-        self.list_length_1.pop_last()
-        self.range_list.pop_last()
-        self.list.pop_last()
-
-        self.assertEqual(self.list_length_1, self.tested_class())
-        self.assertEqual(self.range_list, self.tested_class([0, 1, 2]))
-        self.assertEqual(self.list, self.tested_class([1, 42, -3, 2]))
 
     def test_clear(self):
         self.empty_list.clear()
