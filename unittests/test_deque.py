@@ -1,10 +1,13 @@
 # Sebastian Thomas (datascience at sebastianthomas dot de)
 
-# custom modules
-from datastructures.deque import *
+# copying objects
+from copy import copy
 
 # unit tests
 import unittest
+
+# custom modules
+from datastructures.deque import *
 
 
 class TestDeque(unittest.TestCase):
@@ -56,6 +59,12 @@ class TestDeque(unittest.TestCase):
         self.assertEqual(list(iter(self.deque_length_1)), [0])
         self.assertEqual(list(iter(self.range_deque)), [0, 1, 2, 3])
         self.assertEqual(list(iter(self.deque)), [1, 42, -3, 2, 42])
+
+    def test_copy(self):
+        self.assertEqual(copy(self.empty_deque), self.empty_deque)
+        self.assertEqual(copy(self.deque_length_1), self.deque_length_1)
+        self.assertEqual(copy(self.range_deque), self.range_deque)
+        self.assertEqual(copy(self.deque), self.deque)
 
     def test_bool(self):
         self.assertFalse(bool(self.empty_deque))

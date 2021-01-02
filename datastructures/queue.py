@@ -21,6 +21,11 @@ class Queue(OrderedCollection):
     Concrete subclasses must provide: __new__ or __init__,
     predictable __iter__, peek, enqueue, dequeue."""
 
+    def __copy__(self):
+        copy_of_self = type(self)()
+        copy_of_self += self
+        return copy_of_self
+
     def __iadd__(self, other):
         if not isinstance(other, Iterable):
             raise TypeError('\'{}\' object is not iterable.'.format(type(other)

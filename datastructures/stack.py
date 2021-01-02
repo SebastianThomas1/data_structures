@@ -4,6 +4,9 @@
 from abc import abstractmethod
 from collections.abc import Iterable
 
+# copying objects
+from copy import copy
+
 # representations of objects
 from reprlib import repr as reprlib_repr
 
@@ -20,6 +23,13 @@ class Stack(OrderedCollection):
 
     Concrete subclasses must provide: __new__ or __init__,
     predictable __iter__, push, pop."""
+
+    def __copy__(self):
+        reverse_copy_of_self = type(self)()
+        reverse_copy_of_self += self
+        copy_of_self = type(self)()
+        copy_of_self += reverse_copy_of_self
+        return copy_of_self
 
     def __iadd__(self, other):
         if not isinstance(other, Iterable):
@@ -57,6 +67,11 @@ class ArrayStack(Stack):
 
     def __init__(self):
         self._values = []
+
+    def __copy__(self):
+        copy_of_self = type(self)()
+        copy_of_self._values = copy(self._values)
+        return copy_of_self
 
     def __iter__(self):
         return reversed(self._values)
@@ -113,6 +128,21 @@ class LinkedStack(Stack):
     def __init__(self):
         self._top = None
         self._len = 0
+
+    def __copy__(self):
+        copy_of_self = type(self)()
+
+        if self:
+            iterator = iter(self)
+
+            copy_of_self._top = self.Node(next(iterator))
+
+            current_node = copy_of_self._top
+            for value in iterator:
+                current_node.successor = copy_of_self.Node(value)
+                current_node = current_node.successor
+
+        return copy_of_self
 
     def __iter__(self):
         current_node = self._top

@@ -1,10 +1,13 @@
 # Sebastian Thomas (datascience at sebastianthomas dot de)
 
-# custom modules
-from datastructures.stack import *
+# copying objects
+from copy import copy
 
 # unit tests
 import unittest
+
+# custom modules
+from datastructures.stack import *
 
 
 class TestStack(unittest.TestCase):
@@ -50,6 +53,12 @@ class TestStack(unittest.TestCase):
         self.assertNotEqual(self.stack_length_1, [0])
         self.assertNotEqual(self.range_stack, range(4))
         self.assertNotEqual(self.stack, [1, 42, -3, 2, 42])
+
+    def test_copy(self):
+        self.assertEqual(copy(self.empty_stack), self.empty_stack)
+        self.assertEqual(copy(self.stack_length_1), self.stack_length_1)
+        self.assertEqual(copy(self.range_stack), self.range_stack)
+        self.assertEqual(copy(self.stack), self.stack)
 
     def test_iter(self):
         self.assertEqual(list(iter(self.empty_stack)), [])
