@@ -172,7 +172,7 @@ class LinkedRandomizedQueue(RandomizedQueue):
         return self._len
 
     def _traversal(self, start_node=None):
-        """Traverses instance, beginning with start_node (default: head)."""
+        """Traverses instance, beginning with start_node (default: front)."""
         if start_node is None:
             start_node = self._front
 
