@@ -16,6 +16,28 @@ class Collection(PyCollection, metaclass=ABCMeta):
 
     Concrete subclasses must provide: __new__ or __init__, __iter__."""
 
+    def __eq__(self, other):
+        if self is other:
+            return True
+
+        if not isinstance(other, type(self)):
+            return False
+
+        if len(self) != len(other):
+            return False
+
+        values_of_self = set(self)
+        values_of_other = set(other)
+
+        if len(values_of_self) != len(values_of_other):
+            return False
+
+        for value in values_of_self:
+            if self.count(value) != other.count(value):
+                return False
+
+        return True
+
     def __bool__(self):
         return not self.is_empty()
 
@@ -47,7 +69,16 @@ class Collection(PyCollection, metaclass=ABCMeta):
 
     def is_empty(self):
         """Checks whether this instance is empty."""
-        return len(self) == 0
+        try:
+            next(iter(self))
+        except StopIteration:
+            return True
+        else:
+            return False
+
+    def count(self, value):
+        """Returns number of occurrences of value."""
+        return sum(1 for entry in self if entry == value)
 
 
 class OrderedCollection(Collection, metaclass=ABCMeta):
