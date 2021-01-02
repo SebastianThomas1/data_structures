@@ -251,14 +251,14 @@ class ArrayList(List):
         else:
             self._values = list()
 
+    def __copy__(self):
+        return type(self)(self)
+
     def __iter__(self):
         return iter(self._values)
 
     def __reversed__(self):
         return reversed(self._values)
-
-    def __copy__(self):
-        return type(self)(self)
 
     def __bool__(self):
         return bool(self._values)
@@ -374,12 +374,12 @@ class BasicLinkedList(List):
         else:
             self._head = None
 
+    def __copy__(self):
+        return type(self)(self)
+
     def __iter__(self):
         for node in self._traversal():
             yield node.value
-
-    def __copy__(self):
-        return type(self)(self)
 
     def __len__(self):
         return sum(1 for _ in self._traversal())

@@ -1,13 +1,13 @@
 # Sebastian Thomas (datascience at sebastianthomas dot de)
 
-# custom modules
-from datastructures.list import *
-
 # copying objects
 from copy import copy
 
 # unit tests
 import unittest
+
+# custom modules
+from datastructures.list import *
 
 
 class TestList(unittest.TestCase):
@@ -40,6 +40,12 @@ class TestList(unittest.TestCase):
         self.assertNotEqual(self.range_list, range(4))
         self.assertNotEqual(self.list, [1, 42, -3, 2, 42])
 
+    def test_copy(self):
+        self.assertEqual(copy(self.empty_list), self.empty_list)
+        self.assertEqual(copy(self.list_length_1), self.list_length_1)
+        self.assertEqual(copy(self.range_list), self.range_list)
+        self.assertEqual(copy(self.list), self.list)
+
     def test_iter(self):
         self.assertEqual(list(iter(self.empty_list)), [])
         self.assertEqual(list(iter(self.list_length_1)), [0])
@@ -51,12 +57,6 @@ class TestList(unittest.TestCase):
         self.assertEqual(list(reversed(self.list_length_1)), [0])
         self.assertEqual(list(reversed(self.range_list)), [3, 2, 1, 0])
         self.assertEqual(list(reversed(self.list)), [42, 2, -3, 42, 1])
-
-    def test_copy(self):
-        self.assertEqual(copy(self.empty_list), self.empty_list)
-        self.assertEqual(copy(self.list_length_1), self.list_length_1)
-        self.assertEqual(copy(self.range_list), self.range_list)
-        self.assertEqual(copy(self.list), self.list)
 
     def test_bool(self):
         self.assertFalse(bool(self.empty_list))
