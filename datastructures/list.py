@@ -27,6 +27,9 @@ class List(MutableSequence):
     __setitem__, __delitem__, __len__, insert_before and insert_after."""
 
     def __eq__(self, other):
+        if self is other:
+            return True
+
         if not isinstance(other, type(self)):
             return False
 
@@ -140,7 +143,7 @@ class List(MutableSequence):
         # check entries until value is found, then return index
         for idx in range(start, stop):
             entry = self[idx]
-            if entry is value or entry == value:
+            if entry == value:
                 return idx
 
         raise ValueError('{} is not in list resp. slice.'.format(repr(value)))
@@ -157,7 +160,7 @@ class List(MutableSequence):
 
         for idx in range(start, stop):
             entry = self[idx]
-            if entry is value or entry == value:
+            if entry == value:
                 remembered = idx
 
         # if value was found, return remembered index
@@ -586,7 +589,7 @@ class BasicLinkedList(List):
 
         idx = 0
         for node in self._traversal():
-            if idx >= start and (node.value is value or node.value == value):
+            if idx >= start and (node.value == value):
                 remembered = idx
             idx += 1
             if stop is not None and idx == stop:
@@ -663,7 +666,7 @@ class BasicLinkedList(List):
         # traverse instance until value is found, then remove node
         predecessor = None
         for node in self._traversal():
-            if node.value is value or node.value == value:
+            if node.value == value:
                 self._remove_node(node, predecessor)
                 return
 
@@ -683,7 +686,7 @@ class BasicLinkedList(List):
 
         predecessor = None
         for node in self._traversal():
-            if node.value is value or node.value == value:
+            if node.value == value:
                 remembered_predecessor = predecessor
                 remembered_node = node
 
@@ -1010,7 +1013,7 @@ class CircularLinkedList(BasicLinkedList):
         # traverse instance until value is found, then remove node
         predecessor = None
         for node in self._traversal():
-            if node.value is value or node.value == value:
+            if node.value == value:
                 if predecessor is None:  # ie node is self.head
                     predecessor = self.tail
 
@@ -1033,7 +1036,7 @@ class CircularLinkedList(BasicLinkedList):
 
         predecessor = None
         for node in self._traversal():
-            if node.value is value or node.value == value:
+            if node.value == value:
                 remembered_predecessor = predecessor
                 remembered_node = node
 
@@ -1215,7 +1218,7 @@ class DoublyLinkedList(LinkedList):
         # index befor stop, when value is reached, return index
         idx = len(self) - 1
         for node in self._reversed_traversal():
-            if idx < stop and (node.value is value or node.value == value):
+            if idx < stop and node.value == value:
                 return idx
             idx -= 1
             if idx < start:
@@ -1246,7 +1249,7 @@ class DoublyLinkedList(LinkedList):
 
         # traverse instance until value is found, then remove node
         for node in self._traversal():
-            if node.value is value or node.value == value:
+            if node.value == value:
                 self._remove_node(node, node.predecessor)
                 return
 
@@ -1260,7 +1263,7 @@ class DoublyLinkedList(LinkedList):
         # traverse instance in reverse order until value is found, then
         # remove node
         for node in self._reversed_traversal():
-            if node.value is value or node.value == value:
+            if node.value == value:
                 self._remove_node(node, node.predecessor)
                 return
 
@@ -1442,7 +1445,7 @@ class CircularDoublyLinkedList(CircularLinkedList):
         # index befor stop, when value is reached, return index
         idx = len(self) - 1
         for node in self._reversed_traversal():
-            if idx < stop and (node.value is value or node.value == value):
+            if idx < stop and node.value == value:
                 return idx
             idx -= 1
             if idx < start:
@@ -1474,7 +1477,7 @@ class CircularDoublyLinkedList(CircularLinkedList):
 
         # traverse instance until value is found, then remove node
         for node in self._traversal():
-            if node.value is value or node.value == value:
+            if node.value == value:
                 self._remove_node(node, node.predecessor)
                 return
 
@@ -1488,7 +1491,7 @@ class CircularDoublyLinkedList(CircularLinkedList):
         # traverse instance in reverse order until value is found, then
         # remove node
         for node in self._reversed_traversal():
-            if node.value is value or node.value == value:
+            if node.value == value:
                 self._remove_node(node, node.predecessor)
                 return
 
