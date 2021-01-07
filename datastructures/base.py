@@ -8,14 +8,13 @@ from collections.abc import Iterable, Collection as PyCollection
 from reprlib import repr as reprlib_repr
 
 
-__all__ = ['Collection']
+__all__ = ['CollectionMixin', 'PredictableIterMixin',
+           'StaticCollection', 'StaticCollectionWithReferences',
+           'Collection', 'CollectionWithReferences',
+           'EmptyCollectionException']
 
 
-class Collection(PyCollection, metaclass=ABCMeta):
-    """Abstract base class for the abstract data type collection.
-
-    Concrete subclasses must provide: __new__ or __init__, __iter__."""
-
+class CollectionMixin(PyCollection, metaclass=ABCMeta):
     def __eq__(self, other):
         if self is other:
             return True
@@ -67,6 +66,11 @@ class Collection(PyCollection, metaclass=ABCMeta):
 
         return False
 
+    def _validate_non_emptiness(self):
+        if self.is_empty():
+            raise EmptyCollectionException('can\'t access entry in empty '
+                                           'collection')
+
     def is_empty(self):
         """Checks whether this instance is empty."""
         try:
@@ -81,12 +85,7 @@ class Collection(PyCollection, metaclass=ABCMeta):
         return sum(1 for entry in self if entry == value)
 
 
-class OrderedCollection(Collection, metaclass=ABCMeta):
-    """Abstract base class for the abstract data type ordered collection.
-
-    Concrete subclasses must provide: __new__ or __init__ and predictable
-    __iter__."""
-
+class PredictableIterMixin(Iterable, metaclass=ABCMeta):
     def __eq__(self, other):
         if self is other:
             return True
@@ -99,23 +98,116 @@ class OrderedCollection(Collection, metaclass=ABCMeta):
         values_of_self = iter(self)
         values_of_other = iter(other)
 
-        self_is_empty = False
-        other_is_empty = False
-
         while True:
             try:
                 value_of_self = next(values_of_self)
-            except StopIteration:
-                self_is_empty = True
+            except StopIteration:  # values_of_self exhausted
+                try:
+                    next(values_of_other)
+                except StopIteration:  # values_of_other exhausted
+                    return True
+                else:  # values_of_other not exhausted
+                    return False
 
             try:
                 value_of_other = next(values_of_other)
-            except StopIteration:
-                other_is_empty = True
-
-            if self_is_empty:
-                return other_is_empty
-            elif other_is_empty:
-                return False  # self_is_empty is False
-            elif value_of_self != value_of_other:
+            except StopIteration:  # values_of_other exhausted
                 return False
+
+            if value_of_self != value_of_other:
+                return False
+
+
+class StaticCollection(CollectionMixin):
+    """Abstract base class for the abstract data type static collection.
+
+    Concrete subclasses must provide: __new__ or __init__, __iter__ and get."""
+
+    @abstractmethod
+    def get(self):
+        """Returns a value of the instance."""
+        self._validate_non_emptiness()
+
+        raise NotImplementedError
+
+
+class StaticCollectionWithReferences(CollectionMixin):
+    """Abstract base class for the abstract data type static collection
+    with references.
+
+    Concrete subclasses must provide: __new__ or __init__, __iter__ and
+    __getitem__."""
+
+    @abstractmethod
+    def __getitem__(self, key):
+        self._validate_non_emptiness()
+
+        raise NotImplementedError
+
+
+class Collection(StaticCollection):
+    """Abstract base class for the abstract data type collection.
+
+    Concrete subclasses must provide: __new__ or __init__, __iter__,
+    get, post and delete."""
+
+    def __iadd__(self, other):
+        if not isinstance(other, Iterable):
+            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
+                                                                    .__name__))
+
+        for value in other:
+            self.post(value)
+
+        return self
+
+    @abstractmethod
+    def post(self, value):
+        """Posts the value to the instance."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def delete(self):
+        """Deletes a value from the instance."""
+        self._validate_non_emptiness()
+
+        raise NotImplementedError
+
+    def clear(self):
+        """Removes all values."""
+        try:
+            while True:
+                self.delete()
+        except EmptyCollectionException:
+            pass
+
+
+class CollectionWithReferences(StaticCollectionWithReferences):
+    """Abstract base class for the abstract data type collection with
+    references.
+
+    Concrete subclasses must provide: __new__ or __init__, __iter__,
+    __getitem__, __delitem__, insert."""
+
+    @abstractmethod
+    def __delitem__(self, key):
+        """Deletes the value at the key."""
+        self._validate_non_emptiness()
+
+        raise NotImplementedError
+
+    @abstractmethod
+    def insert(self, key, value):
+        """Inserts the value at the key."""
+        pass
+
+    def pop(self, key):
+        """Removes and returns the value at the key."""
+        value = self[key]
+        del self[key]
+
+        return value
+
+
+class EmptyCollectionException(Exception):
+    pass

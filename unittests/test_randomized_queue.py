@@ -1,6 +1,7 @@
 # Sebastian Thomas (datascience at sebastianthomas dot de)
 
 # custom modules
+from datastructures.base import EmptyCollectionException
 from datastructures.randomized_queue import *
 
 # unit tests
@@ -161,8 +162,18 @@ class TestRandomizedQueue(unittest.TestCase):
         self.assertFalse(self.range_queue.is_empty())
         self.assertFalse(self.queue.is_empty())
 
+    def test_get(self):
+        with self.assertRaises(EmptyCollectionException):
+            self.empty_queue.get()
+
+        self.assertEqual(self.queue_length_1.get(), 0)
+        for _ in range(100):
+            self.assertIn(self.range_queue.get(), {0, 1, 2, 3})
+        for _ in range(100):
+            self.assertIn(self.queue.get(), {-3, 1, 2, 42})
+
     def test_choice(self):
-        with self.assertRaises(EmptyRandomizedQueueException):
+        with self.assertRaises(EmptyCollectionException):
             self.empty_queue.choice()
 
         self.assertEqual(self.queue_length_1.choice(), 0)
@@ -170,6 +181,30 @@ class TestRandomizedQueue(unittest.TestCase):
             self.assertIn(self.range_queue.choice(), {0, 1, 2, 3})
         for _ in range(100):
             self.assertIn(self.queue.choice(), {-3, 1, 2, 42})
+
+    def test_post(self):
+        self.empty_queue.post(-1)
+        self.queue_length_1.post(-1)
+        self.queue_length_1.post(-2)
+        self.range_queue.post(-1)
+        self.range_queue.post(-2)
+        self.range_queue.post(-3)
+        self.queue.post(-1)
+        self.queue.post(-2)
+        self.queue.post(-3)
+
+        queue = self.tested_class()
+        queue += [-1]
+        self.assertEqual(self.empty_queue, queue)
+        queue = self.tested_class()
+        queue += [0, -1, -2]
+        self.assertEqual(self.queue_length_1, queue)
+        queue = self.tested_class()
+        queue += [0, 1, 2, 3, -1, -2, -3]
+        self.assertEqual(self.range_queue, queue)
+        queue = self.tested_class()
+        queue += [1, 42, -3, 2, 42, -1, -2, -3]
+        self.assertEqual(self.queue, queue)
 
     def test_enqueue(self):
         self.empty_queue.enqueue(-1)
@@ -195,29 +230,31 @@ class TestRandomizedQueue(unittest.TestCase):
         queue += [1, 42, -3, 2, 42, -1, -2, -3]
         self.assertEqual(self.queue, queue)
 
-    def test_dequeue(self):
-        with self.assertRaises(EmptyRandomizedQueueException):
-            self.empty_queue.dequeue()
+    def test_delete(self):
+        with self.assertRaises(EmptyCollectionException):
+            self.empty_queue.delete()
 
-        self.assertEqual(self.queue_length_1.dequeue(), 0)
+        self.queue_length_1.delete()
         queue = self.tested_class()
         self.assertEqual(self.queue_length_1, queue)
 
         values = {0, 1, 2, 3}
         for _ in range(4):
-            value = self.range_queue.dequeue()
-            self.assertIn(value, values)
-            values.remove(value)
-        with self.assertRaises(EmptyRandomizedQueueException):
-            self.range_queue.dequeue()
+            self.range_queue.delete()
+            for value in self.range_queue:
+                self.assertIn(value, values)
+        with self.assertRaises(EmptyCollectionException):
+            self.range_queue.delete()
+        self.assertEqual(self.queue_length_1, queue)
 
         values = [1, 42, -3, 2, 42]
         for _ in range(5):
-            value = self.queue.dequeue()
-            self.assertIn(value, values)
-            values.remove(value)
-        with self.assertRaises(EmptyRandomizedQueueException):
-            self.queue.dequeue()
+            self.queue.delete()
+            for value in self.queue:
+                self.assertIn(value, values)
+        with self.assertRaises(EmptyCollectionException):
+            self.queue.delete()
+        self.assertEqual(self.queue_length_1, queue)
 
     def test_clear(self):
         self.empty_queue.clear()
@@ -229,6 +266,30 @@ class TestRandomizedQueue(unittest.TestCase):
         self.assertEqual(self.queue_length_1, self.tested_class())
         self.assertEqual(self.range_queue, self.tested_class())
         self.assertEqual(self.queue, self.tested_class())
+
+    def test_dequeue(self):
+        with self.assertRaises(EmptyCollectionException):
+            self.empty_queue.dequeue()
+
+        self.assertEqual(self.queue_length_1.dequeue(), 0)
+        queue = self.tested_class()
+        self.assertEqual(self.queue_length_1, queue)
+
+        values = {0, 1, 2, 3}
+        for _ in range(4):
+            value = self.range_queue.dequeue()
+            self.assertIn(value, values)
+            values.remove(value)
+        with self.assertRaises(EmptyCollectionException):
+            self.range_queue.dequeue()
+
+        values = [1, 42, -3, 2, 42]
+        for _ in range(5):
+            value = self.queue.dequeue()
+            self.assertIn(value, values)
+            values.remove(value)
+        with self.assertRaises(EmptyCollectionException):
+            self.queue.dequeue()
 
 
 class TestArrayRandomizedQueue(TestRandomizedQueue):
@@ -245,8 +306,8 @@ class TestArrayRandomizedQueue(TestRandomizedQueue):
     def test_iter(self):
         super().test_iter()
 
-        self.assertEqual(list(iter(self.range_queue)), [2, 3, 0, 1])
-        self.assertEqual(list(iter(self.queue)), [-3, 2, 42, 1, 42])
+        self.assertEqual(list(iter(self.range_queue)), [1, 2, 3, 0])
+        self.assertEqual(list(iter(self.queue)), [-3, 42, 1, 42, 2])
 
     def test_repr(self):
         class_name = self.tested_class.__name__

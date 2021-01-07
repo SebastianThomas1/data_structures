@@ -7,6 +7,7 @@ from copy import copy
 import unittest
 
 # custom modules
+from datastructures.base import EmptyCollectionException
 from datastructures.stack import *
 
 
@@ -119,6 +120,56 @@ class TestStack(unittest.TestCase):
         self.assertFalse('2' in self.stack)
         self.assertFalse('42' in self.stack)
 
+    def test_getitem(self):
+        with self.assertRaises(KeyError):
+            _ = self.empty_stack[0]
+
+        with self.assertRaises(EmptyCollectionException):
+            _ = self.empty_stack[TOP]
+
+        self.assertEqual(self.stack_length_1[TOP], 0)
+        self.assertEqual(self.range_stack[TOP], 3)
+        self.assertEqual(self.stack[TOP], 42)
+
+    def test_setitem(self):
+        with self.assertRaises(KeyError):
+            self.empty_stack[0] = 1
+
+        with self.assertRaises(EmptyCollectionException):
+            self.empty_stack[TOP] = 1
+
+        self.stack_length_1[TOP] = 1
+        stack = self.tested_class()
+        stack += [1]
+        self.assertEqual(self.stack_length_1, stack)
+        self.range_stack[TOP] = 1
+        stack = self.tested_class()
+        stack += [0, 1, 2, 1]
+        self.assertEqual(self.range_stack, stack)
+        self.stack[TOP] = 1
+        stack = self.tested_class()
+        stack += [1, 42, -3, 2, 1]
+        self.assertEqual(self.stack, stack)
+
+    def test_delitem(self):
+        with self.assertRaises(KeyError):
+            del self.empty_stack[0]
+
+        with self.assertRaises(EmptyCollectionException):
+            del self.empty_stack[TOP]
+
+        del self.stack_length_1[TOP]
+        stack = self.tested_class()
+        self.assertEqual(self.stack_length_1, stack)
+        del self.range_stack[TOP]
+        stack = self.tested_class()
+        stack += [0, 1, 2]
+        self.assertEqual(self.range_stack, stack)
+        del self.stack[TOP]
+        stack = self.tested_class()
+        stack += [1, 42, -3, 2]
+        self.assertEqual(self.stack, stack)
+
     def test_iadd(self):
         with self.assertRaises(TypeError):
             self.empty_stack += 2
@@ -185,13 +236,72 @@ class TestStack(unittest.TestCase):
         self.assertFalse(self.range_stack.is_empty())
         self.assertFalse(self.stack.is_empty())
 
+    def test_get(self):
+        with self.assertRaises(EmptyCollectionException):
+            self.empty_stack.get()
+
+        self.assertEqual(self.stack_length_1.get(), 0)
+        self.assertEqual(self.range_stack.get(), 3)
+        self.assertEqual(self.stack.get(), 42)
+
     def test_peek(self):
-        with self.assertRaises(EmptyStackException):
+        with self.assertRaises(EmptyCollectionException):
             self.empty_stack.peek()
 
         self.assertEqual(self.stack_length_1.peek(), 0)
         self.assertEqual(self.range_stack.peek(), 3)
         self.assertEqual(self.stack.peek(), 42)
+
+    def test_insert(self):
+        with self.assertRaises(KeyError):
+            self.empty_stack.insert(0, 1)
+
+        self.empty_stack.insert(TOP, -1)
+        self.stack_length_1.insert(TOP, -1)
+        self.stack_length_1.insert(TOP, -2)
+        self.range_stack.insert(TOP, -1)
+        self.range_stack.insert(TOP, -2)
+        self.range_stack.insert(TOP, -3)
+        self.stack.insert(TOP, -1)
+        self.stack.insert(TOP, -2)
+        self.stack.insert(TOP, -3)
+
+        stack = self.tested_class()
+        stack += [-1]
+        self.assertEqual(self.empty_stack, stack)
+        stack = self.tested_class()
+        stack += [0, -1, -2]
+        self.assertEqual(self.stack_length_1, stack)
+        stack = self.tested_class()
+        stack += [0, 1, 2, 3, -1, -2, -3]
+        self.assertEqual(self.range_stack, stack)
+        stack = self.tested_class()
+        stack += [1, 42, -3, 2, 42, -1, -2, -3]
+        self.assertEqual(self.stack, stack)
+
+    def test_post(self):
+        self.empty_stack.post(-1)
+        self.stack_length_1.post(-1)
+        self.stack_length_1.post(-2)
+        self.range_stack.post(-1)
+        self.range_stack.post(-2)
+        self.range_stack.post(-3)
+        self.stack.post(-1)
+        self.stack.post(-2)
+        self.stack.post(-3)
+
+        stack = self.tested_class()
+        stack += [-1]
+        self.assertEqual(self.empty_stack, stack)
+        stack = self.tested_class()
+        stack += [0, -1, -2]
+        self.assertEqual(self.stack_length_1, stack)
+        stack = self.tested_class()
+        stack += [0, 1, 2, 3, -1, -2, -3]
+        self.assertEqual(self.range_stack, stack)
+        stack = self.tested_class()
+        stack += [1, 42, -3, 2, 42, -1, -2, -3]
+        self.assertEqual(self.stack, stack)
 
     def test_push(self):
         self.empty_stack.push(-1)
@@ -217,8 +327,52 @@ class TestStack(unittest.TestCase):
         stack += [1, 42, -3, 2, 42, -1, -2, -3]
         self.assertEqual(self.stack, stack)
 
+    def test_replace(self):
+        with self.assertRaises(EmptyCollectionException):
+            self.empty_stack.replace(1)
+
+        self.stack_length_1.replace(1)
+        stack = self.tested_class()
+        stack += [1]
+        self.assertEqual(self.stack_length_1, stack)
+        self.range_stack.replace(1)
+        stack = self.tested_class()
+        stack += [0, 1, 2, 1]
+        self.assertEqual(self.range_stack, stack)
+        self.stack.replace(1)
+        stack = self.tested_class()
+        stack += [1, 42, -3, 2, 1]
+        self.assertEqual(self.stack, stack)
+
+    def test_delete(self):
+        with self.assertRaises(EmptyCollectionException):
+            self.empty_stack.delete()
+
+        self.stack_length_1.delete()
+        stack = self.tested_class()
+        self.assertEqual(self.stack_length_1, stack)
+        self.range_stack.delete()
+        stack = self.tested_class()
+        stack += [0, 1, 2]
+        self.assertEqual(self.range_stack, stack)
+        self.stack.delete()
+        stack = self.tested_class()
+        stack += [1, 42, -3, 2]
+        self.assertEqual(self.stack, stack)
+
+    def test_clear(self):
+        self.empty_stack.clear()
+        self.stack_length_1.clear()
+        self.range_stack.clear()
+        self.stack.clear()
+
+        self.assertEqual(self.empty_stack, self.tested_class())
+        self.assertEqual(self.stack_length_1, self.tested_class())
+        self.assertEqual(self.range_stack, self.tested_class())
+        self.assertEqual(self.stack, self.tested_class())
+
     def test_pop(self):
-        with self.assertRaises(EmptyStackException):
+        with self.assertRaises(EmptyCollectionException):
             self.empty_stack.pop()
 
         self.stack_length_1.pop()
@@ -239,19 +393,8 @@ class TestStack(unittest.TestCase):
         self.stack.pop()
         self.stack.pop()
         self.stack.pop()
-        with self.assertRaises(EmptyStackException):
+        with self.assertRaises(EmptyCollectionException):
             self.stack.pop()
-
-    def test_clear(self):
-        self.empty_stack.clear()
-        self.stack_length_1.clear()
-        self.range_stack.clear()
-        self.stack.clear()
-
-        self.assertEqual(self.empty_stack, self.tested_class())
-        self.assertEqual(self.stack_length_1, self.tested_class())
-        self.assertEqual(self.range_stack, self.tested_class())
-        self.assertEqual(self.stack, self.tested_class())
 
 
 class TestArrayStack(TestStack):

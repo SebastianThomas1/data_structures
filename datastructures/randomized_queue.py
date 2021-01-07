@@ -4,26 +4,29 @@
 from abc import abstractmethod
 from collections.abc import Iterable
 
+# copying objects
+from copy import copy
+
 # representations of objects
 from reprlib import repr as reprlib_repr
 
 # randomization
-from random import choice, randrange, seed
+from random import shuffle, choice, randrange, seed
 from numpy.random import permutation, seed as np_seed
 
 # custom modules
-from datastructures.base import Collection
+from datastructures.base import Collection, EmptyCollectionException
 from datastructures.node import LinkedNode, DoublyLinkedNode
 
 
-__all__ = ['RandomizedQueue', 'ArrayRandomizedQueue', 'LinkedRandomizedQueue',
-           'DoublyLinkedRandomizedQueue', 'EmptyRandomizedQueueException']
+__all__ = ['ArrayRandomizedQueue', 'DoublyLinkedRandomizedQueue',
+           'LinkedRandomizedQueue', 'RandomizedQueue']
 
 
 class RandomizedQueue(Collection):
     """Abstract base class for the abstract data type randomized queue.
 
-    Concrete subclasses must provide: __new__ or __init__, __iter__, sample,
+    Concrete subclasses must provide: __new__ or __init__, __iter__, choice,
     enqueue, dequeue."""
 
     def __copy__(self):
@@ -31,39 +34,48 @@ class RandomizedQueue(Collection):
         copy_of_self += self
         return copy_of_self
 
-    def __iadd__(self, other):
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
+    def __getitem__(self, key):
+        raise TypeError('\'{}\' object is not subscriptable'
+                        .format(type(self).__name__))
 
-        for value in other:
-            self.enqueue(value)
+    def __setitem__(self, key, value):
+        raise TypeError('\'{}\' object does not support item assignment'
+                        .format(type(self).__name__))
 
-        return self
+    def __delitem__(self, key):
+        raise TypeError('\'{}\' object doesn\'t support item deletion'
+                        .format(type(self).__name__))
+
+    def get(self):
+        """Returns a random value of this instance."""
+        return self.choice()
 
     @abstractmethod
     def choice(self):
-        """Returns a random item of the randomized queue (but does not remove
-        it)."""
-        pass
+        """Alias to get: returns a random value of this instance."""
+        self._validate_non_emptiness()
+
+        raise NotImplementedError
+
+    def post(self, value):
+        """Posts the value to this instance."""
+        self.enqueue(value)
 
     @abstractmethod
     def enqueue(self, value):
-        """Enqueues an item on the randomized_queue."""
-        pass
+        """Alias to post: enqueues the value on this instance."""
+        raise NotImplementedError
+
+    def delete(self):
+        """Deletes the value on the front of this instance."""
+        self.dequeue()
 
     @abstractmethod
     def dequeue(self):
-        """Dequeues a random item from the randomized queue."""
-        pass
+        """Dequeues a random value from this instance."""
+        self._validate_non_emptiness()
 
-    def clear(self):
-        """Removes all items."""
-        try:
-            while True:
-                self.dequeue()
-        except EmptyRandomizedQueueException:
-            pass
+        raise NotImplementedError
 
 
 class ArrayRandomizedQueue(RandomizedQueue):
@@ -74,14 +86,20 @@ class ArrayRandomizedQueue(RandomizedQueue):
         self._values = []
         self._random_state = random_state
 
+    def __copy__(self):
+        copy_of_self = type(self)()
+        copy_of_self._values = copy(self._values)
+        return copy_of_self
+
     def __iter__(self):
         seed(self._random_state)
         np_seed(self._random_state)
         if self._random_state is not None:
             self._random_state = randrange(2**32)
 
-        for idx in permutation(len(self)):
-            yield self._values[idx]
+        shuffle(self._values)
+
+        return iter(self._values)
 
     def __len__(self):
         return len(self._values)
@@ -106,15 +124,13 @@ class ArrayRandomizedQueue(RandomizedQueue):
         return self
 
     def is_empty(self):
-        """Checks whether this instance is an empty queue."""
+        """Checks whether this instance is empty."""
         return not bool(self._values)
 
     def choice(self):
         """Returns a random item of the randomized queue (but does not remove
         it)."""
-        if self.is_empty():
-            raise EmptyRandomizedQueueException('Can\'t access entries of '
-                                                'empty randomized queue.')
+        self._validate_non_emptiness()
 
         seed(self._random_state)
         if self._random_state is not None:
@@ -128,9 +144,7 @@ class ArrayRandomizedQueue(RandomizedQueue):
 
     def dequeue(self):
         """Dequeues a random item from the randomized queue."""
-        if self.is_empty():
-            raise EmptyRandomizedQueueException('Can\'t dequeue from empty '
-                                                'randomized queue.')
+        self._validate_non_emptiness()
 
         seed(self._random_state)
         if self._random_state is not None:
@@ -205,8 +219,7 @@ class LinkedRandomizedQueue(RandomizedQueue):
 
     def _get_node(self, key):  # assume key is an integer
         """Returns node at index."""
-        if self.is_empty():
-            raise IndexError('Can\'t access index in empty randomized queue.')
+        self._validate_non_emptiness()
 
         if key < self._current_idx:
             self._reset_current_node()
@@ -223,8 +236,7 @@ class LinkedRandomizedQueue(RandomizedQueue):
 
     def _get_node_with_predecessor(self, key):
         """Returns node at index together with predecessor."""
-        if self.is_empty():
-            raise IndexError('Can\'t access index in empty randomized queue.')
+        self._validate_non_emptiness()
 
         if key <= self._current_idx:
             self._reset_current_node()
@@ -265,9 +277,7 @@ class LinkedRandomizedQueue(RandomizedQueue):
     def choice(self):
         """Returns a random item of the randomized queue (but does not remove
         it)."""
-        if self.is_empty():
-            raise EmptyRandomizedQueueException('Can\'t access entries of '
-                                                'empty randomized queue.')
+        self._validate_non_emptiness()
 
         seed(self._random_state)
         if self._random_state is not None:
@@ -287,9 +297,7 @@ class LinkedRandomizedQueue(RandomizedQueue):
 
     def dequeue(self):
         """Dequeues a random item from the randomized queue."""
-        if self.is_empty():
-            raise EmptyRandomizedQueueException('Can\'t dequeue from empty '
-                                                'randomized queue.')
+        self._validate_non_emptiness()
 
         seed(self._random_state)
         if self._random_state is not None:
@@ -369,8 +377,7 @@ class DoublyLinkedRandomizedQueue(RandomizedQueue):
     def _move_to_node(self, steps):
         # assume key is an integer, count of steps to make
         """Returns node at index."""
-        if self.is_empty():
-            raise IndexError('Can\'t access index in empty randomized queue.')
+        self._validate_non_emptiness()
 
         # traverse instance, return current node if item at index is
         # reached
@@ -423,9 +430,7 @@ class DoublyLinkedRandomizedQueue(RandomizedQueue):
     def choice(self):
         """Returns a random item of the randomized queue (but does not remove
         it)."""
-        if self.is_empty():
-            raise EmptyRandomizedQueueException('Can\'t access entries of '
-                                                'empty randomized queue.')
+        self._validate_non_emptiness()
 
         seed(self._random_state)
         if self._random_state is not None:
@@ -451,9 +456,7 @@ class DoublyLinkedRandomizedQueue(RandomizedQueue):
 
     def dequeue(self):
         """Dequeues a random item from the randomized queue."""
-        if self.is_empty():
-            raise EmptyRandomizedQueueException('Can\'t dequeue from empty '
-                                                'randomized queue.')
+        self._validate_non_emptiness()
 
         seed(self._random_state)
         if self._random_state is not None:
@@ -470,7 +473,3 @@ class DoublyLinkedRandomizedQueue(RandomizedQueue):
         """Removes all items."""
         self._current_node = None
         self._len = 0
-
-
-class EmptyRandomizedQueueException(Exception):
-    pass

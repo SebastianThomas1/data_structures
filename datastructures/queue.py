@@ -4,60 +4,107 @@
 from abc import abstractmethod
 from collections.abc import Iterable
 
+# copying objects
+from copy import copy
+
 # representations of objects
 from reprlib import repr as reprlib_repr
 
 # custom modules
-from datastructures.base import OrderedCollection
+from datastructures.base import Collection, PredictableIterMixin, \
+    EmptyCollectionException
 from datastructures.node import LinkedNode
 
 
-__all__ = ['Queue', 'ArrayQueue', 'LinkedQueue', 'EmptyQueueException']
+__all__ = ['ArrayQueue', 'FRONT', 'LinkedQueue', 'Queue', 'REAR']
 
 
-class Queue(OrderedCollection):
+REAR = 'rear'
+FRONT = 'front'
+
+
+class Queue(PredictableIterMixin, Collection):
     """Abstract base class for the abstract data type queue.
 
     Concrete subclasses must provide: __new__ or __init__,
-    predictable __iter__, peek, enqueue, dequeue."""
+    predictable __iter__, peek, enqueue and dequeue."""
 
     def __copy__(self):
         copy_of_self = type(self)()
         copy_of_self += self
         return copy_of_self
 
-    def __iadd__(self, other):
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
+    def __getitem__(self, key):
+        """Returns the value on the front of this instance.
 
-        for value in other:
-            self.enqueue(value)
+        The parameter key must be FRONT."""
+        self._validate_key_front(key)
 
-        return self
+        return self.peek()
+
+    def __delitem__(self, key):
+        """Deletes the value on the front of this instance.
+
+        The parameter key must be FRONT."""
+        self._validate_key_front(key)
+
+        self.delete()
+
+    @staticmethod
+    def _validate_key_rear(key):
+        """Checks whether key is REAR."""
+        if key is not REAR:
+            raise KeyError('key must be REAR')
+
+    @staticmethod
+    def _validate_key_front(key):
+        """Checks whether key is FRONT."""
+        if key is not FRONT:
+            raise KeyError('key must be FRONT')
+
+    def get(self):
+        """Returns the value at the front of this instance."""
+        return self.peek()
 
     @abstractmethod
     def peek(self):
-        """Returns item at front of the queue."""
-        pass
+        """Alias to get: returns the value at the front of this instance."""
+        self._validate_non_emptiness()
+
+        raise NotImplementedError
+
+    def insert(self, key, value):
+        """Inserts the value at the key.
+
+        The parameter key must be REAR."""
+        self._validate_key_rear(key)
+        self.enqueue(value)
+
+    def post(self, value):
+        """Posts the value to this instance and places it on the rear."""
+        self.enqueue(value)
 
     @abstractmethod
     def enqueue(self, value):
-        """Enqueues an item on the rear of the queue."""
-        pass
+        """Alias to post: enqueues the value to this instance."""
+        raise NotImplementedError
+
+    def delete(self):
+        """Deletes the value on the front of this instance."""
+        self.dequeue()
+
+    def pop(self, key=FRONT):
+        """Removes and returns the value on the front of this instance.
+
+        The parameter key must be FRONT (default)."""
+        return self.dequeue()
 
     @abstractmethod
     def dequeue(self):
-        """Dequeues an item from the front of the queue."""
-        pass
+        """Alias to pop: dequeues the value at the front of this instance."""
+        self._validate_non_emptiness()
 
-    def clear(self):
-        """Removes all items."""
-        try:
-            while True:
-                self.dequeue()
-        except EmptyQueueException:
-            pass
+        raise NotImplementedError
 
 
 class ArrayQueue(Queue):
@@ -66,6 +113,11 @@ class ArrayQueue(Queue):
 
     def __init__(self):
         self._values = []
+
+    def __copy__(self):
+        copy_of_self = type(self)()
+        copy_of_self._values = copy(self._values)
+        return copy_of_self
 
     def __iter__(self):
         return iter(self._values)
@@ -90,30 +142,34 @@ class ArrayQueue(Queue):
         return self
 
     def is_empty(self):
-        """Checks whether this instance is an empty queue."""
+        """Checks whether this instance is empty."""
         return not bool(self._values)
 
     def peek(self):
-        """Returns item at front of the queue."""
-        if self.is_empty():
-            raise EmptyQueueException('Can\'t peek at empty queue.')
+        """Alias to get: returns the value at the front of this instance."""
+        self._validate_non_emptiness()
 
         return self._values[0]
 
     def enqueue(self, value):
-        """Enqueues an item on the rear of the queue."""
+        """Alias to post: enqueues the value to this instance."""
         self._values.append(value)
 
-    def dequeue(self):
-        """Dequeues an item from the front of the queue."""
-        if self.is_empty():
-            raise EmptyQueueException('Can\'t dequeue from empty queue.')
+    def delete(self):
+        """Deletes the value on the front of this instance."""
+        self._validate_non_emptiness()
 
-        return self._values.pop(0)
+        del self._values[0]
 
     def clear(self):
-        """Removes all items."""
+        """Removes all values."""
         self._values.clear()
+
+    def dequeue(self):
+        """Alias to pop: dequeues the value at the front of this instance."""
+        self._validate_non_emptiness()
+
+        return self._values.pop(0)
 
 
 class LinkedQueue(Queue):
@@ -128,6 +184,25 @@ class LinkedQueue(Queue):
         self._rear = None
         self._len = 0
 
+    def __copy__(self):
+        copy_of_self = type(self)()
+
+        if self:
+            iterator = iter(self)
+
+            copy_of_self._front = self.Node(next(iterator))
+
+            current_node = copy_of_self._front
+            for value in iterator:
+                current_node.successor = copy_of_self.Node(value)
+                current_node = current_node.successor
+
+            copy_of_self._rear = current_node
+
+        copy_of_self._len = len(self)
+
+        return copy_of_self
+
     def __iter__(self):
         current_node = self._front
         while current_node:
@@ -137,19 +212,31 @@ class LinkedQueue(Queue):
     def __len__(self):
         return self._len
 
+    def __repr__(self):
+        # determine values of first seven nodes (at most)
+        first_values = []
+        count = 0
+        for value in self:
+            first_values.append(value)
+            count += 1
+            if count == 7:
+                break
+
+        return '{}({})'.format(type(self).__name__,
+                               reprlib_repr(first_values))
+
     def is_empty(self):
-        """Checks whether this instance is an empty queue."""
+        """Checks whether this instance is empty."""
         return self._front is None
 
     def peek(self):
-        """Returns item at front of the queue."""
-        if self.is_empty():
-            raise EmptyQueueException('Can\'t peek at empty queue.')
+        """Alias to get: returns the value at the front of this instance."""
+        self._validate_non_emptiness()
 
         return self._front.value
 
     def enqueue(self, value):
-        """Enqueues an item on the rear of the queue."""
+        """Alias to post: enqueues the value to this instance."""
         if self.is_empty():
             self._rear = self.Node(value)
             self._front = self._rear
@@ -159,10 +246,23 @@ class LinkedQueue(Queue):
 
         self._len += 1
 
+    def delete(self):
+        """Deletes the value on the front of this instance."""
+        self._validate_non_emptiness()
+
+        self._front = self._front.successor
+
+        self._len -= 1
+
+    def clear(self):
+        """Removes all values."""
+        self._front = None
+        self._rear = None
+        self._len = 0
+
     def dequeue(self):
-        """Dequeus an item from the front of the queue."""
-        if self.is_empty():
-            raise EmptyQueueException('Can\'t dequeue from empty queue.')
+        """Alias to pop: dequeues the value at the front of this instance."""
+        self._validate_non_emptiness()
 
         value = self._front.value
         self._front = self._front.successor
@@ -170,13 +270,3 @@ class LinkedQueue(Queue):
         self._len -= 1
 
         return value
-
-    def clear(self):
-        """Removes all items."""
-        self._front = None
-        self._rear = None
-        self._len = 0
-
-
-class EmptyQueueException(Exception):
-    pass

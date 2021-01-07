@@ -7,6 +7,7 @@ from copy import copy
 import unittest
 
 # custom modules
+from datastructures.base import EmptyCollectionException
 from datastructures.queue import *
 
 
@@ -119,6 +120,36 @@ class TestQueue(unittest.TestCase):
         self.assertFalse('2' in self.queue)
         self.assertFalse('42' in self.queue)
 
+    def test_getitem(self):
+        with self.assertRaises(KeyError):
+            _ = self.empty_queue[0]
+
+        with self.assertRaises(EmptyCollectionException):
+            _ = self.empty_queue[FRONT]
+
+        self.assertEqual(self.queue_length_1[FRONT], 0)
+        self.assertEqual(self.range_queue[FRONT], 0)
+        self.assertEqual(self.queue[FRONT], 1)
+
+    def test_delitem(self):
+        with self.assertRaises(KeyError):
+            del self.empty_queue[0]
+
+        with self.assertRaises(EmptyCollectionException):
+            del self.empty_queue[FRONT]
+
+        del self.queue_length_1[FRONT]
+        queue = self.tested_class()
+        self.assertEqual(self.queue_length_1, queue)
+        del self.range_queue[FRONT]
+        queue = self.tested_class()
+        queue += [1, 2, 3]
+        self.assertEqual(self.range_queue, queue)
+        del self.queue[FRONT]
+        queue = self.tested_class()
+        queue += [42, -3, 2, 42]
+        self.assertEqual(self.queue, queue)
+
     def test_iadd(self):
         with self.assertRaises(TypeError):
             self.empty_queue += 2
@@ -185,13 +216,72 @@ class TestQueue(unittest.TestCase):
         self.assertFalse(self.range_queue.is_empty())
         self.assertFalse(self.queue.is_empty())
 
+    def test_get(self):
+        with self.assertRaises(EmptyCollectionException):
+            self.empty_queue.get()
+
+        self.assertEqual(self.queue_length_1.get(), 0)
+        self.assertEqual(self.range_queue.get(), 0)
+        self.assertEqual(self.queue.get(), 1)
+
     def test_peek(self):
-        with self.assertRaises(EmptyQueueException):
+        with self.assertRaises(EmptyCollectionException):
             self.empty_queue.peek()
 
         self.assertEqual(self.queue_length_1.peek(), 0)
         self.assertEqual(self.range_queue.peek(), 0)
         self.assertEqual(self.queue.peek(), 1)
+
+    def test_insert(self):
+        with self.assertRaises(KeyError):
+            self.empty_queue.insert(0, 1)
+
+        self.empty_queue.insert(REAR, -1)
+        self.queue_length_1.insert(REAR, -1)
+        self.queue_length_1.insert(REAR, -2)
+        self.range_queue.insert(REAR, -1)
+        self.range_queue.insert(REAR, -2)
+        self.range_queue.insert(REAR, -3)
+        self.queue.insert(REAR, -1)
+        self.queue.insert(REAR, -2)
+        self.queue.insert(REAR, -3)
+
+        queue = self.tested_class()
+        queue += [-1]
+        self.assertEqual(self.empty_queue, queue)
+        queue = self.tested_class()
+        queue += [0, -1, -2]
+        self.assertEqual(self.queue_length_1, queue)
+        queue = self.tested_class()
+        queue += [0, 1, 2, 3, -1, -2, -3]
+        self.assertEqual(self.range_queue, queue)
+        queue = self.tested_class()
+        queue += [1, 42, -3, 2, 42, -1, -2, -3]
+        self.assertEqual(self.queue, queue)
+
+    def test_post(self):
+        self.empty_queue.post(-1)
+        self.queue_length_1.post(-1)
+        self.queue_length_1.post(-2)
+        self.range_queue.post(-1)
+        self.range_queue.post(-2)
+        self.range_queue.post(-3)
+        self.queue.post(-1)
+        self.queue.post(-2)
+        self.queue.post(-3)
+
+        queue = self.tested_class()
+        queue += [-1]
+        self.assertEqual(self.empty_queue, queue)
+        queue = self.tested_class()
+        queue += [0, -1, -2]
+        self.assertEqual(self.queue_length_1, queue)
+        queue = self.tested_class()
+        queue += [0, 1, 2, 3, -1, -2, -3]
+        self.assertEqual(self.range_queue, queue)
+        queue = self.tested_class()
+        queue += [1, 42, -3, 2, 42, -1, -2, -3]
+        self.assertEqual(self.queue, queue)
 
     def test_enqueue(self):
         self.empty_queue.enqueue(-1)
@@ -217,8 +307,60 @@ class TestQueue(unittest.TestCase):
         queue += [1, 42, -3, 2, 42, -1, -2, -3]
         self.assertEqual(self.queue, queue)
 
+    def test_delete(self):
+        with self.assertRaises(EmptyCollectionException):
+            self.empty_queue.delete()
+
+        self.queue_length_1.delete()
+        queue = self.tested_class()
+        self.assertEqual(self.queue_length_1, queue)
+        self.range_queue.delete()
+        queue = self.tested_class()
+        queue += [1, 2, 3]
+        self.assertEqual(self.range_queue, queue)
+        self.queue.delete()
+        queue = self.tested_class()
+        queue += [42, -3, 2, 42]
+        self.assertEqual(self.queue, queue)
+
+    def test_clear(self):
+        self.empty_queue.clear()
+        self.queue_length_1.clear()
+        self.range_queue.clear()
+        self.queue.clear()
+
+        self.assertEqual(self.empty_queue, self.tested_class())
+        self.assertEqual(self.queue_length_1, self.tested_class())
+        self.assertEqual(self.range_queue, self.tested_class())
+        self.assertEqual(self.queue, self.tested_class())
+
+    def test_pop(self):
+        with self.assertRaises(EmptyCollectionException):
+            self.empty_queue.pop()
+
+        self.queue_length_1.pop()
+        self.range_queue.pop()
+        self.range_queue.pop()
+        self.queue.pop()
+        self.queue.pop()
+
+        queue = self.tested_class()
+        self.assertEqual(self.queue_length_1, queue)
+        queue = self.tested_class()
+        queue += [2, 3]
+        self.assertEqual(self.range_queue, queue)
+        queue = self.tested_class()
+        queue += [-3, 2, 42]
+        self.assertEqual(self.queue, queue)
+
+        self.queue.pop()
+        self.queue.pop()
+        self.queue.pop()
+        with self.assertRaises(EmptyCollectionException):
+            self.queue.pop()
+
     def test_dequeue(self):
-        with self.assertRaises(EmptyQueueException):
+        with self.assertRaises(EmptyCollectionException):
             self.empty_queue.dequeue()
 
         self.queue_length_1.dequeue()
@@ -239,19 +381,8 @@ class TestQueue(unittest.TestCase):
         self.queue.dequeue()
         self.queue.dequeue()
         self.queue.dequeue()
-        with self.assertRaises(EmptyQueueException):
+        with self.assertRaises(EmptyCollectionException):
             self.queue.dequeue()
-
-    def test_clear(self):
-        self.empty_queue.clear()
-        self.queue_length_1.clear()
-        self.range_queue.clear()
-        self.queue.clear()
-
-        self.assertEqual(self.empty_queue, self.tested_class())
-        self.assertEqual(self.queue_length_1, self.tested_class())
-        self.assertEqual(self.range_queue, self.tested_class())
-        self.assertEqual(self.queue, self.tested_class())
 
 
 class TestArrayQueue(TestQueue):

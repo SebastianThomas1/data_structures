@@ -11,18 +11,22 @@ from copy import copy
 from reprlib import repr as reprlib_repr
 
 # custom modules
-from datastructures.base import OrderedCollection
+from datastructures.base import Collection, CollectionWithReferences, \
+    PredictableIterMixin
 from datastructures.node import LinkedNode
 
 
-__all__ = ['Stack', 'ArrayStack', 'LinkedStack', 'EmptyStackException']
+__all__ = ['ArrayStack', 'LinkedStack', 'Stack', 'TOP']
 
 
-class Stack(OrderedCollection):
+TOP = 'top'
+
+
+class Stack(PredictableIterMixin, Collection, CollectionWithReferences):
     """Abstract base class for the abstract data type stack.
 
-    Concrete subclasses must provide: __new__ or __init__,
-    predictable __iter__, push, pop."""
+    Concrete subclasses must provide: __new__ or __init__, predictable
+    __iter__, peek, push and delete."""
 
     def __copy__(self):
         reverse_copy_of_self = type(self)()
@@ -31,42 +35,82 @@ class Stack(OrderedCollection):
         copy_of_self += reverse_copy_of_self
         return copy_of_self
 
-    def __iadd__(self, other):
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
+    def __getitem__(self, key):
+        """Returns the value on the top of this instance.
 
-        for value in other:
-            self.push(value)
+        The parameter key must be TOP."""
+        self._validate_key(key)
 
-        return self
+        return self.peek()
+
+    def __setitem__(self, key, value):
+        """Updates the value on the top of this instance.
+
+        The parameter key must be TOP."""
+        self._validate_key(key)
+
+        self.replace(value)
+
+    def __delitem__(self, key):
+        """Deletes the value on the top of this instance.
+
+        The parameter key must be TOP."""
+        self._validate_key(key)
+
+        self.delete()
+
+    @staticmethod
+    def _validate_key(key):
+        """Checks whether key is TOP."""
+        if key is not TOP:
+            raise KeyError('key must be TOP')
+
+    def get(self):
+        """Returns the value at the top of this instance."""
+        return self.peek()
+
+    @abstractmethod
+    def peek(self):
+        """Alias to get: returns the value at the top of this instance."""
+        self._validate_non_emptiness()
+
+        raise NotImplementedError
+
+    def insert(self, key, value):
+        """Inserts the value at the key.
+
+        The parameter key must be TOP."""
+        self._validate_key(key)
+        self.push(value)
+
+    def post(self, value):
+        """Posts the value to this instance and places it on the top."""
+        self.push(value)
 
     @abstractmethod
     def push(self, value):
-        """Pushs an item on top of the stack."""
-        pass
+        """Alias to post: pushs the value on the top of this instance."""
+        raise NotImplementedError
+
+    def replace(self, value):
+        """Updates the value on the top of this instance."""
+        self.delete()
+        self.push(value)
 
     @abstractmethod
-    def pop(self):
-        """Removes and returns value on top of the stack."""
-        pass
+    def delete(self):
+        """Deletes the value on the top of this instance."""
+        self._validate_non_emptiness()
 
-    def clear(self):
-        """Removes all items."""
-        try:
-            while True:
-                self.pop()
-        except EmptyStackException:
-            pass
+        raise NotImplementedError
 
-    def peek(self):
-        """Returns item on top of the stack."""
-        if self.is_empty():
-            raise EmptyStackException('Can\'t peek at empty stack.')
+    def pop(self, key=TOP):
+        """Removes and returns the value on the top of this instance.
 
-        value = self.pop()
-        self.push(value)
-        return value
+        The parameter key must be TOP."""
+        self._validate_key(key)
+
+        return super().pop(key)
 
 
 class ArrayStack(Stack):
@@ -104,30 +148,40 @@ class ArrayStack(Stack):
         return self
 
     def is_empty(self):
-        """Checks whether this instance is an empty stack."""
+        """Checks whether this instance is empty."""
         return not bool(self._values)
 
     def peek(self):
-        """Returns item on top of the stack."""
-        if self.is_empty():
-            raise EmptyStackException('Can\'t peek at empty stack.')
+        """Alias to get: returns the value at the top of this instance."""
+        self._validate_non_emptiness()
 
         return self._values[-1]
 
     def push(self, value):
-        """Pushs an item on top of the stack."""
+        """Alias to post: pushs the value on the top of this instance."""
         self._values.append(value)
 
-    def pop(self):
-        """Removes and returns value on top of the stack."""
-        if self.is_empty():
-            raise EmptyStackException('Can\'t pop from empty stack.')
+    def replace(self, value):
+        """Updates the value on the top of this instance."""
+        self._validate_non_emptiness()
 
-        return self._values.pop()
+        self._values[-1] = value
+
+    def delete(self):
+        """Deletes the value on the top of this instance."""
+        self._validate_non_emptiness()
+
+        del self._values[-1]
 
     def clear(self):
-        """Removes all items."""
+        """Removes all values."""
         self._values.clear()
+
+    def pop(self):
+        """Removes and returns the value on the top of this instance."""
+        self._validate_non_emptiness()
+
+        return self._values.pop()
 
 
 class LinkedStack(Stack):
@@ -154,6 +208,8 @@ class LinkedStack(Stack):
                 current_node.successor = copy_of_self.Node(value)
                 current_node = current_node.successor
 
+        copy_of_self._len = len(self)
+
         return copy_of_self
 
     def __iter__(self):
@@ -178,23 +234,46 @@ class LinkedStack(Stack):
         return '{}({})'.format(type(self).__name__,
                                reprlib_repr(first_values))
 
+    def is_empty(self):
+        """Checks whether this instance is empty."""
+        return self._top is None
+
     def peek(self):
-        """Returns item on top of the stack."""
-        if self.is_empty():
-            raise EmptyStackException('Can\'t peek at empty stack.')
+        """Alias to __getitem__(TOP): returns the value at the top of this
+        instance."""
+        self._validate_non_emptiness()
 
         return self._top.value
 
     def push(self, value):
-        """Pushs an item on top of the stack."""
+        """Alias to insert(TOP, value): pushs the value on the top of this
+        instance."""
         self._top = self.Node(value, successor=self._top)
 
         self._len += 1
 
+    def replace(self, value):
+        """Updates the value on the top of this instance."""
+        self._validate_non_emptiness()
+
+        self._top.value = value
+
+    def delete(self):
+        """Deletes the value on the top of this instance."""
+        self._validate_non_emptiness()
+
+        self._top = self._top.successor
+
+        self._len -= 1
+
+    def clear(self):
+        """Removes all values."""
+        self._top = None
+        self._len = 0
+
     def pop(self):
-        """Removes and returns value on top of the stack."""
-        if self.is_empty():
-            raise EmptyStackException('Can\'t pop from empty stack.')
+        """Removes and returns the value on the top of this instance."""
+        self._validate_non_emptiness()
 
         value = self._top.value
         self._top = self._top.successor
@@ -202,12 +281,3 @@ class LinkedStack(Stack):
         self._len -= 1
 
         return value
-
-    def clear(self):
-        """Removes all items."""
-        self._top = None
-        self._len = 0
-
-
-class EmptyStackException(Exception):
-    pass
