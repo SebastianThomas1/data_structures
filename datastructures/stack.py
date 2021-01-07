@@ -114,7 +114,7 @@ class Stack(PredictableIterMixin, Collection, CollectionWithReferences):
 
 
 class ArrayStack(Stack):
-    """Class that implements stacks based on an internal dynamic array (python
+    """Class that implements a stack based on an internal dynamic array (python
     list)."""
 
     def __init__(self):
@@ -177,15 +177,16 @@ class ArrayStack(Stack):
         """Removes all values."""
         self._values.clear()
 
-    def pop(self):
+    def pop(self, key=TOP):
         """Removes and returns the value on the top of this instance."""
+        self._validate_key(key)
         self._validate_non_emptiness()
 
         return self._values.pop()
 
 
 class LinkedStack(Stack):
-    """Class that implements stacks based on linked nodes."""
+    """Class that implements a stack based on linked nodes."""
 
     class Node(LinkedNode):
         """Internal node class for linked stacks."""
