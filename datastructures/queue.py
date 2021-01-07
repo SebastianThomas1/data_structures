@@ -97,6 +97,8 @@ class Queue(PredictableIterMixin, Collection):
         """Removes and returns the value on the front of this instance.
 
         The parameter key must be FRONT (default)."""
+        self._validate_key_front(key)
+
         return self.dequeue()
 
     @abstractmethod
