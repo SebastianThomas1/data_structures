@@ -55,17 +55,17 @@ class TestDeque(unittest.TestCase):
         self.assertNotEqual(self.range_deque, range(4))
         self.assertNotEqual(self.deque, [1, 42, -3, 2, 42])
 
-    def test_iter(self):
-        self.assertEqual(list(iter(self.empty_deque)), [])
-        self.assertEqual(list(iter(self.deque_length_1)), [0])
-        self.assertEqual(list(iter(self.range_deque)), [0, 1, 2, 3])
-        self.assertEqual(list(iter(self.deque)), [1, 42, -3, 2, 42])
-
     def test_copy(self):
         self.assertEqual(copy(self.empty_deque), self.empty_deque)
         self.assertEqual(copy(self.deque_length_1), self.deque_length_1)
         self.assertEqual(copy(self.range_deque), self.range_deque)
         self.assertEqual(copy(self.deque), self.deque)
+
+    def test_iter(self):
+        self.assertEqual(list(iter(self.empty_deque)), [])
+        self.assertEqual(list(iter(self.deque_length_1)), [0])
+        self.assertEqual(list(iter(self.range_deque)), [0, 1, 2, 3])
+        self.assertEqual(list(iter(self.deque)), [1, 42, -3, 2, 42])
 
     def test_bool(self):
         self.assertFalse(bool(self.empty_deque))

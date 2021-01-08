@@ -55,17 +55,17 @@ class TestQueue(unittest.TestCase):
         self.assertNotEqual(self.range_queue, range(4))
         self.assertNotEqual(self.queue, [1, 42, -3, 2, 42])
 
-    def test_iter(self):
-        self.assertEqual(list(iter(self.empty_queue)), [])
-        self.assertEqual(list(iter(self.queue_length_1)), [0])
-        self.assertEqual(list(iter(self.range_queue)), [0, 1, 2, 3])
-        self.assertEqual(list(iter(self.queue)), [1, 42, -3, 2, 42])
-
     def test_copy(self):
         self.assertEqual(copy(self.empty_queue), self.empty_queue)
         self.assertEqual(copy(self.queue_length_1), self.queue_length_1)
         self.assertEqual(copy(self.range_queue), self.range_queue)
         self.assertEqual(copy(self.queue), self.queue)
+
+    def test_iter(self):
+        self.assertEqual(list(iter(self.empty_queue)), [])
+        self.assertEqual(list(iter(self.queue_length_1)), [0])
+        self.assertEqual(list(iter(self.range_queue)), [0, 1, 2, 3])
+        self.assertEqual(list(iter(self.queue)), [1, 42, -3, 2, 42])
 
     def test_bool(self):
         self.assertFalse(bool(self.empty_queue))
