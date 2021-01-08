@@ -225,11 +225,9 @@ class LinkedStack(Stack):
     def __repr__(self):
         # determine values of first seven nodes (at most)
         first_values = []
-        count = 0
         for value in self:
             first_values.append(value)
-            count += 1
-            if count == 7:
+            if len(first_values) == 7:
                 break
 
         return '{}({})'.format(type(self).__name__,

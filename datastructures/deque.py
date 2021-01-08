@@ -164,7 +164,7 @@ class Deque(PredictableIterMixin, CollectionWithReferences, Collection):
 
 
 class ArrayDeque(Deque):
-    """Class that implements deques based on an internal dynamic array (python
+    """Class that implements a deque based on an internal dynamic array (python
     list)."""
 
     def __init__(self):
@@ -267,10 +267,10 @@ class ArrayDeque(Deque):
 
 
 class LinkedDeque(Deque):
-    """Class that implements deques based on linked nodes."""
+    """Class that implements a deque based on linked nodes."""
 
     class Node(DoublyLinkedNode):
-        """Internal node class for linked deques."""
+        """Internal node class for a linked deque."""
         pass
 
     def __init__(self):
@@ -310,11 +310,9 @@ class LinkedDeque(Deque):
     def __repr__(self):
         # determine values of first seven nodes (at most)
         first_values = []
-        count = 0
         for value in self:
             first_values.append(value)
-            count += 1
-            if count == 7:
+            if len(first_values) == 7:
                 break
 
         return '{}({})'.format(type(self).__name__,

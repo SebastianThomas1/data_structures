@@ -26,8 +26,8 @@ FRONT = 'front'
 class Queue(PredictableIterMixin, Collection):
     """Abstract base class for the abstract data type queue.
 
-    Concrete subclasses must provide: __new__ or __init__,
-    predictable __iter__, peek, enqueue and dequeue."""
+    Concrete subclasses must provide: __new__ or __init__, predictable
+    __iter__, peek, enqueue and dequeue."""
 
     def __copy__(self):
         copy_of_self = type(self)()
@@ -110,7 +110,7 @@ class Queue(PredictableIterMixin, Collection):
 
 
 class ArrayQueue(Queue):
-    """Class that implements queues based on an internal dynamic array (python
+    """Class that implements a queue based on an internal dynamic array (python
     list)."""
 
     def __init__(self):
@@ -175,7 +175,7 @@ class ArrayQueue(Queue):
 
 
 class LinkedQueue(Queue):
-    """Class that implements queues based on linked nodes."""
+    """Class that implements a queue based on linked nodes."""
 
     class Node(LinkedNode):
         """Internal node class for linked queues."""
@@ -217,11 +217,9 @@ class LinkedQueue(Queue):
     def __repr__(self):
         # determine values of first seven nodes (at most)
         first_values = []
-        count = 0
         for value in self:
             first_values.append(value)
-            count += 1
-            if count == 7:
+            if len(first_values) == 7:
                 break
 
         return '{}({})'.format(type(self).__name__,

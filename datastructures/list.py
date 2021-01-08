@@ -237,7 +237,7 @@ class List(MutableSequence):
 
 
 class ArrayList(List):
-    """Class that implements array lists (dynamic arrays).
+    """Class that implement an array list (dynamic array).
 
     It is essentially a wrapper for Python's builtin lists."""
 
@@ -348,7 +348,7 @@ class ArrayList(List):
 
 
 class BasicLinkedList(List):
-    """Class that implements (singly) linked lists in a very basic fashion,
+    """Class that implements a (singly) linked list in a very basic fashion,
     saving only a reference to the head node.
 
     This implementation is more inefficient than necessary from a runtime point
@@ -388,11 +388,9 @@ class BasicLinkedList(List):
     def __repr__(self):
         # determine values of first seven nodes (at most)
         first_values = []
-        count = 0
         for value in self:
             first_values.append(value)
-            count += 1
-            if count == 7:
+            if len(first_values) == 7:
                 break
 
         return '{}({})'.format(type(self).__name__,
@@ -718,7 +716,7 @@ class BasicLinkedList(List):
 
 
 class LinkedList(BasicLinkedList):
-    """Class that implements (singly) linked lists.
+    """Class that implements a (singly) linked list.
 
     In contrast to the class BasicLinkedList, in this implementation we save a
     reference to the tail node as well as the length. This speeds up some of
@@ -841,7 +839,7 @@ class LinkedList(BasicLinkedList):
 
 
 class CircularLinkedList(BasicLinkedList):
-    """Class that implements (singly) circular linked lists."""
+    """Class that implements a (singly) circular linked list."""
 
     def __init__(self, values=None):
         if values is not None and not isinstance(values, Iterable):
@@ -1075,7 +1073,7 @@ class CircularLinkedList(BasicLinkedList):
 
 
 class DoublyLinkedList(LinkedList):
-    """Class that implements doubly linked lists."""
+    """Class that implements a doubly linked list."""
 
     class Node(DoublyLinkedNode):
         """Internal node class for doubly linked lists."""
@@ -1289,7 +1287,7 @@ class DoublyLinkedList(LinkedList):
 
 
 class CircularDoublyLinkedList(CircularLinkedList):
-    """Class that implements circular doubly linked lists."""
+    """Class that implements a circular doubly linked list."""
 
     class Node(DoublyLinkedList.Node):
         """Internal node class for doubly linked lists."""

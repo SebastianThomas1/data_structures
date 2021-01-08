@@ -79,7 +79,7 @@ class RandomizedQueue(Collection):
 
 
 class ArrayRandomizedQueue(RandomizedQueue):
-    """Class that implements randomized queues based on an internal dynamic
+    """Class that implements a randomized queue based on an internal dynamic
     array (python list)."""
 
     def __init__(self, random_state=None):
@@ -158,7 +158,7 @@ class ArrayRandomizedQueue(RandomizedQueue):
 
 
 class LinkedRandomizedQueue(RandomizedQueue):
-    """Class that implements randomized queues based on linked nodes."""
+    """Class that implements a randomized queue based on linked nodes."""
 
     class Node(LinkedNode):
         """Internal node class for linked randomized queues."""
@@ -185,11 +185,9 @@ class LinkedRandomizedQueue(RandomizedQueue):
 
         # determine first seven values (at most)
         first_values = []
-        count = 0
         for node in self._traversal():
             first_values.append(node.value)
-            count += 1
-            if count == 7:
+            if len(first_values) == 7:
                 break
 
         return '{}({})'.format(type(self).__name__,
@@ -318,7 +316,8 @@ class LinkedRandomizedQueue(RandomizedQueue):
 
 
 class DoublyLinkedRandomizedQueue(RandomizedQueue):
-    """Class that implements randomized queues based on doubly linked nodes."""
+    """Class that implements a randomized queue based on doubly linked
+    nodes."""
 
     class Node(DoublyLinkedNode):
         """Internal node class for linked randomized queues."""
@@ -353,12 +352,10 @@ class DoublyLinkedRandomizedQueue(RandomizedQueue):
     def __repr__(self):
         # determine first seven values (at most)
         first_values = []
-        count = 0
         for _ in range(len(self)):
             first_values.append(self._current_node.value)
-            count += 1
             self._current_node = self._current_node.successor
-            if count == 7:
+            if len(first_values) == 7:
                 break
 
         return '{}({})'.format(type(self).__name__,
