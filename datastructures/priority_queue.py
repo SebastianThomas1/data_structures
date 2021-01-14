@@ -4,6 +4,9 @@
 from abc import abstractmethod
 from collections.abc import Iterable
 
+# copying objects
+from copy import copy
+
 # representations of objects
 from reprlib import repr as reprlib_repr
 
@@ -12,13 +15,14 @@ from bisect import insort
 
 # custom modules
 from datastructures.base import Collection
+from datastructures.node import LinkedNode
 
 
 __all__ = ['ArrayMaxPriorityQueue', 'ArrayMinPriorityQueue',
-           'ArrayPriorityQueue', 'MAX', 'MIN', 'OrderedArrayPriorityQueue',
-           'OrderedArrayMaxPriorityQueue', 'OrderedArrayMinPriorityQueue',
-           'PriorityQueue',
-           ]
+           'ArrayPriorityQueue', 'HeapMaxPriorityQueue',
+           'HeapMinPriorityQueue', 'HeapPriorityQueue', 'MAX', 'MIN',
+           'OrderedArrayPriorityQueue', 'OrderedArrayMaxPriorityQueue',
+           'OrderedArrayMinPriorityQueue', 'PriorityQueue']
 
 
 MIN = 'min'
@@ -180,6 +184,11 @@ class ArrayPriorityQueue(PriorityQueue):
         super().__init__(extreme_key)
         self._values = []
 
+    def __copy__(self):
+        copy_of_self = type(self)(self._extreme_key)
+        copy_of_self._values = copy(self._values)
+        return copy_of_self
+
     def __iter__(self):
         return iter(sorted(self._values, reverse=self._extreme_key == MAX))
 
@@ -221,8 +230,6 @@ class ArrayPriorityQueue(PriorityQueue):
     @property
     def _idx_of_extreme_value(self):
         """Returns the index of the extreme value of this instance."""
-        self._validate_non_emptiness()
-
         return (max(range(len(self._values)), key=self._values.__getitem__)
                 if self._extreme_key == MAX
                 else min(range(len(self._values)),
@@ -247,6 +254,8 @@ class ArrayPriorityQueue(PriorityQueue):
 
     def delete(self):
         """Deletes the extreme value of this instance."""
+        self._validate_non_emptiness()
+
         del self._values[self._idx_of_extreme_value]
 
     def clear(self):
@@ -256,6 +265,8 @@ class ArrayPriorityQueue(PriorityQueue):
     def dequeue(self):
         """Alias to pop(extreme_key): dequeues the extreme value of this
         instance."""
+        self._validate_non_emptiness()
+
         idx_of_extreme_value = self._idx_of_extreme_value
         value = self._values[idx_of_extreme_value]
         del self._values[idx_of_extreme_value]
@@ -272,7 +283,7 @@ class ArrayMinPriorityQueue(ArrayPriorityQueue):
 
     def __copy__(self):
         copy_of_self = type(self)()
-        copy_of_self += self
+        copy_of_self._values = copy(self._values)
         return copy_of_self
 
     def __iter__(self):
@@ -281,8 +292,6 @@ class ArrayMinPriorityQueue(ArrayPriorityQueue):
     @property
     def _idx_of_extreme_value(self):
         """Returns the index of the minimal value of this instance."""
-        self._validate_non_emptiness()
-
         return min(range(len(self._values)), key=self._values.__getitem__)
 
     def peek(self):
@@ -301,7 +310,7 @@ class ArrayMaxPriorityQueue(ArrayPriorityQueue):
 
     def __copy__(self):
         copy_of_self = type(self)()
-        copy_of_self += self
+        copy_of_self._values = copy(self._values)
         return copy_of_self
 
     def __iter__(self):
@@ -310,8 +319,6 @@ class ArrayMaxPriorityQueue(ArrayPriorityQueue):
     @property
     def _idx_of_extreme_value(self):
         """Returns the index of the maximal value of this instance."""
-        self._validate_non_emptiness()
-
         return max(range(len(self._values)), key=self._values.__getitem__)
 
     def peek(self):
@@ -342,15 +349,13 @@ class OrderedArrayPriorityQueue(ArrayPriorityQueue):
     @property
     def _idx_of_extreme_value(self):
         """Returns the index of the extreme value of this instance."""
-        self._validate_non_emptiness()
-
         return -1
 
     def peek(self):
         """Alias to get: returns the extreme value of this instance."""
         self._validate_non_emptiness()
 
-        return self._values[-1]
+        return self._values[self._idx_of_extreme_value]
 
     def enqueue(self, value):
         """Alias to post: enqueues the value to this instance."""
@@ -371,7 +376,7 @@ class OrderedArrayMinPriorityQueue(OrderedArrayPriorityQueue):
 
     def __copy__(self):
         copy_of_self = type(self)()
-        copy_of_self += self
+        copy_of_self._values = copy(self._values)
         return copy_of_self
 
     def enqueue(self, value):
@@ -390,7 +395,7 @@ class OrderedArrayMaxPriorityQueue(OrderedArrayPriorityQueue):
 
     def __copy__(self):
         copy_of_self = type(self)()
-        copy_of_self += self
+        copy_of_self._values = copy(self._values)
         return copy_of_self
 
     def enqueue(self, value):
@@ -398,3 +403,210 @@ class OrderedArrayMaxPriorityQueue(OrderedArrayPriorityQueue):
         self._validate_comparability(value)
 
         insort(self._values, value)
+
+
+class HeapPriorityQueue(ArrayPriorityQueue):
+    """Class that implements a priority queue based on a heap, which is
+    realised by a dynamic array (python list)."""
+
+    def __init__(self, extreme_key):
+        super().__init__(extreme_key)
+        self._values = [None]
+
+    def __iter__(self):
+        copy_of_self = copy(self)
+
+        while copy_of_self:
+            yield copy_of_self.dequeue()
+
+    def __len__(self):
+        return len(self._values) - 1
+
+    def __repr__(self):
+        # determine seven most extreme values (at most)
+        extreme_values = []
+        for value in self._values[1:8]:
+            insort(extreme_values, value)
+
+        if self._extreme_key == MAX:
+            extreme_values.reverse()
+
+        return '{}({})'.format(type(self).__name__,
+                               reprlib_repr(extreme_values))
+
+    def __contains__(self, value):
+        return value in self._values[1:]
+
+    def __iadd__(self, other):
+        return PriorityQueue.__iadd__(self, other)
+
+    @property
+    def _idx_of_extreme_value(self):
+        """Returns the index of the extreme value of this instance."""
+        return 1
+
+    @staticmethod
+    def _parent_idx(idx):
+        """Returns index of parent value."""
+        return idx // 2
+
+    def _child_idx(self, idx):
+        """Returns index of more extreme child value."""
+        child_idx = 2*idx
+        if child_idx < len(self) \
+                and (self._extreme_key == MAX
+                     and self._values[child_idx] < self._values[child_idx + 1]
+                     or self._extreme_key == MIN
+                     and self._values[child_idx]
+                     > self._values[child_idx + 1]):
+            child_idx += 1
+
+        return child_idx
+
+    def _swim(self, idx):
+        parent_idx = self._parent_idx(idx)
+        while parent_idx > 0 \
+                and (self._extreme_key == MAX
+                     and self._values[parent_idx] < self._values[idx]
+                     or self._extreme_key == MIN
+                     and self._values[parent_idx] > self._values[idx]):
+            self._values[parent_idx], self._values[idx] \
+                = self._values[idx], self._values[parent_idx]
+            idx = parent_idx
+            parent_idx = self._parent_idx(idx)
+
+    def _sink(self, idx):
+        child_idx = self._child_idx(idx)
+
+        while child_idx <= len(self) \
+                and (self._extreme_key == MAX
+                     and self._values[idx] < self._values[child_idx]
+                     or self._extreme_key == MIN
+                     and self._values[idx] > self._values[child_idx]):
+            self._values[idx], self._values[child_idx] \
+                = self._values[child_idx], self._values[idx]
+            idx = child_idx
+            child_idx = self._child_idx(idx)
+
+    def is_empty(self):
+        """Checks whether this instance is an empty heap priority queue."""
+        return len(self._values) == 1
+
+    def peek(self):
+        """Alias to get: returns the extreme value of this instance."""
+        self._validate_non_emptiness()
+
+        return self._values[1]
+
+    def enqueue(self, value):
+        """Alias to post: enqueues the value to this instance."""
+        super().enqueue(value)
+        self._swim(len(self))
+
+    def delete(self):
+        """Deletes the extreme value of this instance."""
+        self._validate_non_emptiness()
+
+        self._values[1], self._values[len(self)] \
+            = self._values[len(self)], self._values[1]
+        del self._values[-1]
+
+        self._sink(1)
+
+    def clear(self):
+        """Removes all items."""
+        self._values.clear()
+        self._values.append(None)
+
+    def dequeue(self):
+        """Alias to pop(extreme_key): dequeues the extreme value of this
+        instance."""
+        self._validate_non_emptiness()
+
+        self._values[1], self._values[len(self)] \
+            = self._values[len(self)], self._values[1]
+        extreme_value = self._values.pop()
+
+        self._sink(1)
+
+        return extreme_value
+
+
+class HeapMinPriorityQueue(HeapPriorityQueue):
+    """Class that implements a min priority queue based on a heap, which is
+    realised by a dynamic array (python list)."""
+
+    def __init__(self):
+        super().__init__(MIN)
+
+    def __copy__(self):
+        copy_of_self = type(self)()
+        copy_of_self._values = copy(self._values)
+        return copy_of_self
+
+    def _child_idx(self, idx):
+        """Returns index of smaller child value."""
+        child_idx = 2*idx
+        if child_idx < len(self) \
+                and self._values[child_idx] > self._values[child_idx + 1]:
+            child_idx += 1
+
+        return child_idx
+
+    def _swim(self, idx):
+        parent_idx = self._parent_idx(idx)
+        while parent_idx > 0 and self._values[parent_idx] > self._values[idx]:
+            self._values[parent_idx], self._values[idx] \
+                = self._values[idx], self._values[parent_idx]
+            idx = parent_idx
+            parent_idx = self._parent_idx(idx)
+
+    def _sink(self, idx):
+        child_idx = self._child_idx(idx)
+
+        while child_idx <= len(self) \
+                and self._values[idx] > self._values[child_idx]:
+            self._values[idx], self._values[child_idx] \
+                = self._values[child_idx], self._values[idx]
+            idx = child_idx
+            child_idx = self._child_idx(idx)
+
+
+class HeapMaxPriorityQueue(HeapPriorityQueue):
+    """Class that implements a max priority queue based on a heap, which is
+    realised by a dynamic array (python list)."""
+
+    def __init__(self):
+        super().__init__(MAX)
+
+    def __copy__(self):
+        copy_of_self = type(self)()
+        copy_of_self._values = copy(self._values)
+        return copy_of_self
+
+    def _child_idx(self, idx):
+        """Returns index of larger child value."""
+        child_idx = 2*idx
+        if child_idx < len(self) \
+                and self._values[child_idx] < self._values[child_idx + 1]:
+            child_idx += 1
+
+        return child_idx
+
+    def _swim(self, idx):
+        parent_idx = self._parent_idx(idx)
+        while parent_idx > 0 and self._values[parent_idx] < self._values[idx]:
+            self._values[parent_idx], self._values[idx] \
+                = self._values[idx], self._values[parent_idx]
+            idx = parent_idx
+            parent_idx = self._parent_idx(idx)
+
+    def _sink(self, idx):
+        child_idx = self._child_idx(idx)
+
+        while child_idx <= len(self) \
+                and self._values[idx] < self._values[child_idx]:
+            self._values[idx], self._values[child_idx] \
+                = self._values[child_idx], self._values[idx]
+            idx = child_idx
+            child_idx = self._child_idx(idx)

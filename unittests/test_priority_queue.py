@@ -528,6 +528,54 @@ class TestOrderedArrayMaxPriorityQueue(TestPriorityQueue):
         return OrderedArrayMinPriorityQueue()
 
 
+class TestHeapPriorityQueueMIN(TestArrayPriorityQueue):
+    def __init__(self, method_name):
+        super().__init__(method_name, tested_class=HeapPriorityQueue,
+                         extreme_key=MIN)
+
+    def test_init(self):
+        self.assertEqual(self.empty_queue._values, [None])
+        self.assertEqual(self.queue_length_1._values, [None, 0])
+        self.assertEqual(self.range_queue._values, [None, 0, 1, 2, 3])
+        self.assertEqual(self.queue._values, [None, -3, 2, 1, 42, 42])
+
+
+class TestHeapPriorityQueueMAX(TestArrayPriorityQueue):
+    def __init__(self, method_name):
+        super().__init__(method_name, tested_class=HeapPriorityQueue,
+                         extreme_key=MAX)
+
+    def test_init(self):
+        self.assertEqual(self.empty_queue._values, [None])
+        self.assertEqual(self.queue_length_1._values, [None, 0])
+        self.assertEqual(self.range_queue._values, [None, 3, 2, 1, 0])
+        self.assertEqual(self.queue._values, [None, 42, 42, -3, 1, 2])
+
+
+class TestHeapMinPriorityQueue(TestPriorityQueue):
+    def __init__(self, method_name):
+        super().__init__(method_name=method_name,
+                         tested_class=HeapMinPriorityQueue, extreme_key=MIN)
+
+    def _get_empty_instance(self):
+        return self._tested_class()
+
+    def _get_empty_complementary_instance(self):
+        return HeapMaxPriorityQueue()
+
+
+class TestHeapMaxPriorityQueue(TestPriorityQueue):
+    def __init__(self, method_name):
+        super().__init__(method_name=method_name,
+                         tested_class=HeapMaxPriorityQueue, extreme_key=MAX)
+
+    def _get_empty_instance(self):
+        return self._tested_class()
+
+    def _get_empty_complementary_instance(self):
+        return HeapMinPriorityQueue()
+
+
 if __name__ == '__main__':
     suite = unittest.TestSuite()
 
@@ -537,7 +585,9 @@ if __name__ == '__main__':
                       TestOrderedArrayPriorityQueueMIN,
                       TestOrderedArrayPriorityQueueMAX,
                       TestOrderedArrayMinPriorityQueue,
-                      TestOrderedArrayMaxPriorityQueue]:
+                      TestOrderedArrayMaxPriorityQueue,
+                      TestHeapPriorityQueueMIN, TestHeapPriorityQueueMAX,
+                      TestHeapMinPriorityQueue, TestHeapMaxPriorityQueue]:
         for name in unittest.defaultTestLoader.getTestCaseNames(test_case):
             suite.addTest(test_case(name))
 
