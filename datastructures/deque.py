@@ -284,7 +284,7 @@ class LinkedDeque(Deque):
         if self:
             iterator = iter(self)
 
-            copy_of_self._front = self.Node(next(iterator))
+            copy_of_self._front = copy_of_self.Node(next(iterator))
 
             current_node = copy_of_self._front
             for value in iterator:
