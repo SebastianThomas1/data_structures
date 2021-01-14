@@ -28,7 +28,8 @@ MIN = 'min'
 MAX = 'max'
 
 
-# Source: https://stackoverflow.com/a/2247433/10816965
+# Source: https://github.com/python/cpython/blob/master/Lib/bisect.py,
+# https://stackoverflow.com/a/2247433/10816965
 def reverse_insort(a, x, lo=0, hi=None):
     """Insert item x in list a, and keep it reverse-sorted assuming a
     is reverse-sorted.
@@ -444,11 +445,11 @@ class HeapPriorityQueue(ArrayPriorityQueue):
     @staticmethod
     def _parent_idx(idx):
         """Returns index of parent value."""
-        return idx // 2
+        return idx >> 1  # idx // 2
 
     def _child_idx(self, idx):
         """Returns index of more extreme child value."""
-        child_idx = 2*idx
+        child_idx = idx << 1  # child_idx = 2*idx
         if child_idx < len(self) \
                 and (self._extreme_key == MAX
                      and self._values[child_idx] < self._values[child_idx + 1]
@@ -460,29 +461,36 @@ class HeapPriorityQueue(ArrayPriorityQueue):
         return child_idx
 
     def _swim(self, idx):
+        value = self._values[idx]
+
         parent_idx = self._parent_idx(idx)
-        while parent_idx > 0 \
-                and (self._extreme_key == MAX
-                     and self._values[parent_idx] < self._values[idx]
-                     or self._extreme_key == MIN
-                     and self._values[parent_idx] > self._values[idx]):
-            self._values[parent_idx], self._values[idx] \
-                = self._values[idx], self._values[parent_idx]
-            idx = parent_idx
-            parent_idx = self._parent_idx(idx)
+        while parent_idx > 0:
+            parent_value = self._values[parent_idx]
+            if (self._extreme_key == MAX and parent_value < value
+                    or self._extreme_key == MIN and parent_value > value):
+                self._values[idx] = parent_value
+                idx = parent_idx
+                parent_idx = self._parent_idx(idx)
+            else:
+                break
+
+        self._values[idx] = value
 
     def _sink(self, idx):
-        child_idx = self._child_idx(idx)
+        value = self._values[idx]
 
-        while child_idx <= len(self) \
-                and (self._extreme_key == MAX
-                     and self._values[idx] < self._values[child_idx]
-                     or self._extreme_key == MIN
-                     and self._values[idx] > self._values[child_idx]):
-            self._values[idx], self._values[child_idx] \
-                = self._values[child_idx], self._values[idx]
-            idx = child_idx
-            child_idx = self._child_idx(idx)
+        child_idx = self._child_idx(idx)
+        while child_idx <= len(self):
+            child_value = self._values[child_idx]
+            if (self._extreme_key == MAX and value < child_value
+                    or self._extreme_key == MIN and value > child_value):
+                self._values[idx] = child_value
+                idx = child_idx
+                child_idx = self._child_idx(idx)
+            else:
+                break
+
+        self._values[idx] = value
 
     def is_empty(self):
         """Checks whether this instance is an empty heap priority queue."""
@@ -507,7 +515,8 @@ class HeapPriorityQueue(ArrayPriorityQueue):
             = self._values[len(self)], self._values[1]
         del self._values[-1]
 
-        self._sink(1)
+        if self:
+            self._sink(1)
 
     def clear(self):
         """Removes all items."""
@@ -523,7 +532,8 @@ class HeapPriorityQueue(ArrayPriorityQueue):
             = self._values[len(self)], self._values[1]
         extreme_value = self._values.pop()
 
-        self._sink(1)
+        if self:
+            self._sink(1)
 
         return extreme_value
 
@@ -542,7 +552,7 @@ class HeapMinPriorityQueue(HeapPriorityQueue):
 
     def _child_idx(self, idx):
         """Returns index of smaller child value."""
-        child_idx = 2*idx
+        child_idx = idx << 1  # child_idx = 2*idx
         if child_idx < len(self) \
                 and self._values[child_idx] > self._values[child_idx + 1]:
             child_idx += 1
@@ -550,22 +560,34 @@ class HeapMinPriorityQueue(HeapPriorityQueue):
         return child_idx
 
     def _swim(self, idx):
+        value = self._values[idx]
+
         parent_idx = self._parent_idx(idx)
-        while parent_idx > 0 and self._values[parent_idx] > self._values[idx]:
-            self._values[parent_idx], self._values[idx] \
-                = self._values[idx], self._values[parent_idx]
-            idx = parent_idx
-            parent_idx = self._parent_idx(idx)
+        while parent_idx > 0:
+            parent_value = self._values[parent_idx]
+            if parent_value > value:
+                self._values[idx] = parent_value
+                idx = parent_idx
+                parent_idx = self._parent_idx(idx)
+            else:
+                break
+
+        self._values[idx] = value
 
     def _sink(self, idx):
-        child_idx = self._child_idx(idx)
+        value = self._values[idx]
 
-        while child_idx <= len(self) \
-                and self._values[idx] > self._values[child_idx]:
-            self._values[idx], self._values[child_idx] \
-                = self._values[child_idx], self._values[idx]
-            idx = child_idx
-            child_idx = self._child_idx(idx)
+        child_idx = self._child_idx(idx)
+        while child_idx <= len(self):
+            child_value = self._values[child_idx]
+            if value > child_value:
+                self._values[idx] = child_value
+                idx = child_idx
+                child_idx = self._child_idx(idx)
+            else:
+                break
+
+        self._values[idx] = value
 
 
 class HeapMaxPriorityQueue(HeapPriorityQueue):
@@ -582,7 +604,7 @@ class HeapMaxPriorityQueue(HeapPriorityQueue):
 
     def _child_idx(self, idx):
         """Returns index of larger child value."""
-        child_idx = 2*idx
+        child_idx = idx << 1  # child_idx = 2*idx
         if child_idx < len(self) \
                 and self._values[child_idx] < self._values[child_idx + 1]:
             child_idx += 1
@@ -590,19 +612,31 @@ class HeapMaxPriorityQueue(HeapPriorityQueue):
         return child_idx
 
     def _swim(self, idx):
+        value = self._values[idx]
+
         parent_idx = self._parent_idx(idx)
-        while parent_idx > 0 and self._values[parent_idx] < self._values[idx]:
-            self._values[parent_idx], self._values[idx] \
-                = self._values[idx], self._values[parent_idx]
-            idx = parent_idx
-            parent_idx = self._parent_idx(idx)
+        while parent_idx > 0:
+            parent_value = self._values[parent_idx]
+            if parent_value < value:
+                self._values[idx] = parent_value
+                idx = parent_idx
+                parent_idx = self._parent_idx(idx)
+            else:
+                break
+
+        self._values[idx] = value
 
     def _sink(self, idx):
-        child_idx = self._child_idx(idx)
+        value = self._values[idx]
 
-        while child_idx <= len(self) \
-                and self._values[idx] < self._values[child_idx]:
-            self._values[idx], self._values[child_idx] \
-                = self._values[child_idx], self._values[idx]
-            idx = child_idx
-            child_idx = self._child_idx(idx)
+        child_idx = self._child_idx(idx)
+        while child_idx <= len(self):
+            child_value = self._values[child_idx]
+            if value < child_value:
+                self._values[idx] = child_value
+                idx = child_idx
+                child_idx = self._child_idx(idx)
+            else:
+                break
+
+        self._values[idx] = value

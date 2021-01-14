@@ -587,7 +587,8 @@ if __name__ == '__main__':
                       TestOrderedArrayMinPriorityQueue,
                       TestOrderedArrayMaxPriorityQueue,
                       TestHeapPriorityQueueMIN, TestHeapPriorityQueueMAX,
-                      TestHeapMinPriorityQueue, TestHeapMaxPriorityQueue]:
+                      TestHeapMinPriorityQueue, TestHeapMaxPriorityQueue
+    ]:
         for name in unittest.defaultTestLoader.getTestCaseNames(test_case):
             suite.addTest(test_case(name))
 
