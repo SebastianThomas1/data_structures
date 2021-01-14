@@ -5,7 +5,7 @@ from abc import abstractmethod, ABCMeta
 from collections.abc import Iterable, Collection as PyCollection
 
 # representations of objects
-from reprlib import repr as reprlib_repr
+from reprlib import repr
 
 
 __all__ = ['CollectionMixin', 'PredictableIterMixin',
@@ -50,8 +50,7 @@ class CollectionMixin(PyCollection, metaclass=ABCMeta):
             if count == 7:
                 break
 
-        return '{}({})'.format(type(self).__name__,
-                               reprlib_repr(first_values))
+        return '{}({})'.format(type(self).__name__, repr(first_values))
 
     def __str__(self):
         return ' '.join(str(value) for value in self)

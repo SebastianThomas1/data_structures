@@ -9,9 +9,10 @@ from numbers import Integral
 from copy import copy
 
 # representations of objects
-from reprlib import repr as reprlib_repr
+from reprlib import repr
 
 # custom modules
+from datastructures.base import PredictableIterMixin
 from datastructures.node import LinkedNode, DoublyLinkedNode
 
 
@@ -20,44 +21,11 @@ __all__ = ['List', 'ArrayList', 'BasicLinkedList', 'LinkedList',
            'CircularDoublyLinkedList']
 
 
-class List(MutableSequence):
+class List(PredictableIterMixin, MutableSequence):
     """Abstract base class for the abstract data type list.
 
     Concrete subclasses must provide: __new__ or __init__, __getitem__,
     __setitem__, __delitem__, __len__, insert_before and insert_after."""
-
-    def __eq__(self, other):
-        if self is other:
-            return True
-
-        if not isinstance(other, type(self)):
-            return False
-
-        # iterate over instance and other in parallel while checking for
-        # equality
-        values_of_self = iter(self)
-        values_of_other = iter(other)
-
-        self_is_empty = False
-        other_is_empty = False
-
-        while True:
-            try:
-                value_of_self = next(values_of_self)
-            except StopIteration:
-                self_is_empty = True
-
-            try:
-                value_of_other = next(values_of_other)
-            except StopIteration:
-                other_is_empty = True
-
-            if self_is_empty:
-                return other_is_empty
-            elif other_is_empty:
-                return False  # self_is_empty is False
-            elif value_of_self != value_of_other:
-                return False
 
     def __copy__(self):
         copy_of_self = type(self)()
@@ -92,6 +60,7 @@ class List(MutableSequence):
     def __rmul__(self, other):
         return self * other
 
+    # noinspection PyMethodFirstArgAssignment
     def __imul__(self, other):
         if not isinstance(other, Integral):
             raise TypeError('Can\'t multiply list by non-integer of '
@@ -267,8 +236,7 @@ class ArrayList(List):
         return len(self._values)
 
     def __repr__(self):
-        return '{}({})'.format(type(self).__name__,
-                               reprlib_repr(self._values))
+        return '{}({})'.format(type(self).__name__, repr(self._values))
 
     def __str__(self):
         return str(self._values)
@@ -393,8 +361,7 @@ class BasicLinkedList(List):
             if len(first_values) == 7:
                 break
 
-        return '{}({})'.format(type(self).__name__,
-                               reprlib_repr(first_values))
+        return '{}({})'.format(type(self).__name__, repr(first_values))
 
     def __str__(self):
         return ' \u2192 '.join(str(value) for value in self)
@@ -1217,7 +1184,7 @@ class DoublyLinkedList(LinkedList):
         start, stop = self._validate_and_adjust_slice(start, stop)
 
         # traverse instance in reverse order, beginning from node at
-        # index befor stop, when value is reached, return index
+        # index before stop, when value is reached, return index
         idx = len(self) - 1
         for node in self._reversed_traversal():
             if idx < stop and node.value == value:
@@ -1401,8 +1368,8 @@ class CircularDoublyLinkedList(CircularLinkedList):
         """Inserts value after node by reconnecting current successor."""
         super()._insert_as_successor(node, value)
 
-        node.successor.predecessor = node  # vorher None
-        node.successor.successor.predecessor = node.successor  # vorher node
+        node.successor.predecessor = node
+        node.successor.successor.predecessor = node.successor
 
     def _extend_by_prepending(self, other):
         """Extends this instance by prepending values from instance other."""
@@ -1444,7 +1411,7 @@ class CircularDoublyLinkedList(CircularLinkedList):
         start, stop = self._validate_and_adjust_slice(start, stop)
 
         # traverse instance in reverse order, beginning from node at
-        # index befor stop, when value is reached, return index
+        # index before stop, when value is reached, return index
         idx = len(self) - 1
         for node in self._reversed_traversal():
             if idx < stop and node.value == value:

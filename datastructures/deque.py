@@ -8,7 +8,7 @@ from collections.abc import Iterable
 from copy import copy
 
 # representations of objects
-from reprlib import repr as reprlib_repr
+from reprlib import repr
 
 # custom modules
 from datastructures.base import PredictableIterMixin, Collection, \
@@ -182,8 +182,7 @@ class ArrayDeque(Deque):
         return len(self._values)
 
     def __repr__(self):
-        return '{}({})'.format(type(self).__name__,
-                               reprlib_repr(self._values))
+        return '{}({})'.format(type(self).__name__, repr(self._values))
 
     def __contains__(self, value):
         return value in self._values
@@ -315,8 +314,7 @@ class LinkedDeque(Deque):
             if len(first_values) == 7:
                 break
 
-        return '{}({})'.format(type(self).__name__,
-                               reprlib_repr(first_values))
+        return '{}({})'.format(type(self).__name__, repr(first_values))
 
     def __setitem__(self, key, value):
         """Updates the value on one end of this instance.

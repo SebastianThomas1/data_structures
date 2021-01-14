@@ -8,14 +8,14 @@ from collections.abc import Iterable
 from copy import copy
 
 # representations of objects
-from reprlib import repr as reprlib_repr
+from reprlib import repr
 
 # randomization
 from random import shuffle, choice, randrange, seed
 from numpy.random import permutation, seed as np_seed
 
 # custom modules
-from datastructures.base import Collection, EmptyCollectionException
+from datastructures.base import Collection
 from datastructures.node import LinkedNode, DoublyLinkedNode
 
 
@@ -43,7 +43,7 @@ class RandomizedQueue(Collection):
                         .format(type(self).__name__))
 
     def __delitem__(self, key):
-        raise TypeError('\'{}\' object doesn\'t support item deletion'
+        raise TypeError('\'{}\' object does not support item deletion'
                         .format(type(self).__name__))
 
     def get(self):
@@ -105,8 +105,7 @@ class ArrayRandomizedQueue(RandomizedQueue):
         return len(self._values)
 
     def __repr__(self):
-        return '{}({})'.format(type(self).__name__,
-                               reprlib_repr(self._values))
+        return '{}({})'.format(type(self).__name__, repr(self._values))
 
     def __str__(self):
         return ' '.join(str(value) for value in self._values)
@@ -190,8 +189,7 @@ class LinkedRandomizedQueue(RandomizedQueue):
             if len(first_values) == 7:
                 break
 
-        return '{}({})'.format(type(self).__name__,
-                               reprlib_repr(first_values))
+        return '{}({})'.format(type(self).__name__, repr(first_values))
 
     def __str__(self):
         self._reset_current_node()
@@ -358,8 +356,7 @@ class DoublyLinkedRandomizedQueue(RandomizedQueue):
             if len(first_values) == 7:
                 break
 
-        return '{}({})'.format(type(self).__name__,
-                               reprlib_repr(first_values))
+        return '{}({})'.format(type(self).__name__, repr(first_values))
 
     def __str__(self):
         values = []

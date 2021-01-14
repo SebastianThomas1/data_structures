@@ -8,14 +8,13 @@ from collections.abc import Iterable
 from copy import copy
 
 # representations of objects
-from reprlib import repr as reprlib_repr
+from reprlib import repr
 
 # sorting
 from bisect import insort
 
 # custom modules
 from datastructures.base import Collection
-from datastructures.node import LinkedNode
 
 
 __all__ = ['ArrayMaxPriorityQueue', 'ArrayMinPriorityQueue',
@@ -209,8 +208,7 @@ class ArrayPriorityQueue(PriorityQueue):
         if self._extreme_key == MAX:
             extreme_values.reverse()
 
-        return '{}({})'.format(type(self).__name__,
-                               reprlib_repr(extreme_values))
+        return '{}({})'.format(type(self).__name__, repr(extreme_values))
 
     def __contains__(self, value):
         return value in self._values
@@ -340,8 +338,7 @@ class OrderedArrayPriorityQueue(ArrayPriorityQueue):
         extreme_values = self._values[-7:]
         extreme_values.reverse()
 
-        return '{}({})'.format(type(self).__name__,
-                               reprlib_repr(extreme_values))
+        return '{}({})'.format(type(self).__name__, repr(extreme_values))
 
     def __iadd__(self, other):
         return PriorityQueue.__iadd__(self, other)
@@ -431,8 +428,7 @@ class HeapPriorityQueue(ArrayPriorityQueue):
         if self._extreme_key == MAX:
             extreme_values.reverse()
 
-        return '{}({})'.format(type(self).__name__,
-                               reprlib_repr(extreme_values))
+        return '{}({})'.format(type(self).__name__, repr(extreme_values))
 
     def __contains__(self, value):
         return value in self._values[1:]

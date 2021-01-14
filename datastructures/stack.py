@@ -8,7 +8,7 @@ from collections.abc import Iterable
 from copy import copy
 
 # representations of objects
-from reprlib import repr as reprlib_repr
+from reprlib import repr
 
 # custom modules
 from datastructures.base import Collection, CollectionWithReferences, \
@@ -89,7 +89,7 @@ class Stack(PredictableIterMixin, Collection, CollectionWithReferences):
 
     @abstractmethod
     def push(self, value):
-        """Alias to post: pushs the value on the top of this instance."""
+        """Alias to post: pushes the value on the top of this instance."""
         raise NotImplementedError
 
     def replace(self, value):
@@ -132,8 +132,7 @@ class ArrayStack(Stack):
         return len(self._values)
 
     def __repr__(self):
-        return '{}({})'.format(type(self).__name__,
-                               reprlib_repr(self._values[::-1]))
+        return '{}({})'.format(type(self).__name__, repr(self._values[::-1]))
 
     def __contains__(self, value):
         return value in self._values
@@ -158,7 +157,7 @@ class ArrayStack(Stack):
         return self._values[-1]
 
     def push(self, value):
-        """Alias to post: pushs the value on the top of this instance."""
+        """Alias to post: pushes the value on the top of this instance."""
         self._values.append(value)
 
     def replace(self, value):
@@ -178,7 +177,9 @@ class ArrayStack(Stack):
         self._values.clear()
 
     def pop(self, key=TOP):
-        """Removes and returns the value on the top of this instance."""
+        """Removes and returns the value on the top of this instance.
+
+        The parameter key must be TOP."""
         self._validate_key(key)
         self._validate_non_emptiness()
 
@@ -230,8 +231,7 @@ class LinkedStack(Stack):
             if len(first_values) == 7:
                 break
 
-        return '{}({})'.format(type(self).__name__,
-                               reprlib_repr(first_values))
+        return '{}({})'.format(type(self).__name__, repr(first_values))
 
     def is_empty(self):
         """Checks whether this instance is empty."""
@@ -245,7 +245,7 @@ class LinkedStack(Stack):
         return self._top.value
 
     def push(self, value):
-        """Alias to insert(TOP, value): pushs the value on the top of this
+        """Alias to insert(TOP, value): pushes the value on the top of this
         instance."""
         self._top = self.Node(value, successor=self._top)
 
@@ -270,8 +270,11 @@ class LinkedStack(Stack):
         self._top = None
         self._len = 0
 
-    def pop(self):
-        """Removes and returns the value on the top of this instance."""
+    def pop(self, key=TOP):
+        """Removes and returns the value on the top of this instance.
+
+        The parameter key must be TOP."""
+        self._validate_key(key)
         self._validate_non_emptiness()
 
         value = self._top.value
