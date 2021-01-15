@@ -23,16 +23,20 @@ REAR = 'rear'
 FRONT = 'front'
 
 
-class Deque(PredictableIterMixin, CollectionWithReferences, Collection):
+class Deque(PredictableIterMixin, Collection, CollectionWithReferences):
     """Abstract base class for the abstract data type deque.
 
     Concrete subclasses must provide: __new__ or __init__, predictable
     __iter__, enqueue_rear, enqueue_front, dequeue_rear and dequeue_front."""
 
     def __copy__(self):
-        copy_of_self = type(self)()
-        copy_of_self += self
+        """Returns a copy of this instance."""
+        copy_of_self = type(self).from_iterable(self)
         return copy_of_self
+
+    def __contains__(self, value):
+        """Checks whether the given value is contained in this instance."""
+        return Collection.__contains__(self, value)
 
     def __getitem__(self, key):
         """Returns the value on one end of this instance.
@@ -73,7 +77,7 @@ class Deque(PredictableIterMixin, CollectionWithReferences, Collection):
 
     @staticmethod
     def _validate_key(key):
-        """Checks whether key is REAR or FRONT."""
+        """Validates that key is REAR or FRONT."""
         if key is not REAR and key is not FRONT:
             raise KeyError('key must be REAR or FRONT')
 

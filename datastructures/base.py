@@ -59,8 +59,9 @@ class CollectionMixin(PyCollection, metaclass=ABCMeta):
         return sum(1 for _ in self)
 
     def __contains__(self, value):
+        """Checks whether the given value is contained in this instance."""
         for entry in self:
-            if entry is value or entry == value:
+            if entry == value:
                 return True
 
         return False
@@ -139,9 +140,19 @@ class StaticCollectionWithReferences(CollectionMixin):
 
     @abstractmethod
     def __getitem__(self, key):
+        """Returns the value of this instance at the given key."""
         self._validate_non_emptiness()
 
         raise NotImplementedError
+
+    def __contains__(self, key):
+        """Checks whether the given key is contained in this instance."""
+        try:
+            self[key]
+        except KeyError:
+            return False
+        else:
+            return True
 
 
 class Collection(StaticCollection):
@@ -150,15 +161,31 @@ class Collection(StaticCollection):
     Concrete subclasses must provide: __new__ or __init__, __iter__,
     get, post and delete."""
 
-    def __iadd__(self, other):
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
+    @classmethod
+    def from_iterable(cls, values):
+        """Constructs instance from iterable values."""
+        cls._validate_iterability(values)
 
-        for value in other:
+        self = cls()
+
+        for value in values:
             self.post(value)
 
         return self
+
+    def __iadd__(self, values):
+        self._validate_iterability(values)
+
+        for value in values:
+            self.post(value)
+
+        return self
+
+    @staticmethod
+    def _validate_iterability(values):
+        if not isinstance(values, Iterable):
+            raise TypeError('\'{}\' object is not '
+                            'iterable.'.format(type(values).__name__))
 
     @abstractmethod
     def post(self, value):

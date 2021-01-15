@@ -24,28 +24,21 @@ class TestRandomizedQueue(unittest.TestCase):
 
     def setUp(self):
         self.empty_queue = self.tested_class(random_state=0)
-
-        self.queue_length_1 = self.tested_class(random_state=0)
-        self.queue_length_1.enqueue(0)
-
-        self.range_queue = self.tested_class(random_state=0)
-        self.range_queue += range(4)
-
-        self.queue = self.tested_class(random_state=0)
-        self.queue += [1, 42, -3, 2, 42]
+        self.queue_length_1 = self.tested_class.from_iterable([0],
+                                                              random_state=0)
+        self.range_queue = self.tested_class.from_iterable(range(4),
+                                                           random_state=0)
+        self.queue = self.tested_class.from_iterable([1, 42, -3, 2, 42],
+                                                     random_state=0)
 
     def test_eq(self):
-        queue = self.tested_class()
-        self.assertEqual(self.empty_queue, queue)
-        queue = self.tested_class()
-        queue += [0]
-        self.assertEqual(self.queue_length_1, queue)
-        queue = self.tested_class()
-        queue += range(4)
-        self.assertEqual(self.range_queue, queue)
-        queue = self.tested_class()
-        queue += [1, 42, -3, 2, 42]
-        self.assertEqual(self.queue, queue)
+        self.assertEqual(self.empty_queue, self.tested_class())
+        self.assertEqual(self.queue_length_1,
+                         self.tested_class.from_iterable(range(1)))
+        self.assertEqual(self.range_queue,
+                         self.tested_class.from_iterable([0, 1, 2, 3]))
+        self.assertEqual(self.queue,
+                         self.tested_class.from_iterable((1, 42, -3, 2, 42)))
 
         self.assertNotEqual(self.empty_queue, self.queue_length_1)
         self.assertNotEqual(self.queue_length_1, self.range_queue)
@@ -130,18 +123,14 @@ class TestRandomizedQueue(unittest.TestCase):
         self.assertEqual(id(self.range_queue), id_range_queue)
         self.assertEqual(id(self.queue), id_queue)
 
-        queue = self.tested_class()
-        queue += [0]
-        self.assertEqual(self.empty_queue, queue)
-        queue = self.tested_class()
-        queue += [0, 0, 1, 2, 3]
-        self.assertEqual(self.queue_length_1, queue)
-        queue = self.tested_class()
-        queue += [0, 1, 2, 3, 1, 42, -3, 2, 42]
-        self.assertEqual(self.range_queue, queue)
-        queue = self.tested_class()
-        queue += [1, 42, -3, 2, 42, 0]
-        self.assertEqual(self.queue, queue)
+        self.assertEqual(self.empty_queue,
+                         self.tested_class.from_iterable([0]))
+        self.assertEqual(self.queue_length_1,
+                         self.tested_class.from_iterable([0, 0, 1, 2, 3]))
+        self.assertEqual(self.range_queue, self.tested_class.from_iterable(
+            [0, 1, 2, 3, 1, 42, -3, 2, 42]))
+        self.assertEqual(self.queue, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, 0]))
 
         self.empty_queue += [-1, -1]
         self.queue_length_1 += tuple('queue')
@@ -152,18 +141,15 @@ class TestRandomizedQueue(unittest.TestCase):
         self.assertEqual(id(self.queue_length_1), id_queue_length_1)
         self.assertEqual(id(self.range_queue), id_range_queue)
         self.assertEqual(id(self.queue), id_queue)
-        queue = self.tested_class()
-        queue += [0, -1, -1]
-        self.assertEqual(self.empty_queue, queue)
-        queue = self.tested_class()
-        queue += [0, 0, 1, 2, 3, 'q', 'u', 'e', 'u', 'e']
-        self.assertEqual(self.queue_length_1, queue)
-        queue = self.tested_class()
-        queue += [0, 1, 2, 3, 1, 42, -3, 2, 42, -1, -2, -3]
-        self.assertEqual(self.range_queue, queue)
-        queue = self.tested_class()
-        queue += [1, 42, -3, 2, 42, 0]
-        self.assertEqual(self.queue, queue)
+
+        self.assertEqual(self.empty_queue,
+                         self.tested_class.from_iterable([0, -1, -1]))
+        self.assertEqual(self.queue_length_1, self.tested_class.from_iterable([
+            0, 0, 1, 2, 3, 'q', 'u', 'e', 'u', 'e']))
+        self.assertEqual(self.range_queue, self.tested_class.from_iterable([
+            0, 1, 2, 3, 1, 42, -3, 2, 42, -1, -2, -3]))
+        self.assertEqual(self.queue, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, 0]))
 
     def test_is_empty(self):
         self.assertTrue(self.empty_queue.is_empty())
@@ -202,18 +188,14 @@ class TestRandomizedQueue(unittest.TestCase):
         self.queue.post(-2)
         self.queue.post(-3)
 
-        queue = self.tested_class()
-        queue += [-1]
-        self.assertEqual(self.empty_queue, queue)
-        queue = self.tested_class()
-        queue += [0, -1, -2]
-        self.assertEqual(self.queue_length_1, queue)
-        queue = self.tested_class()
-        queue += [0, 1, 2, 3, -1, -2, -3]
-        self.assertEqual(self.range_queue, queue)
-        queue = self.tested_class()
-        queue += [1, 42, -3, 2, 42, -1, -2, -3]
-        self.assertEqual(self.queue, queue)
+        self.assertEqual(self.empty_queue,
+                         self.tested_class.from_iterable([-1]))
+        self.assertEqual(self.queue_length_1,
+                         self.tested_class.from_iterable([0, -1, -2]))
+        self.assertEqual(self.range_queue, self.tested_class.from_iterable(
+            [0, 1, 2, 3, -1, -2, -3]))
+        self.assertEqual(self.queue, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, -1, -2, -3]))
 
     def test_enqueue(self):
         self.empty_queue.enqueue(-1)
@@ -226,26 +208,21 @@ class TestRandomizedQueue(unittest.TestCase):
         self.queue.enqueue(-2)
         self.queue.enqueue(-3)
 
-        queue = self.tested_class()
-        queue += [-1]
-        self.assertEqual(self.empty_queue, queue)
-        queue = self.tested_class()
-        queue += [0, -1, -2]
-        self.assertEqual(self.queue_length_1, queue)
-        queue = self.tested_class()
-        queue += [0, 1, 2, 3, -1, -2, -3]
-        self.assertEqual(self.range_queue, queue)
-        queue = self.tested_class()
-        queue += [1, 42, -3, 2, 42, -1, -2, -3]
-        self.assertEqual(self.queue, queue)
+        self.assertEqual(self.empty_queue,
+                         self.tested_class.from_iterable([-1]))
+        self.assertEqual(self.queue_length_1,
+                         self.tested_class.from_iterable([0, -1, -2]))
+        self.assertEqual(self.range_queue, self.tested_class.from_iterable(
+            [0, 1, 2, 3, -1, -2, -3]))
+        self.assertEqual(self.queue, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, -1, -2, -3]))
 
     def test_delete(self):
         with self.assertRaises(EmptyCollectionException):
             self.empty_queue.delete()
 
         self.queue_length_1.delete()
-        queue = self.tested_class()
-        self.assertEqual(self.queue_length_1, queue)
+        self.assertEqual(self.queue_length_1, self.tested_class())
 
         values = {0, 1, 2, 3}
         for _ in range(4):
@@ -254,7 +231,7 @@ class TestRandomizedQueue(unittest.TestCase):
                 self.assertIn(value, values)
         with self.assertRaises(EmptyCollectionException):
             self.range_queue.delete()
-        self.assertEqual(self.queue_length_1, queue)
+        self.assertEqual(self.queue_length_1, self.tested_class())
 
         values = [1, 42, -3, 2, 42]
         for _ in range(5):
@@ -263,7 +240,7 @@ class TestRandomizedQueue(unittest.TestCase):
                 self.assertIn(value, values)
         with self.assertRaises(EmptyCollectionException):
             self.queue.delete()
-        self.assertEqual(self.queue_length_1, queue)
+        self.assertEqual(self.queue_length_1, self.tested_class())
 
     def test_clear(self):
         self.empty_queue.clear()
@@ -281,8 +258,7 @@ class TestRandomizedQueue(unittest.TestCase):
             self.empty_queue.dequeue()
 
         self.assertEqual(self.queue_length_1.dequeue(), 0)
-        queue = self.tested_class()
-        self.assertEqual(self.queue_length_1, queue)
+        self.assertEqual(self.queue_length_1, self.tested_class())
 
         values = {0, 1, 2, 3}
         for _ in range(4):

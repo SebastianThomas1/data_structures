@@ -23,28 +23,18 @@ class TestDeque(unittest.TestCase):
 
     def setUp(self):
         self.empty_deque = self.tested_class()
-
-        self.deque_length_1 = self.tested_class()
-        self.deque_length_1.enqueue_rear(0)
-
-        self.range_deque = self.tested_class()
-        self.range_deque += range(4)
-
-        self.deque = self.tested_class()
-        self.deque += [1, 42, -3, 2, 42]
+        self.deque_length_1 = self.tested_class.from_iterable([0])
+        self.range_deque = self.tested_class.from_iterable(range(4))
+        self.deque = self.tested_class.from_iterable([1, 42, -3, 2, 42])
 
     def test_eq(self):
-        deque = self.tested_class()
-        self.assertEqual(self.empty_deque, deque)
-        deque = self.tested_class()
-        deque += [0]
-        self.assertEqual(self.deque_length_1, deque)
-        deque = self.tested_class()
-        deque += range(4)
-        self.assertEqual(self.range_deque, deque)
-        deque = self.tested_class()
-        deque += [1, 42, -3, 2, 42]
-        self.assertEqual(self.deque, deque)
+        self.assertEqual(self.empty_deque, self.tested_class())
+        self.assertEqual(self.deque_length_1,
+                         self.tested_class.from_iterable(range(1)))
+        self.assertEqual(self.range_deque,
+                         self.tested_class.from_iterable([0, 1, 2, 3]))
+        self.assertEqual(self.deque,
+                         self.tested_class.from_iterable((1, 42, -3, 2, 42)))
 
         self.assertNotEqual(self.empty_deque, self.deque_length_1)
         self.assertNotEqual(self.deque_length_1, self.range_deque)
@@ -146,23 +136,19 @@ class TestDeque(unittest.TestCase):
             self.empty_deque[FRONT] = 1
 
         self.deque_length_1[REAR] = 1
-        deque = self.tested_class()
-        deque += [1]
-        self.assertEqual(self.deque_length_1, deque)
+        self.assertEqual(self.deque_length_1,
+                         self.tested_class.from_iterable([1]))
         self.deque_length_1[FRONT] = 2
-        deque = self.tested_class()
-        deque += [2]
-        self.assertEqual(self.deque_length_1, deque)
+        self.assertEqual(self.deque_length_1,
+                         self.tested_class.from_iterable([2]))
         self.range_deque[REAR] = 1
         self.range_deque[FRONT] = 2
-        deque = self.tested_class()
-        deque += [2, 1, 2, 1]
-        self.assertEqual(self.range_deque, deque)
+        self.assertEqual(self.range_deque,
+                         self.tested_class.from_iterable([2, 1, 2, 1]))
         self.deque[REAR] = 1
         self.deque[FRONT] = 2
-        deque = self.tested_class()
-        deque += [2, 42, -3, 2, 1]
-        self.assertEqual(self.deque, deque)
+        self.assertEqual(self.deque,
+                         self.tested_class.from_iterable([2, 42, -3, 2, 1]))
 
     def test_delitem(self):
         with self.assertRaises(KeyError):
@@ -174,20 +160,17 @@ class TestDeque(unittest.TestCase):
             del self.empty_deque[FRONT]
 
         del self.deque_length_1[REAR]
-        deque = self.tested_class()
-        self.assertEqual(self.deque_length_1, deque)
+        self.assertEqual(self.deque_length_1, self.tested_class())
         with self.assertRaises(EmptyCollectionException):
             del self.deque_length_1[FRONT]
         del self.range_deque[REAR]
         del self.range_deque[FRONT]
-        deque = self.tested_class()
-        deque += [1, 2]
-        self.assertEqual(self.range_deque, deque)
+        self.assertEqual(self.range_deque,
+                         self.tested_class.from_iterable([1, 2]))
         del self.deque[REAR]
         del self.deque[FRONT]
-        deque = self.tested_class()
-        deque += [42, -3, 2]
-        self.assertEqual(self.deque, deque)
+        self.assertEqual(self.deque,
+                         self.tested_class.from_iterable([42, -3, 2]))
 
     def test_iadd(self):
         with self.assertRaises(TypeError):
@@ -214,18 +197,14 @@ class TestDeque(unittest.TestCase):
         self.assertEqual(id(self.range_deque), id_range_deque)
         self.assertEqual(id(self.deque), id_deque)
 
-        deque = self.tested_class()
-        deque += [0]
-        self.assertEqual(self.empty_deque, deque)
-        deque = self.tested_class()
-        deque += [0, 0, 1, 2, 3]
-        self.assertEqual(self.deque_length_1, deque)
-        deque = self.tested_class()
-        deque += [0, 1, 2, 3, 1, 42, -3, 2, 42]
-        self.assertEqual(self.range_deque, deque)
-        deque = self.tested_class()
-        deque += [1, 42, -3, 2, 42, 0]
-        self.assertEqual(self.deque, deque)
+        self.assertEqual(self.empty_deque,
+                         self.tested_class.from_iterable([0]))
+        self.assertEqual(self.deque_length_1,
+                         self.tested_class.from_iterable([0, 0, 1, 2, 3]))
+        self.assertEqual(self.range_deque, self.tested_class.from_iterable(
+            [0, 1, 2, 3, 1, 42, -3, 2, 42]))
+        self.assertEqual(self.deque, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, 0]))
 
         self.empty_deque += [-1, -1]
         self.deque_length_1 += tuple('deque')
@@ -236,18 +215,14 @@ class TestDeque(unittest.TestCase):
         self.assertEqual(id(self.deque_length_1), id_deque_length_1)
         self.assertEqual(id(self.range_deque), id_range_deque)
         self.assertEqual(id(self.deque), id_deque)
-        deque = self.tested_class()
-        deque += [0, -1, -1]
-        self.assertEqual(self.empty_deque, deque)
-        deque = self.tested_class()
-        deque += [0, 0, 1, 2, 3, 'd', 'e', 'q', 'u', 'e']
-        self.assertEqual(self.deque_length_1, deque)
-        deque = self.tested_class()
-        deque += [0, 1, 2, 3, 1, 42, -3, 2, 42, -1, -2, -3]
-        self.assertEqual(self.range_deque, deque)
-        deque = self.tested_class()
-        deque += [1, 42, -3, 2, 42, 0]
-        self.assertEqual(self.deque, deque)
+        self.assertEqual(self.empty_deque,
+                         self.tested_class.from_iterable([0, -1, -1]))
+        self.assertEqual(self.deque_length_1, self.tested_class.from_iterable(
+            [0, 0, 1, 2, 3, 'd', 'e', 'q', 'u', 'e']))
+        self.assertEqual(self.range_deque, self.tested_class.from_iterable(
+            [0, 1, 2, 3, 1, 42, -3, 2, 42, -1, -2, -3]))
+        self.assertEqual(self.deque, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, 0]))
 
     def test_is_empty(self):
         self.assertTrue(self.empty_deque.is_empty())
@@ -294,18 +269,14 @@ class TestDeque(unittest.TestCase):
         self.deque.insert(FRONT, -2)
         self.deque.insert(REAR, -3)
 
-        deque = self.tested_class()
-        deque += [-2, -1]
-        self.assertEqual(self.empty_deque, deque)
-        deque = self.tested_class()
-        deque += [-2, 0, -1]
-        self.assertEqual(self.deque_length_1, deque)
-        deque = self.tested_class()
-        deque += [-2, 0, 1, 2, 3, -1, -3]
-        self.assertEqual(self.range_deque, deque)
-        deque = self.tested_class()
-        deque += [-2, 1, 42, -3, 2, 42, -1, -3]
-        self.assertEqual(self.deque, deque)
+        self.assertEqual(self.empty_deque,
+                         self.tested_class.from_iterable([-2, -1]))
+        self.assertEqual(self.deque_length_1,
+                         self.tested_class.from_iterable([-2, 0, -1]))
+        self.assertEqual(self.range_deque, self.tested_class.from_iterable(
+            [-2, 0, 1, 2, 3, -1, -3]))
+        self.assertEqual(self.deque, self.tested_class.from_iterable(
+            [-2, 1, 42, -3, 2, 42, -1, -3]))
 
     def test_post(self):
         self.empty_deque.post(-1)
@@ -318,18 +289,14 @@ class TestDeque(unittest.TestCase):
         self.deque.post(-2)
         self.deque.post(-3)
 
-        deque = self.tested_class()
-        deque += [-1]
-        self.assertEqual(self.empty_deque, deque)
-        deque = self.tested_class()
-        deque += [0, -1, -2]
-        self.assertEqual(self.deque_length_1, deque)
-        deque = self.tested_class()
-        deque += [0, 1, 2, 3, -1, -2, -3]
-        self.assertEqual(self.range_deque, deque)
-        deque = self.tested_class()
-        deque += [1, 42, -3, 2, 42, -1, -2, -3]
-        self.assertEqual(self.deque, deque)
+        self.assertEqual(self.empty_deque,
+                         self.tested_class.from_iterable([-1]))
+        self.assertEqual(self.deque_length_1,
+                         self.tested_class.from_iterable([0, -1, -2]))
+        self.assertEqual(self.range_deque, self.tested_class.from_iterable(
+            [0, 1, 2, 3, -1, -2, -3]))
+        self.assertEqual(self.deque, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, -1, -2, -3]))
 
     def test_enqueue_rear(self):
         self.empty_deque.enqueue_rear(-1)
@@ -342,18 +309,14 @@ class TestDeque(unittest.TestCase):
         self.deque.enqueue_rear(-2)
         self.deque.enqueue_rear(-3)
 
-        deque = self.tested_class()
-        deque += [-1]
-        self.assertEqual(self.empty_deque, deque)
-        deque = self.tested_class()
-        deque += [0, -1, -2]
-        self.assertEqual(self.deque_length_1, deque)
-        deque = self.tested_class()
-        deque += [0, 1, 2, 3, -1, -2, -3]
-        self.assertEqual(self.range_deque, deque)
-        deque = self.tested_class()
-        deque += [1, 42, -3, 2, 42, -1, -2, -3]
-        self.assertEqual(self.deque, deque)
+        self.assertEqual(self.empty_deque,
+                         self.tested_class.from_iterable([-1]))
+        self.assertEqual(self.deque_length_1,
+                         self.tested_class.from_iterable([0, -1, -2]))
+        self.assertEqual(self.range_deque, self.tested_class.from_iterable(
+            [0, 1, 2, 3, -1, -2, -3]))
+        self.assertEqual(self.deque, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, -1, -2, -3]))
 
     def test_enqueue_front(self):
         self.empty_deque.enqueue_front(-1)
@@ -366,18 +329,14 @@ class TestDeque(unittest.TestCase):
         self.deque.enqueue_front(-2)
         self.deque.enqueue_front(-3)
 
-        deque = self.tested_class()
-        deque += [-1]
-        self.assertEqual(self.empty_deque, deque)
-        deque = self.tested_class()
-        deque += [-2, -1, 0]
-        self.assertEqual(self.deque_length_1, deque)
-        deque = self.tested_class()
-        deque += [-3, -2, -1, 0, 1, 2, 3]
-        self.assertEqual(self.range_deque, deque)
-        deque = self.tested_class()
-        deque += [-3, -2, -1, 1, 42, -3, 2, 42]
-        self.assertEqual(self.deque, deque)
+        self.assertEqual(self.empty_deque,
+                         self.tested_class.from_iterable([-1]))
+        self.assertEqual(self.deque_length_1,
+                         self.tested_class.from_iterable([-2, -1, 0]))
+        self.assertEqual(self.range_deque, self.tested_class.from_iterable(
+            [-3, -2, -1, 0, 1, 2, 3]))
+        self.assertEqual(self.deque, self.tested_class.from_iterable(
+            [-3, -2, -1, 1, 42, -3, 2, 42]))
 
     def test_clear(self):
         self.empty_deque.clear()
@@ -407,14 +366,11 @@ class TestDeque(unittest.TestCase):
         self.deque.pop(REAR)
         self.deque.pop(FRONT)
 
-        deque = self.tested_class()
-        self.assertEqual(self.deque_length_1, deque)
-        deque = self.tested_class()
-        deque += [1, 2]
-        self.assertEqual(self.range_deque, deque)
-        deque = self.tested_class()
-        deque += [42, -3, 2]
-        self.assertEqual(self.deque, deque)
+        self.assertEqual(self.deque_length_1, self.tested_class())
+        self.assertEqual(self.range_deque,
+                         self.tested_class.from_iterable([1, 2]))
+        self.assertEqual(self.deque,
+                         self.tested_class.from_iterable([42, -3, 2]))
 
         self.deque.pop(REAR)
         self.deque.pop(FRONT)
@@ -432,14 +388,11 @@ class TestDeque(unittest.TestCase):
         self.deque.dequeue_rear()
         self.deque.dequeue_rear()
 
-        deque = self.tested_class()
-        self.assertEqual(self.deque_length_1, deque)
-        deque = self.tested_class()
-        deque += [0, 1]
-        self.assertEqual(self.range_deque, deque)
-        deque = self.tested_class()
-        deque += [1, 42, -3]
-        self.assertEqual(self.deque, deque)
+        self.assertEqual(self.deque_length_1, self.tested_class())
+        self.assertEqual(self.range_deque,
+                         self.tested_class.from_iterable([0, 1]))
+        self.assertEqual(self.deque,
+                         self.tested_class.from_iterable([1, 42, -3]))
 
         self.deque.dequeue_rear()
         self.deque.dequeue_rear()
@@ -457,14 +410,11 @@ class TestDeque(unittest.TestCase):
         self.deque.dequeue_front()
         self.deque.dequeue_front()
 
-        deque = self.tested_class()
-        self.assertEqual(self.deque_length_1, deque)
-        deque = self.tested_class()
-        deque += [2, 3]
-        self.assertEqual(self.range_deque, deque)
-        deque = self.tested_class()
-        deque += [-3, 2, 42]
-        self.assertEqual(self.deque, deque)
+        self.assertEqual(self.deque_length_1, self.tested_class())
+        self.assertEqual(self.range_deque,
+                         self.tested_class.from_iterable([2, 3]))
+        self.assertEqual(self.deque,
+                         self.tested_class.from_iterable([-3, 2, 42]))
 
         self.deque.dequeue_front()
         self.deque.dequeue_front()

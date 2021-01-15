@@ -11,7 +11,8 @@ from copy import copy
 from reprlib import repr
 
 # custom modules
-from datastructures.base import Collection, PredictableIterMixin
+from datastructures.base import Collection, CollectionWithReferences, \
+    PredictableIterMixin
 from datastructures.node import LinkedNode
 
 
@@ -22,16 +23,20 @@ REAR = 'rear'
 FRONT = 'front'
 
 
-class Queue(PredictableIterMixin, Collection):
+class Queue(PredictableIterMixin, Collection, CollectionWithReferences):
     """Abstract base class for the abstract data type queue.
 
     Concrete subclasses must provide: __new__ or __init__, predictable
     __iter__, peek, enqueue and dequeue."""
 
     def __copy__(self):
-        copy_of_self = type(self)()
-        copy_of_self += self
+        """Returns a copy of this instance."""
+        copy_of_self = type(self).from_iterable(self)
         return copy_of_self
+
+    def __contains__(self, value):
+        """Checks whether the given value is contained in this instance."""
+        return Collection.__contains__(self, value)
 
     def __getitem__(self, key):
         """Returns the value on the front of this instance.
@@ -51,13 +56,13 @@ class Queue(PredictableIterMixin, Collection):
 
     @staticmethod
     def _validate_key_rear(key):
-        """Checks whether key is REAR."""
+        """Validates that key is REAR."""
         if key is not REAR:
             raise KeyError('key must be REAR')
 
     @staticmethod
     def _validate_key_front(key):
-        """Checks whether key is FRONT."""
+        """Validates that key is FRONT."""
         if key is not FRONT:
             raise KeyError('key must be FRONT')
 

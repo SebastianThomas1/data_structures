@@ -29,11 +29,14 @@ class Stack(PredictableIterMixin, Collection, CollectionWithReferences):
     __iter__, peek, push and delete."""
 
     def __copy__(self):
-        reverse_copy_of_self = type(self)()
-        reverse_copy_of_self += self
-        copy_of_self = type(self)()
-        copy_of_self += reverse_copy_of_self
+        """Returns a copy of this instance."""
+        reverse_copy_of_self = type(self).from_iterable(self)
+        copy_of_self = type(self).from_iterable(reverse_copy_of_self)
         return copy_of_self
+
+    def __contains__(self, value):
+        """Checks whether the given value is contained in this instance."""
+        return Collection.__contains__(self, value)
 
     def __getitem__(self, key):
         """Returns the value on the top of this instance.
@@ -61,7 +64,7 @@ class Stack(PredictableIterMixin, Collection, CollectionWithReferences):
 
     @staticmethod
     def _validate_key(key):
-        """Checks whether key is TOP."""
+        """Validates that key is TOP."""
         if key is not TOP:
             raise KeyError('key must be TOP')
 
@@ -110,7 +113,7 @@ class Stack(PredictableIterMixin, Collection, CollectionWithReferences):
         The parameter key must be TOP."""
         self._validate_key(key)
 
-        return super().pop(key)
+        return super().pop(self, key)
 
 
 class ArrayStack(Stack):

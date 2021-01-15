@@ -23,28 +23,18 @@ class TestQueue(unittest.TestCase):
 
     def setUp(self):
         self.empty_queue = self.tested_class()
-
-        self.queue_length_1 = self.tested_class()
-        self.queue_length_1.enqueue(0)
-
-        self.range_queue = self.tested_class()
-        self.range_queue += range(4)
-
-        self.queue = self.tested_class()
-        self.queue += [1, 42, -3, 2, 42]
+        self.queue_length_1 = self.tested_class.from_iterable([0])
+        self.range_queue = self.tested_class.from_iterable(range(4))
+        self.queue = self.tested_class.from_iterable([1, 42, -3, 2, 42])
 
     def test_eq(self):
-        queue = self.tested_class()
-        self.assertEqual(self.empty_queue, queue)
-        queue = self.tested_class()
-        queue += [0]
-        self.assertEqual(self.queue_length_1, queue)
-        queue = self.tested_class()
-        queue += range(4)
-        self.assertEqual(self.range_queue, queue)
-        queue = self.tested_class()
-        queue += [1, 42, -3, 2, 42]
-        self.assertEqual(self.queue, queue)
+        self.assertEqual(self.empty_queue, self.tested_class())
+        self.assertEqual(self.queue_length_1,
+                         self.tested_class.from_iterable(range(1)))
+        self.assertEqual(self.range_queue,
+                         self.tested_class.from_iterable([0, 1, 2, 3]))
+        self.assertEqual(self.queue,
+                         self.tested_class.from_iterable((1, 42, -3, 2, 42)))
 
         self.assertNotEqual(self.empty_queue, self.queue_length_1)
         self.assertNotEqual(self.queue_length_1, self.range_queue)
@@ -139,16 +129,13 @@ class TestQueue(unittest.TestCase):
             del self.empty_queue[FRONT]
 
         del self.queue_length_1[FRONT]
-        queue = self.tested_class()
-        self.assertEqual(self.queue_length_1, queue)
+        self.assertEqual(self.queue_length_1, self.tested_class())
         del self.range_queue[FRONT]
-        queue = self.tested_class()
-        queue += [1, 2, 3]
-        self.assertEqual(self.range_queue, queue)
+        self.assertEqual(self.range_queue,
+                         self.tested_class.from_iterable([1, 2, 3]))
         del self.queue[FRONT]
-        queue = self.tested_class()
-        queue += [42, -3, 2, 42]
-        self.assertEqual(self.queue, queue)
+        self.assertEqual(self.queue,
+                         self.tested_class.from_iterable([42, -3, 2, 42]))
 
     def test_iadd(self):
         with self.assertRaises(TypeError):
@@ -175,18 +162,14 @@ class TestQueue(unittest.TestCase):
         self.assertEqual(id(self.range_queue), id_range_queue)
         self.assertEqual(id(self.queue), id_queue)
 
-        queue = self.tested_class()
-        queue += [0]
-        self.assertEqual(self.empty_queue, queue)
-        queue = self.tested_class()
-        queue += [0, 0, 1, 2, 3]
-        self.assertEqual(self.queue_length_1, queue)
-        queue = self.tested_class()
-        queue += [0, 1, 2, 3, 1, 42, -3, 2, 42]
-        self.assertEqual(self.range_queue, queue)
-        queue = self.tested_class()
-        queue += [1, 42, -3, 2, 42, 0]
-        self.assertEqual(self.queue, queue)
+        self.assertEqual(self.empty_queue,
+                         self.tested_class.from_iterable([0]))
+        self.assertEqual(self.queue_length_1,
+                         self.tested_class.from_iterable([0, 0, 1, 2, 3]))
+        self.assertEqual(self.range_queue, self.tested_class.from_iterable(
+            [0, 1, 2, 3, 1, 42, -3, 2, 42]))
+        self.assertEqual(self.queue, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, 0]))
 
         self.empty_queue += [-1, -1]
         self.queue_length_1 += tuple('queue')
@@ -197,18 +180,15 @@ class TestQueue(unittest.TestCase):
         self.assertEqual(id(self.queue_length_1), id_queue_length_1)
         self.assertEqual(id(self.range_queue), id_range_queue)
         self.assertEqual(id(self.queue), id_queue)
-        queue = self.tested_class()
-        queue += [0, -1, -1]
-        self.assertEqual(self.empty_queue, queue)
-        queue = self.tested_class()
-        queue += [0, 0, 1, 2, 3, 'q', 'u', 'e', 'u', 'e']
-        self.assertEqual(self.queue_length_1, queue)
-        queue = self.tested_class()
-        queue += [0, 1, 2, 3, 1, 42, -3, 2, 42, -1, -2, -3]
-        self.assertEqual(self.range_queue, queue)
-        queue = self.tested_class()
-        queue += [1, 42, -3, 2, 42, 0]
-        self.assertEqual(self.queue, queue)
+
+        self.assertEqual(self.empty_queue,
+                         self.tested_class.from_iterable([0, -1, -1]))
+        self.assertEqual(self.queue_length_1, self.tested_class.from_iterable(
+            [0, 0, 1, 2, 3, 'q', 'u', 'e', 'u', 'e']))
+        self.assertEqual(self.range_queue, self.tested_class.from_iterable(
+            [0, 1, 2, 3, 1, 42, -3, 2, 42, -1, -2, -3]))
+        self.assertEqual(self.queue, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, 0]))
 
     def test_is_empty(self):
         self.assertTrue(self.empty_queue.is_empty())
@@ -246,18 +226,14 @@ class TestQueue(unittest.TestCase):
         self.queue.insert(REAR, -2)
         self.queue.insert(REAR, -3)
 
-        queue = self.tested_class()
-        queue += [-1]
-        self.assertEqual(self.empty_queue, queue)
-        queue = self.tested_class()
-        queue += [0, -1, -2]
-        self.assertEqual(self.queue_length_1, queue)
-        queue = self.tested_class()
-        queue += [0, 1, 2, 3, -1, -2, -3]
-        self.assertEqual(self.range_queue, queue)
-        queue = self.tested_class()
-        queue += [1, 42, -3, 2, 42, -1, -2, -3]
-        self.assertEqual(self.queue, queue)
+        self.assertEqual(self.empty_queue,
+                         self.tested_class.from_iterable([-1]))
+        self.assertEqual(self.queue_length_1,
+                         self.tested_class.from_iterable([0, -1, -2]))
+        self.assertEqual(self.range_queue, self.tested_class.from_iterable(
+            [0, 1, 2, 3, -1, -2, -3]))
+        self.assertEqual(self.queue, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, -1, -2, -3]))
 
     def test_post(self):
         self.empty_queue.post(-1)
@@ -270,18 +246,14 @@ class TestQueue(unittest.TestCase):
         self.queue.post(-2)
         self.queue.post(-3)
 
-        queue = self.tested_class()
-        queue += [-1]
-        self.assertEqual(self.empty_queue, queue)
-        queue = self.tested_class()
-        queue += [0, -1, -2]
-        self.assertEqual(self.queue_length_1, queue)
-        queue = self.tested_class()
-        queue += [0, 1, 2, 3, -1, -2, -3]
-        self.assertEqual(self.range_queue, queue)
-        queue = self.tested_class()
-        queue += [1, 42, -3, 2, 42, -1, -2, -3]
-        self.assertEqual(self.queue, queue)
+        self.assertEqual(self.empty_queue,
+                         self.tested_class.from_iterable([-1]))
+        self.assertEqual(self.queue_length_1,
+                         self.tested_class.from_iterable([0, -1, -2]))
+        self.assertEqual(self.range_queue, self.tested_class.from_iterable(
+            [0, 1, 2, 3, -1, -2, -3]))
+        self.assertEqual(self.queue, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, -1, -2, -3]))
 
     def test_enqueue(self):
         self.empty_queue.enqueue(-1)
@@ -294,34 +266,27 @@ class TestQueue(unittest.TestCase):
         self.queue.enqueue(-2)
         self.queue.enqueue(-3)
 
-        queue = self.tested_class()
-        queue += [-1]
-        self.assertEqual(self.empty_queue, queue)
-        queue = self.tested_class()
-        queue += [0, -1, -2]
-        self.assertEqual(self.queue_length_1, queue)
-        queue = self.tested_class()
-        queue += [0, 1, 2, 3, -1, -2, -3]
-        self.assertEqual(self.range_queue, queue)
-        queue = self.tested_class()
-        queue += [1, 42, -3, 2, 42, -1, -2, -3]
-        self.assertEqual(self.queue, queue)
+        self.assertEqual(self.empty_queue,
+                         self.tested_class.from_iterable([-1]))
+        self.assertEqual(self.queue_length_1,
+                         self.tested_class.from_iterable([0, -1, -2]))
+        self.assertEqual(self.range_queue, self.tested_class.from_iterable(
+            [0, 1, 2, 3, -1, -2, -3]))
+        self.assertEqual(self.queue, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, -1, -2, -3]))
 
     def test_delete(self):
         with self.assertRaises(EmptyCollectionException):
             self.empty_queue.delete()
 
         self.queue_length_1.delete()
-        queue = self.tested_class()
-        self.assertEqual(self.queue_length_1, queue)
+        self.assertEqual(self.queue_length_1, self.tested_class())
         self.range_queue.delete()
-        queue = self.tested_class()
-        queue += [1, 2, 3]
-        self.assertEqual(self.range_queue, queue)
+        self.assertEqual(self.range_queue,
+                         self.tested_class.from_iterable([1, 2, 3]))
         self.queue.delete()
-        queue = self.tested_class()
-        queue += [42, -3, 2, 42]
-        self.assertEqual(self.queue, queue)
+        self.assertEqual(self.queue,
+                         self.tested_class.from_iterable([42, -3, 2, 42]))
 
     def test_clear(self):
         self.empty_queue.clear()
@@ -344,14 +309,11 @@ class TestQueue(unittest.TestCase):
         self.queue.pop()
         self.queue.pop()
 
-        queue = self.tested_class()
-        self.assertEqual(self.queue_length_1, queue)
-        queue = self.tested_class()
-        queue += [2, 3]
-        self.assertEqual(self.range_queue, queue)
-        queue = self.tested_class()
-        queue += [-3, 2, 42]
-        self.assertEqual(self.queue, queue)
+        self.assertEqual(self.queue_length_1, self.tested_class())
+        self.assertEqual(self.range_queue,
+                         self.tested_class.from_iterable([2, 3]))
+        self.assertEqual(self.queue,
+                         self.tested_class.from_iterable([-3, 2, 42]))
 
         self.queue.pop()
         self.queue.pop()
@@ -369,14 +331,11 @@ class TestQueue(unittest.TestCase):
         self.queue.dequeue()
         self.queue.dequeue()
 
-        queue = self.tested_class()
-        self.assertEqual(self.queue_length_1, queue)
-        queue = self.tested_class()
-        queue += [2, 3]
-        self.assertEqual(self.range_queue, queue)
-        queue = self.tested_class()
-        queue += [-3, 2, 42]
-        self.assertEqual(self.queue, queue)
+        self.assertEqual(self.queue_length_1, self.tested_class())
+        self.assertEqual(self.range_queue,
+                         self.tested_class.from_iterable([2, 3]))
+        self.assertEqual(self.queue,
+                         self.tested_class.from_iterable([-3, 2, 42]))
 
         self.queue.dequeue()
         self.queue.dequeue()

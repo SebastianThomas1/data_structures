@@ -26,23 +26,42 @@ __all__ = ['ArrayRandomizedQueue', 'DoublyLinkedRandomizedQueue',
 class RandomizedQueue(Collection):
     """Abstract base class for the abstract data type randomized queue.
 
-    Concrete subclasses must provide: __new__ or __init__, __iter__, choice,
-    enqueue, dequeue."""
+    Concrete subclasses must provide: __init__, __iter__, choice, enqueue,
+    dequeue."""
+
+    @classmethod
+    def from_iterable(cls, values, random_state=None):
+        """Constructs instance from iterable values."""
+        cls._validate_iterability(values)
+
+        self = cls(random_state=random_state)
+
+        for value in values:
+            self.post(value)
+
+        return self
+
+    @abstractmethod
+    def __init__(self, random_state=None):
+        self._random_state = random_state
 
     def __copy__(self):
-        copy_of_self = type(self)()
-        copy_of_self += self
+        """Returns a copy of this instance."""
+        copy_of_self = type(self).from_iterable(self)
         return copy_of_self
 
     def __getitem__(self, key):
+        """Raises TypeError."""
         raise TypeError('\'{}\' object is not subscriptable'
                         .format(type(self).__name__))
 
     def __setitem__(self, key, value):
+        """Raises TypeError."""
         raise TypeError('\'{}\' object does not support item assignment'
                         .format(type(self).__name__))
 
     def __delitem__(self, key):
+        """Raises TypeError."""
         raise TypeError('\'{}\' object does not support item deletion'
                         .format(type(self).__name__))
 
@@ -83,8 +102,8 @@ class ArrayRandomizedQueue(RandomizedQueue):
     array (python list)."""
 
     def __init__(self, random_state=None):
+        super().__init__(random_state=random_state)
         self._values = []
-        self._random_state = random_state
 
     def __copy__(self):
         copy_of_self = type(self)()
@@ -164,11 +183,11 @@ class LinkedRandomizedQueue(RandomizedQueue):
         pass
 
     def __init__(self, random_state=None):
+        super().__init__(random_state=random_state)
         self._front = None
         self._current_node = None
         self._current_idx = None
         self._len = 0
-        self._random_state = random_state
 
     def __iter__(self):
         seed(self._random_state)
@@ -322,10 +341,9 @@ class DoublyLinkedRandomizedQueue(RandomizedQueue):
         pass
 
     def __init__(self, random_state=None):
-        # self._front = None
+        super().__init__(random_state=random_state)
         self._current_node = None
         self._len = 0
-        self._random_state = random_state
 
     def __iter__(self):
         seed(self._random_state)
