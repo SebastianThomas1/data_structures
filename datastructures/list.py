@@ -27,10 +27,17 @@ class List(PredictableIterMixin, MutableSequence):
     Concrete subclasses must provide: __new__ or __init__, __getitem__,
     __setitem__, __delitem__, __len__, insert_before and insert_after."""
 
+    @classmethod
+    def from_iterable(cls, values):
+        cls._validate_iterability(values)
+
+        self = cls()
+        self.extend_by_appending(values)
+
+        return self
+
     def __copy__(self):
-        copy_of_self = type(self)()
-        copy_of_self.extend_by_appending(self)
-        return copy_of_self
+        return type(self).from_iterable(self)
 
     def __bool__(self):
         return not self.is_empty()
@@ -78,6 +85,12 @@ class List(PredictableIterMixin, MutableSequence):
             self += copy_of_self
 
         return self
+
+    @staticmethod
+    def _validate_iterability(values):
+        if not isinstance(values, Iterable):
+            raise TypeError('\'{}\' object is not '
+                            'iterable.'.format(type(values).__name__))
 
     def _validate_and_adjust_key(self, key):
         """Validates and adjusts integral key."""
@@ -161,28 +174,24 @@ class List(PredictableIterMixin, MutableSequence):
         """Prepends value to this instance."""
         self.insert(0, value)
 
-    def extend_by_prepending(self, other):
-        """Extends this instance by prepending values from iterable other."""
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
+    def extend_by_prepending(self, values):
+        """Extends this instance by prepending values."""
+        self._validate_iterability(values)
 
-        for value in other:
+        for value in values:
             self.prepend(value)
 
-    def extend_by_appending(self, other):
-        """Extends this instance by appending values from iterable other."""
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
+    def extend_by_appending(self, values):
+        """Extends this instance by appending values."""
+        self._validate_iterability(values)
 
-        for value in other:
+        for value in values:
             self.append(value)
 
-    def extend(self, other):
-        """Alias to extend_by_appending: extends instance by appending the
-        values from the iterable other."""
-        self.extend_by_appending(other)
+    def extend(self, values):
+        """Alias to extend_by_appending: extends this instance by appending
+        values."""
+        self.extend_by_appending(values)
 
     def pop_first(self):
         """Removes and returns first value."""
@@ -210,18 +219,19 @@ class ArrayList(List):
 
     It is essentially a wrapper for Python's builtin lists."""
 
-    def __init__(self, values=None):
-        if values is not None and not isinstance(values, Iterable):
-            raise TypeError('\'{}\' object is not '
-                            'iterable.'.format(type(values).__name__))
+    @classmethod
+    def from_iterable(cls, values):
+        cls._validate_iterability(values)
+
+        self = cls()
 
         if values:
             self._values = list(values)
-        else:
-            self._values = list()
 
-    def __copy__(self):
-        return type(self)(self)
+        return self
+
+    def __init__(self):
+        self._values = []
 
     def __iter__(self):
         return iter(self._values)
@@ -245,7 +255,7 @@ class ArrayList(List):
         if isinstance(key, Integral):
             return self._values[int(key)]
         elif isinstance(key, slice):
-            return ArrayList(self._values[key])
+            return ArrayList.from_iterable(self._values[key])
         else:
             raise TypeError('Indices must be integers or slices.')
 
@@ -326,10 +336,11 @@ class BasicLinkedList(List):
         """Internal node class for (singly) linked lists."""
         pass
 
-    def __init__(self, values=None):
-        if values is not None and not isinstance(values, Iterable):
-            raise TypeError('\'{}\' object is not '
-                            'iterable.'.format(type(values).__name__))
+    @classmethod
+    def from_iterable(cls, values):
+        cls._validate_iterability(values)
+
+        self = cls()
 
         if values:
             iterator = iter(values)
@@ -340,11 +351,14 @@ class BasicLinkedList(List):
             for value in iterator:
                 current_node.successor = self.Node(value)
                 current_node = current_node.successor
-        else:
-            self._head = None
+
+        return self
+
+    def __init__(self):
+        self._head = None
 
     def __copy__(self):
-        return type(self)(self)
+        return type(self).from_iterable(self)
 
     def __iter__(self):
         for node in self._traversal():
@@ -589,25 +603,21 @@ class BasicLinkedList(List):
         else:
             self.tail.successor = self.Node(value)
 
-    def extend_by_prepending(self, other):
-        """Extends this instance by prepending values from iterable other."""
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
+    def extend_by_prepending(self, values):
+        """Extends this instance by prepending values."""
+        self._validate_iterability(values)
 
         # convert/copy other to linked list
-        other = type(self)(other)
+        other = type(self).from_iterable(values)
 
         self._extend_by_prepending(other)
 
-    def extend_by_appending(self, other):
-        """Extends this instance by appending values from iterable other."""
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
+    def extend_by_appending(self, values):
+        """Extends this instance by appending values."""
+        self._validate_iterability(values)
 
         # convert/copy other to linked list
-        other = type(self)(other)
+        other = type(self).from_iterable(values)
 
         self._extend_by_appending(other)
 
@@ -689,12 +699,12 @@ class LinkedList(BasicLinkedList):
     reference to the tail node as well as the length. This speeds up some of
     the methods."""
 
-    def __init__(self, values=None):
-        if values is not None and not isinstance(values, Iterable):
-            raise TypeError('\'{}\' object is not '
-                            'iterable.'.format(type(values).__name__))
+    @classmethod
+    def from_iterable(cls, values):
+        cls._validate_iterability(values)
 
-        self._len = 0
+        self = cls()
+
         if values:
             iterator = iter(values)
 
@@ -708,9 +718,13 @@ class LinkedList(BasicLinkedList):
                 self._len += 1
 
             self._tail = current_node
-        else:
-            self._head = None
-            self._tail = None
+
+        return self
+
+    def __init__(self):
+        super().__init__()
+        self._tail = None
+        self._len = 0
 
     def __len__(self):
         return self._len
@@ -808,12 +822,12 @@ class LinkedList(BasicLinkedList):
 class CircularLinkedList(BasicLinkedList):
     """Class that implements a (singly) circular linked list."""
 
-    def __init__(self, values=None):
-        if values is not None and not isinstance(values, Iterable):
-            raise TypeError('\'{}\' object is not '
-                            'iterable.'.format(type(values).__name__))
+    @classmethod
+    def from_iterable(cls, values):
+        cls._validate_iterability(values)
 
-        self._len = 0
+        self = cls()
+
         if values:
             iterator = iter(values)
 
@@ -827,8 +841,12 @@ class CircularLinkedList(BasicLinkedList):
                 self._len += 1
 
             current_node.successor = self.head
-        else:
-            self._head = None
+
+        return self
+
+    def __init__(self):
+        super().__init__()
+        self._len = 0
 
     def __len__(self):
         return self._len
@@ -1046,12 +1064,12 @@ class DoublyLinkedList(LinkedList):
         """Internal node class for doubly linked lists."""
         pass
 
-    def __init__(self, values=None):
-        if values is not None and not isinstance(values, Iterable):
-            raise TypeError('\'{}\' object is not '
-                            'iterable.'.format(type(values).__name__))
+    @classmethod
+    def from_iterable(cls, values):
+        cls._validate_iterability(values)
 
-        self._len = 0
+        self = cls()
+
         if values:
             iterator = iter(values)
 
@@ -1066,9 +1084,8 @@ class DoublyLinkedList(LinkedList):
                 self._len += 1
 
             self._tail = current_node
-        else:
-            self._head = None
-            self._tail = None
+
+        return self
 
     def __reversed__(self):
         # traverse instance backwards, meanwhile yield values
@@ -1260,12 +1277,12 @@ class CircularDoublyLinkedList(CircularLinkedList):
         """Internal node class for doubly linked lists."""
         pass
 
-    def __init__(self, values=None):
-        if values is not None and not isinstance(values, Iterable):
-            raise TypeError('\'{}\' object is not '
-                            'iterable.'.format(type(values).__name__))
+    @classmethod
+    def from_iterable(cls, values):
+        cls._validate_iterability(values)
 
-        self._len = 0
+        self = cls()
+
         if values:
             iterator = iter(values)
 
@@ -1281,8 +1298,8 @@ class CircularDoublyLinkedList(CircularLinkedList):
 
             current_node.successor = self.head
             self.head.predecessor = current_node
-        else:
-            self._head = None
+
+        return self
 
     def __reversed__(self):
         # traverse instance backwards, meanwhile yield values

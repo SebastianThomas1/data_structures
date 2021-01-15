@@ -22,15 +22,18 @@ class TestList(unittest.TestCase):
 
     def setUp(self):
         self.empty_list = self.tested_class()
-        self.list_length_1 = self.tested_class([0])
-        self.range_list = self.tested_class(range(4))
-        self.list = self.tested_class([1, 42, -3, 2, 42])
+        self.list_length_1 = self.tested_class.from_iterable([0])
+        self.range_list = self.tested_class.from_iterable(range(4))
+        self.list = self.tested_class.from_iterable([1, 42, -3, 2, 42])
 
     def test_eq(self):
         self.assertEqual(self.empty_list, self.tested_class())
-        self.assertEqual(self.list_length_1, self.tested_class(range(1)))
-        self.assertEqual(self.range_list, self.tested_class([0, 1, 2, 3]))
-        self.assertEqual(self.list, self.tested_class((1, 42, -3, 2, 42)))
+        self.assertEqual(self.list_length_1,
+                         self.tested_class.from_iterable(range(1)))
+        self.assertEqual(self.range_list,
+                         self.tested_class.from_iterable([0, 1, 2, 3]))
+        self.assertEqual(self.list,
+                         self.tested_class.from_iterable((1, 42, -3, 2, 42)))
         self.assertNotEqual(self.empty_list, self.list_length_1)
         self.assertNotEqual(self.list_length_1, self.range_list)
         self.assertNotEqual(self.range_list, self.list)
@@ -79,7 +82,7 @@ class TestList(unittest.TestCase):
                          '{}([0, 1, 2, 3])'.format(class_name))
         self.assertEqual(repr(self.list),
                          '{}([1, 42, -3, 2, 42])'.format(class_name))
-        self.assertEqual(repr(self.tested_class(range(10))),
+        self.assertEqual(repr(self.tested_class.from_iterable(range(10))),
                          '{}([0, 1, 2, 3, 4, 5, ...])'.format(class_name))
 
     def test_get_item(self):
@@ -105,19 +108,19 @@ class TestList(unittest.TestCase):
         self.assertEqual(self.list[4], 42)
 
         with self.assertRaises(IndexError):
-            self.empty_list[0]
+            _ = self.empty_list[0]
         with self.assertRaises(IndexError):
-            self.list_length_1[-2]
+            _ = self.list_length_1[-2]
         with self.assertRaises(IndexError):
-            self.list_length_1[1]
+            _ = self.list_length_1[1]
         with self.assertRaises(IndexError):
-            self.range_list[-5]
+            _ = self.range_list[-5]
         with self.assertRaises(IndexError):
-            self.range_list[4]
+            _ = self.range_list[4]
         with self.assertRaises(IndexError):
-            self.list[-6]
+            _ = self.list[-6]
         with self.assertRaises(IndexError):
-            self.list[5]
+            _ = self.list[5]
 
     def test_set_item(self):
         self.list_length_1[0] = 1
@@ -183,57 +186,64 @@ class TestList(unittest.TestCase):
         self.assertEqual(self.list_length_1, self.tested_class())
 
         del self.range_list[1]
-        self.assertEqual(self.range_list, self.tested_class([0, 2, 3]))
+        self.assertEqual(self.range_list,
+                         self.tested_class.from_iterable([0, 2, 3]))
 
         del self.range_list[0]
-        self.assertEqual(self.range_list, self.tested_class([2, 3]))
+        self.assertEqual(self.range_list,
+                         self.tested_class.from_iterable([2, 3]))
 
         del self.range_list[-1]
-        self.assertEqual(self.range_list, self.tested_class([2]))
+        self.assertEqual(self.range_list, self.tested_class.from_iterable([2]))
 
     def test_add(self):
         with self.assertRaises(TypeError):
-            self.empty_list + []
+            _ = self.empty_list + []
         with self.assertRaises(TypeError):
-            self.list_length_1 + [1]
+            _ = self.list_length_1 + [1]
         with self.assertRaises(TypeError):
-            self.range_list + [2, 3]
+            _ = self.range_list + [2, 3]
         with self.assertRaises(TypeError):
-            self.list + ['a', 'b', 'c']
+            _ = self.list + ['a', 'b', 'c']
 
         self.assertEqual(self.empty_list + self.empty_list,
                          self.tested_class())
         self.assertEqual(self.empty_list + self.list_length_1,
-                         self.tested_class([0]))
+                         self.tested_class.from_iterable([0]))
         self.assertEqual(self.empty_list + self.range_list,
-                         self.tested_class([0, 1, 2, 3]))
+                         self.tested_class.from_iterable([0, 1, 2, 3]))
         self.assertEqual(self.empty_list + self.list,
-                         self.tested_class([1, 42, -3, 2, 42]))
+                         self.tested_class.from_iterable([1, 42, -3, 2, 42]))
         self.assertEqual(self.list_length_1 + self.empty_list,
-                         self.tested_class([0]))
+                         self.tested_class.from_iterable([0]))
         self.assertEqual(self.list_length_1 + self.list_length_1,
-                         self.tested_class([0, 0]))
+                         self.tested_class.from_iterable([0, 0]))
         self.assertEqual(self.list_length_1 + self.range_list,
-                         self.tested_class([0, 0, 1, 2, 3]))
+                         self.tested_class.from_iterable([0, 0, 1, 2, 3]))
         self.assertEqual(self.list_length_1 + self.list,
-                         self.tested_class([0, 1, 42, -3, 2, 42]))
+                         self.tested_class.from_iterable([0,
+                                                          1, 42, -3, 2, 42]))
         self.assertEqual(self.range_list + self.empty_list,
-                         self.tested_class([0, 1, 2, 3]))
+                         self.tested_class.from_iterable([0, 1, 2, 3]))
         self.assertEqual(self.range_list + self.list_length_1,
-                         self.tested_class([0, 1, 2, 3, 0]))
+                         self.tested_class.from_iterable([0, 1, 2, 3, 0]))
         self.assertEqual(self.range_list + self.range_list,
-                         self.tested_class([0, 1, 2, 3, 0, 1, 2, 3]))
+                         self.tested_class.from_iterable([0, 1, 2, 3,
+                                                          0, 1, 2, 3]))
         self.assertEqual(self.range_list + self.list,
-                         self.tested_class([0, 1, 2, 3, 1, 42, -3, 2, 42]))
+                         self.tested_class.from_iterable([0, 1, 2, 3,
+                                                          1, 42, -3, 2, 42]))
         self.assertEqual(self.list + self.empty_list,
-                         self.tested_class([1, 42, -3, 2, 42]))
+                         self.tested_class.from_iterable([1, 42, -3, 2, 42]))
         self.assertEqual(self.list + self.list_length_1,
-                         self.tested_class([1, 42, -3, 2, 42, 0]))
+                         self.tested_class.from_iterable([1, 42, -3, 2, 42,
+                                                          0]))
         self.assertEqual(self.list + self.range_list,
-                         self.tested_class([1, 42, -3, 2, 42, 0, 1, 2, 3]))
+                         self.tested_class.from_iterable([1, 42, -3, 2, 42,
+                                                          0, 1, 2, 3]))
         self.assertEqual(self.list + self.list,
-                         self.tested_class([1, 42, -3, 2, 42,
-                                            1, 42, -3, 2, 42]))
+                         self.tested_class.from_iterable([1, 42, -3, 2, 42,
+                                                          1, 42, -3, 2, 42]))
 
     def test_iadd(self):
         with self.assertRaises(TypeError):
@@ -259,12 +269,14 @@ class TestList(unittest.TestCase):
         self.assertEqual(id(self.list_length_1), id_list_length_1)
         self.assertEqual(id(self.range_list), id_range_list)
         self.assertEqual(id(self.list), id_list)
-        self.assertEqual(self.empty_list, self.tested_class([0]))
+        self.assertEqual(self.empty_list, self.tested_class.from_iterable([0]))
         self.assertEqual(self.list_length_1,
-                         self.tested_class([0, 0, 1, 2, 3]))
+                         self.tested_class.from_iterable([0, 0, 1, 2, 3]))
         self.assertEqual(self.range_list,
-                         self.tested_class([0, 1, 2, 3, 1, 42, -3, 2, 42]))
-        self.assertEqual(self.list, self.tested_class([1, 42, -3, 2, 42, 0]))
+                         self.tested_class.from_iterable([0, 1, 2, 3,
+                                                          1, 42, -3, 2, 42]))
+        self.assertEqual(self.list, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, 0]))
 
         self.empty_list += [-1, -1]
         self.list_length_1 += tuple('list')
@@ -275,56 +287,67 @@ class TestList(unittest.TestCase):
         self.assertEqual(id(self.list_length_1), id_list_length_1)
         self.assertEqual(id(self.range_list), id_range_list)
         self.assertEqual(id(self.list), id_list)
-        self.assertEqual(self.empty_list, self.tested_class([0, -1, -1]))
+        self.assertEqual(self.empty_list,
+                         self.tested_class.from_iterable([0, -1, -1]))
         self.assertEqual(self.list_length_1,
-                         self.tested_class([0, 0, 1, 2, 3,
-                                            'l', 'i', 's', 't']))
-        self.assertEqual(self.range_list, self.tested_class([0, 1, 2, 3,
-                                                             1, 42, -3, 2, 42,
-                                                             -1, -2, -3]))
-        self.assertEqual(self.list, self.tested_class([1, 42, -3, 2, 42, 0]))
+                         self.tested_class.from_iterable([0, 0, 1, 2, 3,
+                                                          'l', 'i', 's', 't']))
+        self.assertEqual(self.range_list, self.tested_class.from_iterable(
+            [0, 1, 2, 3, 1, 42, -3, 2, 42, -1, -2, -3]))
+        self.assertEqual(self.list, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, 0]))
 
     def test_mul(self):
         with self.assertRaises(TypeError):
-            self.empty_list * []
+            _ = self.empty_list * []
         with self.assertRaises(TypeError):
-            self.list_length_1 * 3.5
+            _ = self.list_length_1 * 3.5
         with self.assertRaises(TypeError):
-            self.range_list * (2, 3)
+            _ = self.range_list * (2, 3)
         with self.assertRaises(TypeError):
-            self.list * self.tested_class(['a', 'b', 'c'])
+            _ = self.list * self.tested_class(['a', 'b', 'c'])
 
         with self.assertRaises(ValueError):
-            self.empty_list * (-1)
+            _ = self.empty_list * (-1)
         with self.assertRaises(ValueError):
-            self.list_length_1 * (-2)
+            _ = self.list_length_1 * (-2)
         with self.assertRaises(ValueError):
-            self.range_list * (-3)
+            _ = self.range_list * (-3)
         with self.assertRaises(ValueError):
-            self.list * (-4)
+            _ = self.list * (-4)
 
         self.assertEqual(self.empty_list * 0, self.tested_class())
         self.assertEqual(self.empty_list * 1, self.tested_class())
         self.assertEqual(self.empty_list * 2, self.tested_class())
         self.assertEqual(self.empty_list * 3, self.tested_class())
         self.assertEqual(self.list_length_1 * 0, self.tested_class())
-        self.assertEqual(self.list_length_1 * 1, self.tested_class([0]))
-        self.assertEqual(self.list_length_1 * 2, self.tested_class([0, 0]))
-        self.assertEqual(self.list_length_1 * 3, self.tested_class([0, 0, 0]))
-        self.assertEqual(self.range_list * 0, self.tested_class())
-        self.assertEqual(self.range_list * 1, self.tested_class([0, 1, 2, 3]))
+        self.assertEqual(self.list_length_1 * 1,
+                         self.tested_class.from_iterable([0]))
+        self.assertEqual(self.list_length_1 * 2,
+                         self.tested_class.from_iterable([0, 0]))
+        self.assertEqual(self.list_length_1 * 3,
+                         self.tested_class.from_iterable([0, 0, 0]))
+        self.assertEqual(self.range_list * 0,
+                         self.tested_class())
+        self.assertEqual(self.range_list * 1,
+                         self.tested_class.from_iterable([0, 1, 2, 3]))
         self.assertEqual(self.range_list * 2,
-                         self.tested_class([0, 1, 2, 3, 0, 1, 2, 3]))
+                         self.tested_class.from_iterable([0, 1, 2, 3,
+                                                          0, 1, 2, 3]))
         self.assertEqual(self.range_list * 3,
-                         self.tested_class([0, 1, 2, 3, 0, 1, 2, 3,
-                                            0, 1, 2, 3]))
+                         self.tested_class.from_iterable([0, 1, 2, 3,
+                                                          0, 1, 2, 3,
+                                                          0, 1, 2, 3]))
         self.assertEqual(self.list * 0, self.tested_class())
-        self.assertEqual(self.list * 1, self.tested_class([1, 42, -3, 2, 42]))
-        self.assertEqual(self.list * 2, self.tested_class([1, 42, -3, 2, 42,
-                                                           1, 42, -3, 2, 42]))
-        self.assertEqual(self.list * 3, self.tested_class([1, 42, -3, 2, 42,
-                                                           1, 42, -3, 2, 42,
-                                                           1, 42, -3, 2, 42]))
+        self.assertEqual(self.list * 1,
+                         self.tested_class.from_iterable([1, 42, -3, 2, 42]))
+        self.assertEqual(self.list * 2,
+                         self.tested_class.from_iterable([1, 42, -3, 2, 42,
+                                                          1, 42, -3, 2, 42]))
+        self.assertEqual(self.list * 3,
+                         self.tested_class.from_iterable([1, 42, -3, 2, 42,
+                                                          1, 42, -3, 2, 42,
+                                                          1, 42, -3, 2, 42]))
 
     def test_imul(self):
         with self.assertRaises(TypeError):
@@ -334,7 +357,7 @@ class TestList(unittest.TestCase):
         with self.assertRaises(TypeError):
             self.range_list *= (2, 3)
         with self.assertRaises(TypeError):
-            self.list *= self.tested_class(['a', 'b', 'c'])
+            self.list *= self.tested_class.from_iterable(['a', 'b', 'c'])
 
         with self.assertRaises(ValueError):
             self.empty_list *= (-1)
@@ -360,51 +383,61 @@ class TestList(unittest.TestCase):
         self.assertEqual(id(self.range_list), id_range_list)
         self.assertEqual(id(self.list), id_list)
         self.assertEqual(self.empty_list, self.tested_class())
-        self.assertEqual(self.list_length_1, self.tested_class([0, 0, 0]))
+        self.assertEqual(self.list_length_1,
+                         self.tested_class.from_iterable([0, 0, 0]))
         self.assertEqual(self.range_list, self.tested_class())
-        self.assertEqual(self.list, self.tested_class([1, 42, -3, 2, 42]))
+        self.assertEqual(self.list,
+                         self.tested_class.from_iterable([1, 42, -3, 2, 42]))
 
     def test_rmul(self):
         with self.assertRaises(TypeError):
-            [] * self.empty_list
+            _ = [] * self.empty_list
         with self.assertRaises(TypeError):
-            3.5 * self.list_length_1
+            _ = 3.5 * self.list_length_1
         with self.assertRaises(TypeError):
-            (2, 3) * self.range_list
+            _ = (2, 3) * self.range_list
         with self.assertRaises(TypeError):
             self.tested_class(['a', 'b', 'c']) * self.list
 
         with self.assertRaises(ValueError):
-            (-1) * self.empty_list
+            _ = (-1) * self.empty_list
         with self.assertRaises(ValueError):
-            (-2) * self.list_length_1
+            _ = (-2) * self.list_length_1
         with self.assertRaises(ValueError):
-            (-3) * self.range_list
+            _ = (-3) * self.range_list
         with self.assertRaises(ValueError):
-            (-4) * self.list
+            _ = (-4) * self.list
 
         self.assertEqual(0 * self.empty_list, self.tested_class())
         self.assertEqual(1 * self.empty_list, self.tested_class())
         self.assertEqual(2 * self.empty_list, self.tested_class())
         self.assertEqual(3 * self.empty_list, self.tested_class())
         self.assertEqual(0 * self.list_length_1, self.tested_class())
-        self.assertEqual(1 * self.list_length_1, self.tested_class([0]))
-        self.assertEqual(2 * self.list_length_1, self.tested_class([0, 0]))
-        self.assertEqual(3 * self.list_length_1, self.tested_class([0, 0, 0]))
+        self.assertEqual(1 * self.list_length_1,
+                         self.tested_class.from_iterable([0]))
+        self.assertEqual(2 * self.list_length_1,
+                         self.tested_class.from_iterable([0, 0]))
+        self.assertEqual(3 * self.list_length_1,
+                         self.tested_class.from_iterable([0, 0, 0]))
         self.assertEqual(0 * self.range_list, self.tested_class())
-        self.assertEqual(1 * self.range_list, self.tested_class([0, 1, 2, 3]))
+        self.assertEqual(1 * self.range_list,
+                         self.tested_class.from_iterable([0, 1, 2, 3]))
         self.assertEqual(2 * self.range_list,
-                         self.tested_class([0, 1, 2, 3, 0, 1, 2, 3]))
+                         self.tested_class.from_iterable([0, 1, 2, 3,
+                                                          0, 1, 2, 3]))
         self.assertEqual(3 * self.range_list,
-                         self.tested_class([0, 1, 2, 3, 0, 1, 2, 3,
-                                            0, 1, 2, 3]))
+                         self.tested_class.from_iterable(
+                             [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]))
         self.assertEqual(0 * self.list, self.tested_class())
-        self.assertEqual(1 * self.list, self.tested_class([1, 42, -3, 2, 42]))
-        self.assertEqual(2 * self.list, self.tested_class([1, 42, -3, 2, 42,
-                                                           1, 42, -3, 2, 42]))
-        self.assertEqual(3 * self.list, self.tested_class([1, 42, -3, 2, 42,
-                                                           1, 42, -3, 2, 42,
-                                                           1, 42, -3, 2, 42]))
+        self.assertEqual(1 * self.list,
+                         self.tested_class.from_iterable([1, 42, -3, 2, 42]))
+        self.assertEqual(2 * self.list,
+                         self.tested_class.from_iterable([1, 42, -3, 2, 42,
+                                                          1, 42, -3, 2, 42]))
+        self.assertEqual(3 * self.list,
+                         self.tested_class.from_iterable([1, 42, -3, 2, 42,
+                                                          1, 42, -3, 2, 42,
+                                                          1, 42, -3, 2, 42]))
 
     def test_is_empty(self):
         self.assertTrue(self.empty_list.is_empty())
@@ -524,11 +557,12 @@ class TestList(unittest.TestCase):
         self.list.insert_before(-1, -1)
         self.list.insert_before(-5, 42)
 
-        self.assertEqual(self.list_length_1, self.tested_class([1, 2, 0]))
-        self.assertEqual(self.range_list,
-                         self.tested_class([3, 42, 0, 1, 2, -1, 3]))
-        self.assertEqual(self.list,
-                         self.tested_class([3, 1, 42, 42, -3, 2, -1, 42]))
+        self.assertEqual(self.list_length_1,
+                         self.tested_class.from_iterable([1, 2, 0]))
+        self.assertEqual(self.range_list, self.tested_class.from_iterable(
+            [3, 42, 0, 1, 2, -1, 3]))
+        self.assertEqual(self.list, self.tested_class.from_iterable(
+            [3, 1, 42, 42, -3, 2, -1, 42]))
 
     def test_insert_after(self):
         with self.assertRaises(IndexError):
@@ -555,11 +589,12 @@ class TestList(unittest.TestCase):
         self.list.insert_after(-1, -1)
         self.list.insert_after(-5, 42)
 
-        self.assertEqual(self.list_length_1, self.tested_class([0, 1, 2]))
-        self.assertEqual(self.range_list,
-                         self.tested_class([0, 3, 42, 1, 2, 3, -1]))
-        self.assertEqual(self.list,
-                         self.tested_class([1, 3, 42, 42, -3, 2, 42, -1]))
+        self.assertEqual(self.list_length_1,
+                         self.tested_class.from_iterable([0, 1, 2]))
+        self.assertEqual(self.range_list, self.tested_class.from_iterable(
+            [0, 3, 42, 1, 2, 3, -1]))
+        self.assertEqual(self.list, self.tested_class.from_iterable(
+            [1, 3, 42, 42, -3, 2, 42, -1]))
 
     def test_insert(self):
         with self.assertRaises(IndexError):
@@ -586,11 +621,13 @@ class TestList(unittest.TestCase):
         self.list.insert(-1, -1)
         self.list.insert(-5, 42)
 
-        self.assertEqual(self.list_length_1, self.tested_class([1, 2, 0]))
-        self.assertEqual(self.range_list,
-                         self.tested_class([3, 42, 0, 1, 2, -1, 3]))
+        self.assertEqual(self.list_length_1, self.tested_class.from_iterable(
+            [1, 2, 0]))
+        self.assertEqual(self.range_list, self.tested_class.from_iterable(
+            [3, 42, 0, 1, 2, -1, 3]))
         self.assertEqual(self.list,
-                         self.tested_class([3, 1, 42, 42, -3, 2, -1, 42]))
+                         self.tested_class.from_iterable(
+                             [3, 1, 42, 42, -3, 2, -1, 42]))
 
     def test_prepend(self):
         self.empty_list.prepend(-1)
@@ -603,12 +640,14 @@ class TestList(unittest.TestCase):
         self.list.prepend(-2)
         self.list.prepend(-3)
 
-        self.assertEqual(self.empty_list, self.tested_class([-1]))
-        self.assertEqual(self.list_length_1, self.tested_class([-2, -1, 0]))
-        self.assertEqual(self.range_list,
-                         self.tested_class([-3, -2, -1, 0, 1, 2, 3]))
-        self.assertEqual(self.list,
-                         self.tested_class([-3, -2, -1, 1, 42, -3, 2, 42]))
+        self.assertEqual(self.empty_list,
+                         self.tested_class.from_iterable([-1]))
+        self.assertEqual(self.list_length_1,
+                         self.tested_class.from_iterable([-2, -1, 0]))
+        self.assertEqual(self.range_list, self.tested_class.from_iterable(
+            [-3, -2, -1, 0, 1, 2, 3]))
+        self.assertEqual(self.list, self.tested_class.from_iterable(
+            [-3, -2, -1, 1, 42, -3, 2, 42]))
 
     def test_append(self):
         self.empty_list.append(-1)
@@ -621,12 +660,14 @@ class TestList(unittest.TestCase):
         self.list.append(-2)
         self.list.append(-3)
 
-        self.assertEqual(self.empty_list, self.tested_class([-1]))
-        self.assertEqual(self.list_length_1, self.tested_class([0, -1, -2]))
-        self.assertEqual(self.range_list,
-                         self.tested_class([0, 1, 2, 3, -1, -2, -3]))
-        self.assertEqual(self.list,
-                         self.tested_class([1, 42, -3, 2, 42, -1, -2, -3]))
+        self.assertEqual(self.empty_list,
+                         self.tested_class.from_iterable([-1]))
+        self.assertEqual(self.list_length_1,
+                         self.tested_class.from_iterable([0, -1, -2]))
+        self.assertEqual(self.range_list, self.tested_class.from_iterable(
+            [0, 1, 2, 3, -1, -2, -3]))
+        self.assertEqual(self.list, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, -1, -2, -3]))
 
     def test_extend_by_prepending(self):
         with self.assertRaises(TypeError):
@@ -652,12 +693,15 @@ class TestList(unittest.TestCase):
         self.assertEqual(id(self.list_length_1), id_list_length_1)
         self.assertEqual(id(self.range_list), id_range_list)
         self.assertEqual(id(self.list), id_list)
-        self.assertEqual(self.empty_list, self.tested_class([0]))
+        self.assertEqual(self.empty_list,
+                         self.tested_class.from_iterable([0]))
         self.assertEqual(self.list_length_1,
-                         self.tested_class([0, 1, 2, 3, 0]))
+                         self.tested_class.from_iterable([0, 1, 2, 3, 0]))
         self.assertEqual(self.range_list,
-                         self.tested_class([1, 42, -3, 2, 42, 0, 1, 2, 3]))
-        self.assertEqual(self.list, self.tested_class([0, 1, 42, -3, 2, 42]))
+                         self.tested_class.from_iterable(
+                             [1, 42, -3, 2, 42, 0, 1, 2, 3]))
+        self.assertEqual(self.list, self.tested_class.from_iterable(
+            [0, 1, 42, -3, 2, 42]))
 
         self.empty_list.extend_by_prepending([-1, -1])
         self.list_length_1.extend_by_prepending(tuple('list'))
@@ -668,14 +712,15 @@ class TestList(unittest.TestCase):
         self.assertEqual(id(self.list_length_1), id_list_length_1)
         self.assertEqual(id(self.range_list), id_range_list)
         self.assertEqual(id(self.list), id_list)
-        self.assertEqual(self.empty_list, self.tested_class([-1, -1, 0]))
+        self.assertEqual(self.empty_list, self.tested_class.from_iterable(
+            [-1, -1, 0]))
         self.assertEqual(self.list_length_1,
-                         self.tested_class(['l', 'i', 's', 't',
-                                            0, 1, 2, 3, 0]))
-        self.assertEqual(self.range_list, self.tested_class([-1, -2, -3,
-                                                             1, 42, -3, 2, 42,
-                                                             0, 1, 2, 3]))
-        self.assertEqual(self.list, self.tested_class([0, 1, 42, -3, 2, 42]))
+                         self.tested_class.from_iterable(['l', 'i', 's', 't',
+                                                          0, 1, 2, 3, 0]))
+        self.assertEqual(self.range_list, self.tested_class.from_iterable(
+            [-1, -2, -3, 1, 42, -3, 2, 42, 0, 1, 2, 3]))
+        self.assertEqual(self.list, self.tested_class.from_iterable(
+            [0, 1, 42, -3, 2, 42]))
 
     def test_extend_by_appending(self):
         with self.assertRaises(TypeError):
@@ -701,12 +746,13 @@ class TestList(unittest.TestCase):
         self.assertEqual(id(self.list_length_1), id_list_length_1)
         self.assertEqual(id(self.range_list), id_range_list)
         self.assertEqual(id(self.list), id_list)
-        self.assertEqual(self.empty_list, self.tested_class([0]))
+        self.assertEqual(self.empty_list, self.tested_class.from_iterable([0]))
         self.assertEqual(self.list_length_1,
-                         self.tested_class([0, 0, 1, 2, 3]))
-        self.assertEqual(self.range_list,
-                         self.tested_class([0, 1, 2, 3, 1, 42, -3, 2, 42]))
-        self.assertEqual(self.list, self.tested_class([1, 42, -3, 2, 42, 0]))
+                         self.tested_class.from_iterable([0, 0, 1, 2, 3]))
+        self.assertEqual(self.range_list, self.tested_class.from_iterable(
+            [0, 1, 2, 3, 1, 42, -3, 2, 42]))
+        self.assertEqual(self.list, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, 0]))
 
         self.empty_list.extend_by_appending([-1, -1])
         self.list_length_1.extend_by_appending(tuple('list'))
@@ -717,14 +763,14 @@ class TestList(unittest.TestCase):
         self.assertEqual(id(self.list_length_1), id_list_length_1)
         self.assertEqual(id(self.range_list), id_range_list)
         self.assertEqual(id(self.list), id_list)
-        self.assertEqual(self.empty_list, self.tested_class([0, -1, -1]))
-        self.assertEqual(self.list_length_1,
-                         self.tested_class([0, 0, 1, 2, 3,
-                                            'l', 'i', 's', 't']))
-        self.assertEqual(self.range_list, self.tested_class([0, 1, 2, 3,
-                                                             1, 42, -3, 2, 42,
-                                                             -1, -2, -3]))
-        self.assertEqual(self.list, self.tested_class([1, 42, -3, 2, 42, 0]))
+        self.assertEqual(self.empty_list,
+                         self.tested_class.from_iterable([0, -1, -1]))
+        self.assertEqual(self.list_length_1, self.tested_class.from_iterable(
+            [0, 0, 1, 2, 3, 'l', 'i', 's', 't']))
+        self.assertEqual(self.range_list, self.tested_class.from_iterable(
+            [0, 1, 2, 3, 1, 42, -3, 2, 42, -1, -2, -3]))
+        self.assertEqual(self.list, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, 0]))
 
     def test_extend(self):
         with self.assertRaises(TypeError):
@@ -750,12 +796,13 @@ class TestList(unittest.TestCase):
         self.assertEqual(id(self.list_length_1), id_list_length_1)
         self.assertEqual(id(self.range_list), id_range_list)
         self.assertEqual(id(self.list), id_list)
-        self.assertEqual(self.empty_list, self.tested_class([0]))
-        self.assertEqual(self.list_length_1,
-                         self.tested_class([0, 0, 1, 2, 3]))
-        self.assertEqual(self.range_list,
-                         self.tested_class([0, 1, 2, 3, 1, 42, -3, 2, 42]))
-        self.assertEqual(self.list, self.tested_class([1, 42, -3, 2, 42, 0]))
+        self.assertEqual(self.empty_list, self.tested_class.from_iterable([0]))
+        self.assertEqual(self.list_length_1, self.tested_class.from_iterable(
+            [0, 0, 1, 2, 3]))
+        self.assertEqual(self.range_list, self.tested_class.from_iterable(
+            [0, 1, 2, 3, 1, 42, -3, 2, 42]))
+        self.assertEqual(self.list, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, 0]))
 
         self.empty_list.extend([-1, -1])
         self.list_length_1.extend(tuple('list'))
@@ -766,14 +813,14 @@ class TestList(unittest.TestCase):
         self.assertEqual(id(self.list_length_1), id_list_length_1)
         self.assertEqual(id(self.range_list), id_range_list)
         self.assertEqual(id(self.list), id_list)
-        self.assertEqual(self.empty_list, self.tested_class([0, -1, -1]))
-        self.assertEqual(self.list_length_1,
-                         self.tested_class([0, 0, 1, 2, 3,
-                                            'l', 'i', 's', 't']))
-        self.assertEqual(self.range_list, self.tested_class([0, 1, 2, 3,
-                                                             1, 42, -3, 2, 42,
-                                                             -1, -2, -3]))
-        self.assertEqual(self.list, self.tested_class([1, 42, -3, 2, 42, 0]))
+        self.assertEqual(self.empty_list,
+                         self.tested_class.from_iterable([0, -1, -1]))
+        self.assertEqual(self.list_length_1, self.tested_class.from_iterable(
+            [0, 0, 1, 2, 3, 'l', 'i', 's', 't']))
+        self.assertEqual(self.range_list, self.tested_class.from_iterable(
+            [0, 1, 2, 3, 1, 42, -3, 2, 42, -1, -2, -3]))
+        self.assertEqual(self.list, self.tested_class.from_iterable(
+            [1, 42, -3, 2, 42, 0]))
 
     def test_pop_first(self):
         with self.assertRaises(IndexError):
@@ -784,8 +831,10 @@ class TestList(unittest.TestCase):
         self.list.pop_first()
 
         self.assertEqual(self.list_length_1, self.tested_class())
-        self.assertEqual(self.range_list, self.tested_class([1, 2, 3]))
-        self.assertEqual(self.list, self.tested_class([42, -3, 2, 42]))
+        self.assertEqual(self.range_list,
+                         self.tested_class.from_iterable([1, 2, 3]))
+        self.assertEqual(self.list,
+                         self.tested_class.from_iterable([42, -3, 2, 42]))
 
     def test_pop_last(self):
         with self.assertRaises(IndexError):
@@ -796,8 +845,10 @@ class TestList(unittest.TestCase):
         self.list.pop_last()
 
         self.assertEqual(self.list_length_1, self.tested_class())
-        self.assertEqual(self.range_list, self.tested_class([0, 1, 2]))
-        self.assertEqual(self.list, self.tested_class([1, 42, -3, 2]))
+        self.assertEqual(self.range_list,
+                         self.tested_class.from_iterable([0, 1, 2]))
+        self.assertEqual(self.list,
+                         self.tested_class.from_iterable([1, 42, -3, 2]))
 
     def test_pop(self):
         with self.assertRaises(IndexError):
@@ -822,8 +873,10 @@ class TestList(unittest.TestCase):
         self.list.pop(index=3)
 
         self.assertEqual(self.list_length_1, self.tested_class())
-        self.assertEqual(self.range_list, self.tested_class([1, 3]))
-        self.assertEqual(self.list, self.tested_class([1, -3, 2]))
+        self.assertEqual(self.range_list,
+                         self.tested_class.from_iterable([1, 3]))
+        self.assertEqual(self.list,
+                         self.tested_class.from_iterable([1, -3, 2]))
 
         self.list.pop()
         self.list.pop()
@@ -859,8 +912,10 @@ class TestList(unittest.TestCase):
         self.list.remove_first(42)
 
         self.assertEqual(self.list_length_1, self.tested_class())
-        self.assertEqual(self.range_list, self.tested_class([2]))
-        self.assertEqual(self.list, self.tested_class([1, -3, 2, 42]))
+        self.assertEqual(self.range_list,
+                         self.tested_class.from_iterable([2]))
+        self.assertEqual(self.list,
+                         self.tested_class.from_iterable([1, -3, 2, 42]))
 
         with self.assertRaises(ValueError):
             self.range_list.remove_first(1)
@@ -885,8 +940,10 @@ class TestList(unittest.TestCase):
         self.list.remove_last(42)
 
         self.assertEqual(self.list_length_1, self.tested_class())
-        self.assertEqual(self.range_list, self.tested_class([2]))
-        self.assertEqual(self.list, self.tested_class([1, 42, -3, 2]))
+        self.assertEqual(self.range_list,
+                         self.tested_class.from_iterable([2]))
+        self.assertEqual(self.list,
+                         self.tested_class.from_iterable([1, 42, -3, 2]))
 
         with self.assertRaises(ValueError):
             self.range_list.remove_last(1)
@@ -911,8 +968,10 @@ class TestList(unittest.TestCase):
         self.list.remove(42)
 
         self.assertEqual(self.list_length_1, self.tested_class())
-        self.assertEqual(self.range_list, self.tested_class([2]))
-        self.assertEqual(self.list, self.tested_class([1, -3, 2, 42]))
+        self.assertEqual(self.range_list,
+                         self.tested_class.from_iterable([2]))
+        self.assertEqual(self.list,
+                         self.tested_class.from_iterable([1, -3, 2, 42]))
 
         with self.assertRaises(ValueError):
             self.range_list.remove(1)
@@ -927,9 +986,12 @@ class TestList(unittest.TestCase):
         self.list.reverse()
 
         self.assertEqual(self.empty_list, self.tested_class())
-        self.assertEqual(self.list_length_1, self.tested_class([0]))
-        self.assertEqual(self.range_list, self.tested_class([3, 2, 1, 0]))
-        self.assertEqual(self.list, self.tested_class([42, 2, -3, 42, 1]))
+        self.assertEqual(self.list_length_1,
+                         self.tested_class.from_iterable([0]))
+        self.assertEqual(self.range_list,
+                         self.tested_class.from_iterable([3, 2, 1, 0]))
+        self.assertEqual(self.list,
+                         self.tested_class.from_iterable([42, 2, -3, 42, 1]))
 
 
 class TestArrayList(TestList):
@@ -947,7 +1009,7 @@ class TestArrayList(TestList):
         self.assertEqual(str(self.list_length_1), '[0]')
         self.assertEqual(str(self.range_list), '[0, 1, 2, 3]')
         self.assertEqual(str(self.list), '[1, 42, -3, 2, 42]')
-        self.assertEqual(str(self.tested_class(range(10))),
+        self.assertEqual(str(self.tested_class.from_iterable(range(10))),
                          '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]')
 
 
@@ -1016,7 +1078,7 @@ class TestBasicLinkedList(TestList):
                          '0 \u2192 1 \u2192 2 \u2192 3')
         self.assertEqual(str(self.list),
                          '1 \u2192 42 \u2192 -3 \u2192 2 \u2192 42')
-        self.assertEqual(str(self.tested_class(range(10))),
+        self.assertEqual(str(self.tested_class.from_iterable(range(10))),
                          '0 \u2192 1 \u2192 2 \u2192 3 \u2192 4 \u2192 '
                          '5 \u2192 6 \u2192 7 \u2192 8 \u2192 9')
 
@@ -1088,7 +1150,7 @@ class TestLinkedList(TestList):
                          '0 \u2192 1 \u2192 2 \u2192 3')
         self.assertEqual(str(self.list),
                          '1 \u2192 42 \u2192 -3 \u2192 2 \u2192 42')
-        self.assertEqual(str(self.tested_class(range(10))),
+        self.assertEqual(str(self.tested_class.from_iterable(range(10))),
                          '0 \u2192 1 \u2192 2 \u2192 3 \u2192 4 \u2192 '
                          '5 \u2192 6 \u2192 7 \u2192 8 \u2192 9')
 
@@ -1158,7 +1220,7 @@ class TestCircularLinkedList(TestList):
                          '0 \u2192 1 \u2192 2 \u2192 3 \u2192')
         self.assertEqual(str(self.list),
                          '1 \u2192 42 \u2192 -3 \u2192 2 \u2192 42 \u2192')
-        self.assertEqual(str(CircularLinkedList(range(10))),
+        self.assertEqual(str(CircularLinkedList.from_iterable(range(10))),
                          '0 \u2192 1 \u2192 2 \u2192 3 \u2192 4 \u2192 '
                          '5 \u2192 6 \u2192 7 \u2192 8 \u2192 9 \u2192')
 
@@ -1250,7 +1312,7 @@ class TestDoublyLinkedList(TestList):
                          '0 \u21c4 1 \u21c4 2 \u21c4 3')
         self.assertEqual(str(self.list),
                          '1 \u21c4 42 \u21c4 -3 \u21c4 2 \u21c4 42')
-        self.assertEqual(str(DoublyLinkedList(range(10))),
+        self.assertEqual(str(DoublyLinkedList.from_iterable(range(10))),
                          '0 \u21c4 1 \u21c4 2 \u21c4 3 \u21c4 4 \u21c4 '
                          '5 \u21c4 6 \u21c4 7 \u21c4 8 \u21c4 9')
 
@@ -1342,7 +1404,8 @@ class TestCircularDoublyLinkedList(TestList):
                          '0 \u21c4 1 \u21c4 2 \u21c4 3 \u21c4')
         self.assertEqual(str(self.list),
                          '1 \u21c4 42 \u21c4 -3 \u21c4 2 \u21c4 42 \u21c4')
-        self.assertEqual(str(CircularDoublyLinkedList(range(10))),
+        self.assertEqual(str(CircularDoublyLinkedList.from_iterable(
+            range(10))),
                          '0 \u21c4 1 \u21c4 2 \u21c4 3 \u21c4 4 \u21c4 '
                          '5 \u21c4 6 \u21c4 7 \u21c4 8 \u21c4 9 \u21c4')
 
