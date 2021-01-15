@@ -54,8 +54,8 @@ class List(PredictableIterMixin, MutableSequence):
 
         return result
 
-    def __iadd__(self, other):
-        self.extend_by_appending(other)
+    def __iadd__(self, values):
+        self.extend_by_appending(values)
         return self
 
     def __mul__(self, other):
@@ -305,11 +305,11 @@ class ArrayList(List):
     def append(self, value):
         self._values.append(value)
 
-    def extend_by_prepending(self, other):
-        self._values = list(other) + self._values
+    def extend_by_prepending(self, values):
+        self._values = list(values) + self._values
 
-    def extend_by_appending(self, other):
-        self._values.extend(other)
+    def extend_by_appending(self, values):
+        self._values.extend(values)
 
     def pop(self, index=-1):
         self._values.pop(index)
