@@ -55,6 +55,19 @@ class PriorityQueue(Collection):
     Concrete subclasses must call __init__ of super class and provide
     predictable __iter__, peek, enqueue, delete."""
 
+    @classmethod
+    def from_iterable(cls, values, extreme_key):
+        """Constructs instance from iterable values."""
+        cls._validate_iterability(values)
+
+        self = cls(extreme_key)
+
+        for value in values:
+            self.post(value)
+
+        return self
+
+    @abstractmethod
     def __init__(self, extreme_key):
         self._validate_extreme_key(extreme_key)
 
@@ -95,8 +108,8 @@ class PriorityQueue(Collection):
                 return False
 
     def __copy__(self):
-        copy_of_self = type(self)(self._extreme_key)
-        copy_of_self += self
+        """Returns a copy of this instance."""
+        copy_of_self = type(self).from_iterable(self, self._extreme_key)
         return copy_of_self
 
     def __getitem__(self, key):
@@ -116,17 +129,18 @@ class PriorityQueue(Collection):
         self.delete()
 
     def _validate_comparability(self, value):
+        """Validates that value is comparable to the values in the instance."""
         if not self.is_empty():
             _ = self.peek() < value
 
     @staticmethod
     def _validate_extreme_key(extreme_key):
-        """Checks whether extreme_key is MAX or MIN."""
+        """Validates that extreme_key is MAX or MIN."""
         if extreme_key is not MAX and extreme_key is not MIN:
             raise KeyError('extreme_key must be MAX or MIN')
 
     def _validate_key(self, key):
-        """Checks whether key is the extreme key."""
+        """Validates that key is the extreme key."""
         if key is not self._extreme_key:
             raise KeyError('key must be the chosen extreme key')
 
@@ -179,6 +193,16 @@ class PriorityQueue(Collection):
 class ArrayPriorityQueue(PriorityQueue):
     """Class that implements a priority queue based on an internal dynamic
     array (python list)."""
+
+    @classmethod
+    def from_iterable(cls, values, extreme_key):
+        """Constructs instance from iterable values."""
+        cls._validate_iterability(values)
+
+        self = cls(extreme_key)
+        self._values += values
+
+        return self
 
     def __init__(self, extreme_key):
         super().__init__(extreme_key)
@@ -277,6 +301,17 @@ class ArrayMinPriorityQueue(ArrayPriorityQueue):
     """Class that implements a min priority queue based on an internal dynamic
     array (python list)."""
 
+    # noinspection PyMethodOverriding
+    @classmethod
+    def from_iterable(cls, values):
+        """Constructs instance from iterable values."""
+        cls._validate_iterability(values)
+
+        self = cls()
+        self._values += values
+
+        return self
+
     def __init__(self):
         super().__init__(MIN)
 
@@ -304,6 +339,17 @@ class ArrayMaxPriorityQueue(ArrayPriorityQueue):
     """Class that implements a max priority queue based on an internal dynamic
     array (python list)."""
 
+    # noinspection PyMethodOverriding
+    @classmethod
+    def from_iterable(cls, values):
+        """Constructs instance from iterable values."""
+        cls._validate_iterability(values)
+
+        self = cls()
+        self._values += values
+
+        return self
+
     def __init__(self):
         super().__init__(MAX)
 
@@ -330,6 +376,16 @@ class ArrayMaxPriorityQueue(ArrayPriorityQueue):
 class OrderedArrayPriorityQueue(ArrayPriorityQueue):
     """Class that implements a priority queue based on an ordered internal
     dynamic array (python list)."""
+
+    @classmethod
+    def from_iterable(cls, values, extreme_key):
+        """Constructs instance from iterable values."""
+        cls._validate_iterability(values)
+
+        self = cls(extreme_key)
+        self._values += sorted(values, reverse=extreme_key == MIN)
+
+        return self
 
     def __iter__(self):
         return reversed(self._values)
@@ -369,6 +425,17 @@ class OrderedArrayMinPriorityQueue(OrderedArrayPriorityQueue):
     """Class that implements a min priority queue based on an ordered internal
     dynamic array (python list)."""
 
+    # noinspection PyMethodOverriding
+    @classmethod
+    def from_iterable(cls, values):
+        """Constructs instance from iterable values."""
+        cls._validate_iterability(values)
+
+        self = cls()
+        self._values += sorted(values, reverse=True)
+
+        return self
+
     def __init__(self):
         super().__init__(MIN)
 
@@ -388,6 +455,17 @@ class OrderedArrayMaxPriorityQueue(OrderedArrayPriorityQueue):
     """Class that implements a max priority queue based on an ordered internal
     dynamic array (python list)."""
 
+    # noinspection PyMethodOverriding
+    @classmethod
+    def from_iterable(cls, values):
+        """Constructs instance from iterable values."""
+        cls._validate_iterability(values)
+
+        self = cls()
+        self._values += sorted(values, reverse=False)
+
+        return self
+
     def __init__(self):
         super().__init__(MAX)
 
@@ -406,6 +484,19 @@ class OrderedArrayMaxPriorityQueue(OrderedArrayPriorityQueue):
 class HeapPriorityQueue(ArrayPriorityQueue):
     """Class that implements a priority queue based on a heap, which is
     realised by a dynamic array (python list)."""
+
+    @classmethod
+    def from_iterable(cls, values, extreme_key):
+        """Constructs instance from iterable values."""
+        cls._validate_iterability(values)
+
+        self = cls(extreme_key)
+        self._values += values
+
+        for idx in range(len(self) // 2, 0, -1):
+            self._sink(idx)
+
+        return self
 
     def __init__(self, extreme_key):
         super().__init__(extreme_key)
@@ -542,6 +633,20 @@ class HeapMinPriorityQueue(HeapPriorityQueue):
     """Class that implements a min priority queue based on a heap, which is
     realised by a dynamic array (python list)."""
 
+    # noinspection PyMethodOverriding
+    @classmethod
+    def from_iterable(cls, values):
+        """Constructs instance from iterable values."""
+        cls._validate_iterability(values)
+
+        self = cls()
+        self._values += values
+
+        for idx in range(len(self) // 2, 0, -1):
+            self._sink(idx)
+
+        return self
+
     def __init__(self):
         super().__init__(MIN)
 
@@ -593,6 +698,20 @@ class HeapMinPriorityQueue(HeapPriorityQueue):
 class HeapMaxPriorityQueue(HeapPriorityQueue):
     """Class that implements a max priority queue based on a heap, which is
     realised by a dynamic array (python list)."""
+
+    # noinspection PyMethodOverriding
+    @classmethod
+    def from_iterable(cls, values):
+        """Constructs instance from iterable values."""
+        cls._validate_iterability(values)
+
+        self = cls()
+        self._values += values
+
+        for idx in range(len(self) // 2, 0, -1):
+            self._sink(idx)
+
+        return self
 
     def __init__(self):
         super().__init__(MAX)

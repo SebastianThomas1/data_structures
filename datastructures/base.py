@@ -161,18 +161,6 @@ class Collection(StaticCollection):
     Concrete subclasses must provide: __new__ or __init__, __iter__,
     get, post and delete."""
 
-    @classmethod
-    def from_iterable(cls, values):
-        """Constructs instance from iterable values."""
-        cls._validate_iterability(values)
-
-        self = cls()
-
-        for value in values:
-            self.post(value)
-
-        return self
-
     def __iadd__(self, values):
         self._validate_iterability(values)
 

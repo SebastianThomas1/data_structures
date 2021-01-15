@@ -28,6 +28,18 @@ class Stack(PredictableIterMixin, Collection, CollectionWithReferences):
     Concrete subclasses must provide: __new__ or __init__, predictable
     __iter__, peek, push and delete."""
 
+    @classmethod
+    def from_iterable(cls, values):
+        """Constructs instance from iterable values."""
+        cls._validate_iterability(values)
+
+        self = cls()
+
+        for value in values:
+            self.push(value)
+
+        return self
+
     def __copy__(self):
         """Returns a copy of this instance."""
         reverse_copy_of_self = type(self).from_iterable(self)
@@ -119,6 +131,16 @@ class Stack(PredictableIterMixin, Collection, CollectionWithReferences):
 class ArrayStack(Stack):
     """Class that implements a stack based on an internal dynamic array (python
     list)."""
+
+    @classmethod
+    def from_iterable(cls, values):
+        """Constructs instance from iterable values."""
+        cls._validate_iterability(values)
+
+        self = cls()
+        self._values += values
+
+        return self
 
     def __init__(self):
         self._values = []

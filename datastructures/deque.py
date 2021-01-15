@@ -29,6 +29,18 @@ class Deque(PredictableIterMixin, Collection, CollectionWithReferences):
     Concrete subclasses must provide: __new__ or __init__, predictable
     __iter__, enqueue_rear, enqueue_front, dequeue_rear and dequeue_front."""
 
+    @classmethod
+    def from_iterable(cls, values):
+        """Constructs instance from iterable values."""
+        cls._validate_iterability(values)
+
+        self = cls()
+
+        for value in values:
+            self.enqueue_rear(value)
+
+        return self
+
     def __copy__(self):
         """Returns a copy of this instance."""
         copy_of_self = type(self).from_iterable(self)
@@ -171,6 +183,16 @@ class ArrayDeque(Deque):
     """Class that implements a deque based on an internal dynamic array (python
     list)."""
 
+    @classmethod
+    def from_iterable(cls, values):
+        """Constructs instance from iterable values."""
+        cls._validate_iterability(values)
+
+        self = cls()
+        self._values += values
+
+        return self
+
     def __init__(self):
         self._values = []
 
@@ -275,6 +297,29 @@ class LinkedDeque(Deque):
     class Node(DoublyLinkedNode):
         """Internal node class for a linked deque."""
         pass
+
+    @classmethod
+    def from_iterable(cls, values):
+        cls._validate_iterability(values)
+
+        self = cls()
+
+        if values:
+            iterator = iter(values)
+
+            self._front = self.Node(next(iterator))
+            self._len += 1
+
+            current_node = self._front
+            for value in iterator:
+                current_node.successor = self.Node(value,
+                                                   predecessor=current_node)
+                current_node = current_node.successor
+                self._len += 1
+
+            self._rear = current_node
+
+        return self
 
     def __init__(self):
         self._front = None

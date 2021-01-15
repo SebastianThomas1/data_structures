@@ -29,6 +29,18 @@ class Queue(PredictableIterMixin, Collection, CollectionWithReferences):
     Concrete subclasses must provide: __new__ or __init__, predictable
     __iter__, peek, enqueue and dequeue."""
 
+    @classmethod
+    def from_iterable(cls, values):
+        """Constructs instance from iterable values."""
+        cls._validate_iterability(values)
+
+        self = cls()
+
+        for value in values:
+            self.enqueue(value)
+
+        return self
+
     def __copy__(self):
         """Returns a copy of this instance."""
         copy_of_self = type(self).from_iterable(self)
@@ -117,6 +129,16 @@ class ArrayQueue(Queue):
     """Class that implements a queue based on an internal dynamic array (python
     list)."""
 
+    @classmethod
+    def from_iterable(cls, values):
+        """Constructs instance from iterable values."""
+        cls._validate_iterability(values)
+
+        self = cls()
+        self._values += values
+
+        return self
+
     def __init__(self):
         self._values = []
 
@@ -183,6 +205,28 @@ class LinkedQueue(Queue):
     class Node(LinkedNode):
         """Internal node class for linked queues."""
         pass
+
+    @classmethod
+    def from_iterable(cls, values):
+        cls._validate_iterability(values)
+
+        self = cls()
+
+        if values:
+            iterator = iter(values)
+
+            self._front = self.Node(next(iterator))
+            self._len += 1
+
+            current_node = self._front
+            for value in iterator:
+                current_node.successor = self.Node(value)
+                current_node = current_node.successor
+                self._len += 1
+
+            self._rear = current_node
+
+        return self
 
     def __init__(self):
         self._front = None

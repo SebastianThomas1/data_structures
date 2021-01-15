@@ -37,7 +37,7 @@ class RandomizedQueue(Collection):
         self = cls(random_state=random_state)
 
         for value in values:
-            self.post(value)
+            self.enqueue(value)
 
         return self
 
@@ -100,6 +100,16 @@ class RandomizedQueue(Collection):
 class ArrayRandomizedQueue(RandomizedQueue):
     """Class that implements a randomized queue based on an internal dynamic
     array (python list)."""
+
+    @classmethod
+    def from_iterable(cls, values, random_state=None):
+        """Constructs instance from iterable values."""
+        cls._validate_iterability(values)
+
+        self = cls(random_state=random_state)
+        self._values += values
+
+        return self
 
     def __init__(self, random_state=None):
         super().__init__(random_state=random_state)
