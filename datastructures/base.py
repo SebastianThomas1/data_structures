@@ -16,6 +16,7 @@ __all__ = ['CollectionMixin', 'PredictableIterMixin',
 
 class CollectionMixin(PyCollection, metaclass=ABCMeta):
     def __eq__(self, other):
+        """Checks whether this instance is equal to the other object."""
         if self is other:
             return True
 
@@ -38,9 +39,12 @@ class CollectionMixin(PyCollection, metaclass=ABCMeta):
         return True
 
     def __bool__(self):
+        """Returns boolean representation of this instance."""
         return not self.is_empty()
 
     def __repr__(self):
+        """Returns a developer-friendly string representation of this instance,
+        which may be used for debugging."""
         # determine first seven values (at most)
         first_values = []
         count = 0
@@ -52,10 +56,8 @@ class CollectionMixin(PyCollection, metaclass=ABCMeta):
 
         return '{}({})'.format(type(self).__name__, repr(first_values))
 
-    def __str__(self):
-        return ' '.join(str(value) for value in self)
-
     def __len__(self):
+        """Returns the number of values in this instance."""
         return sum(1 for _ in self)
 
     def __contains__(self, value):
@@ -67,6 +69,7 @@ class CollectionMixin(PyCollection, metaclass=ABCMeta):
         return False
 
     def _validate_non_emptiness(self):
+        """Validates that this instance is not empty."""
         if self.is_empty():
             raise EmptyCollectionException('can\'t access entry in empty '
                                            'collection')
@@ -87,6 +90,7 @@ class CollectionMixin(PyCollection, metaclass=ABCMeta):
 
 class PredictableIterMixin(Iterable, metaclass=ABCMeta):
     def __eq__(self, other):
+        """Checks whether this instance is equal to the other object."""
         if self is other:
             return True
 
@@ -162,6 +166,7 @@ class Collection(StaticCollection):
     get, post and delete."""
 
     def __iadd__(self, values):
+        """Adds values to this instance."""
         self._validate_iterability(values)
 
         for value in values:
@@ -171,6 +176,7 @@ class Collection(StaticCollection):
 
     @staticmethod
     def _validate_iterability(values):
+        """Validates iterability of values."""
         if not isinstance(values, Iterable):
             raise TypeError('\'{}\' object is not '
                             'iterable.'.format(type(values).__name__))
