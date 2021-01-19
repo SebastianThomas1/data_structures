@@ -235,7 +235,7 @@ class CollectionWithReferences(StaticCollectionWithReferences):
     @abstractmethod
     def insert(self, key, value):
         """Inserts the value at the key."""
-        pass
+        raise NotImplementedError
 
     def pop(self, key):
         """Removes and returns the value at the key."""
