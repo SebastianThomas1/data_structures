@@ -2,7 +2,6 @@
 
 # abstract base classes
 from abc import abstractmethod
-from collections.abc import Iterable
 
 # copying objects
 from copy import copy
@@ -41,10 +40,15 @@ class Stack(PredictableIterMixin, Collection, CollectionWithReferences):
         return self
 
     def __copy__(self):
-        """Returns a copy of this instance."""
+        """Returns a (shallow) copy of this instance."""
         reverse_copy_of_self = type(self).from_iterable(self)
         copy_of_self = type(self).from_iterable(reverse_copy_of_self)
         return copy_of_self
+
+    def __str__(self):
+        """Returns a user-friendly string representation of this instance,
+        which may be used for printing."""
+        return ' '.join(str(value) for value in self)
 
     def __contains__(self, value):
         """Checks whether the given value is contained in this instance."""
@@ -125,7 +129,7 @@ class Stack(PredictableIterMixin, Collection, CollectionWithReferences):
         The parameter key must be TOP."""
         self._validate_key(key)
 
-        return super().pop(self, key)
+        return super().pop(key)
 
 
 class ArrayStack(Stack):
@@ -143,31 +147,37 @@ class ArrayStack(Stack):
         return self
 
     def __init__(self):
+        """Initializes instance."""
         self._values = []
 
     def __copy__(self):
+        """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
         copy_of_self._values = copy(self._values)
         return copy_of_self
 
     def __iter__(self):
+        """Returns an iterator version of this instance."""
         return reversed(self._values)
 
     def __len__(self):
+        """Returns the number of values in this instance."""
         return len(self._values)
 
     def __repr__(self):
+        """Returns a developer-friendly string representation of this instance,
+        which may be used for debugging."""
         return '{}({})'.format(type(self).__name__, repr(self._values[::-1]))
 
     def __contains__(self, value):
+        """Checks whether the given value is contained in this instance."""
         return value in self._values
 
-    def __iadd__(self, other):
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
+    def __iadd__(self, values):
+        """Pushes values on top of this instance."""
+        self._validate_iterability(values)
 
-        self._values += other
+        self._values += values
 
         return self
 
@@ -219,10 +229,12 @@ class LinkedStack(Stack):
         pass
 
     def __init__(self):
+        """Initializes instance."""
         self._top = None
         self._len = 0
 
     def __copy__(self):
+        """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
 
         if self:
@@ -240,16 +252,20 @@ class LinkedStack(Stack):
         return copy_of_self
 
     def __iter__(self):
+        """Returns an iterator version of this instance."""
         current_node = self._top
         while current_node:
             yield current_node.value
             current_node = current_node.successor
 
     def __len__(self):
+        """Returns the number of values in this instance."""
         return self._len
 
     def __repr__(self):
-        # determine values of first seven nodes (at most)
+        """Returns a developer-friendly string representation of this instance,
+        which may be used for debugging."""
+        # determine values of first seven values (at most)
         first_values = []
         for value in self:
             first_values.append(value)
