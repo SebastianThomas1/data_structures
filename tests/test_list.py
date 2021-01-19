@@ -52,7 +52,7 @@ class TestList(unittest.TestCase):
     def test_iter(self):
         self.assertEqual(list(iter(self.empty_list)), [])
         self.assertEqual(list(iter(self.list_length_1)), [0])
-        self.assertEqual(list(iter(self.range_list)), list(range(4)))
+        self.assertEqual(list(iter(self.range_list)), [0, 1, 2, 3])
         self.assertEqual(list(iter(self.list)), [1, 42, -3, 2, 42])
 
     def test_reversed(self):
