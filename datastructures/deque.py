@@ -2,7 +2,6 @@
 
 # abstract base classes
 from abc import abstractmethod
-from collections.abc import Iterable
 
 # copying objects
 from copy import copy
@@ -42,9 +41,14 @@ class Deque(PredictableIterMixin, Collection, CollectionWithReferences):
         return self
 
     def __copy__(self):
-        """Returns a copy of this instance."""
+        """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self).from_iterable(self)
         return copy_of_self
+
+    def __str__(self):
+        """Returns a user-friendly string representation of this instance,
+        which may be used for printing."""
+        return ' '.join(str(value) for value in self)
 
     def __contains__(self, value):
         """Checks whether the given value is contained in this instance."""
@@ -76,16 +80,6 @@ class Deque(PredictableIterMixin, Collection, CollectionWithReferences):
 
         The parameter key must be REAR or FRONT."""
         self.pop(key)
-
-    def __iadd__(self, other):
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
-
-        for value in other:
-            self.enqueue_rear(value)
-
-        return self
 
     @staticmethod
     def _validate_key(key):
@@ -194,23 +188,30 @@ class ArrayDeque(Deque):
         return self
 
     def __init__(self):
+        """Initializes instance."""
         self._values = []
 
     def __copy__(self):
+        """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
         copy_of_self._values = copy(self._values)
         return copy_of_self
 
     def __iter__(self):
+        """Returns an iterator version of this instance."""
         return iter(self._values)
 
     def __len__(self):
+        """Returns the number of values in this instance."""
         return len(self._values)
 
     def __repr__(self):
+        """Returns a developer-friendly string representation of this instance,
+        which may be used for debugging."""
         return '{}({})'.format(type(self).__name__, repr(self._values))
 
     def __contains__(self, value):
+        """Checks whether the given value is contained in this instance."""
         return value in self._values
 
     def __setitem__(self, key, value):
@@ -237,12 +238,11 @@ class ArrayDeque(Deque):
         else:  # key is FRONT
             del self._values[0]
 
-    def __iadd__(self, other):
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
+    def __iadd__(self, values):
+        """Enqueues values on the rear of this instance."""
+        self._validate_iterability(values)
 
-        self._values += other
+        self._values += values
 
         return self
 
@@ -300,6 +300,7 @@ class LinkedDeque(Deque):
 
     @classmethod
     def from_iterable(cls, values):
+        """Constructs instance from iterable values."""
         cls._validate_iterability(values)
 
         self = cls()
@@ -322,11 +323,13 @@ class LinkedDeque(Deque):
         return self
 
     def __init__(self):
+        """Initializes instance."""
         self._front = None
         self._rear = None
         self._len = 0
 
     def __copy__(self):
+        """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
 
         if self:
@@ -347,15 +350,19 @@ class LinkedDeque(Deque):
         return copy_of_self
 
     def __iter__(self):
+        """Returns an iterator version of this instance."""
         current_node = self._front
         while current_node:
             yield current_node.value
             current_node = current_node.successor
 
     def __len__(self):
+        """Returns the number of values in this instance."""
         return self._len
 
     def __repr__(self):
+        """Returns a developer-friendly string representation of this instance,
+        which may be used for debugging."""
         # determine values of first seven nodes (at most)
         first_values = []
         for value in self:
@@ -397,6 +404,7 @@ class LinkedDeque(Deque):
         self._len -= 1
 
     def is_empty(self):
+        """Checks whether this instance is empty."""
         return self._front is None
 
     def peek_rear(self):

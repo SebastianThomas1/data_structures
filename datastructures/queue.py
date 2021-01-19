@@ -2,7 +2,6 @@
 
 # abstract base classes
 from abc import abstractmethod
-from collections.abc import Iterable
 
 # copying objects
 from copy import copy
@@ -42,9 +41,14 @@ class Queue(PredictableIterMixin, Collection, CollectionWithReferences):
         return self
 
     def __copy__(self):
-        """Returns a copy of this instance."""
+        """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self).from_iterable(self)
         return copy_of_self
+
+    def __str__(self):
+        """Returns a user-friendly string representation of this instance,
+        which may be used for printing."""
+        return ' '.join(str(value) for value in self)
 
     def __contains__(self, value):
         """Checks whether the given value is contained in this instance."""
@@ -57,6 +61,11 @@ class Queue(PredictableIterMixin, Collection, CollectionWithReferences):
         self._validate_key_front(key)
 
         return self.peek()
+
+    def __setitem__(self, key, value):
+        """Raises TypeError."""
+        raise TypeError('\'{}\' object does not support item assignment'
+                        .format(type(self).__name__))
 
     def __delitem__(self, key):
         """Deletes the value on the front of this instance.
@@ -140,31 +149,37 @@ class ArrayQueue(Queue):
         return self
 
     def __init__(self):
+        """Initializes instance."""
         self._values = []
 
     def __copy__(self):
+        """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
         copy_of_self._values = copy(self._values)
         return copy_of_self
 
     def __iter__(self):
+        """Returns an iterator version of this instance."""
         return iter(self._values)
 
     def __len__(self):
+        """Returns the number of values in this instance."""
         return len(self._values)
 
     def __repr__(self):
+        """Returns a developer-friendly string representation of this instance,
+        which may be used for debugging."""
         return '{}({})'.format(type(self).__name__, repr(self._values))
 
     def __contains__(self, value):
+        """Checks whether the given value is contained in this instance."""
         return value in self._values
 
-    def __iadd__(self, other):
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
+    def __iadd__(self, values):
+        """Enqueues values to this instance."""
+        self._validate_iterability(values)
 
-        self._values += other
+        self._values += values
 
         return self
 
@@ -208,6 +223,7 @@ class LinkedQueue(Queue):
 
     @classmethod
     def from_iterable(cls, values):
+        """Constructs instance from iterable values."""
         cls._validate_iterability(values)
 
         self = cls()
@@ -229,11 +245,13 @@ class LinkedQueue(Queue):
         return self
 
     def __init__(self):
+        """Initializes instance."""
         self._front = None
         self._rear = None
         self._len = 0
 
     def __copy__(self):
+        """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
 
         if self:
@@ -253,16 +271,20 @@ class LinkedQueue(Queue):
         return copy_of_self
 
     def __iter__(self):
+        """Returns an iterator version of this instance."""
         current_node = self._front
         while current_node:
             yield current_node.value
             current_node = current_node.successor
 
     def __len__(self):
+        """Returns the number of values in this instance."""
         return self._len
 
     def __repr__(self):
-        # determine values of first seven nodes (at most)
+        """Returns a developer-friendly string representation of this instance,
+        which may be used for debugging."""
+        # determine values of first seven values (at most)
         first_values = []
         for value in self:
             first_values.append(value)

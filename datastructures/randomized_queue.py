@@ -2,7 +2,6 @@
 
 # abstract base classes
 from abc import abstractmethod
-from collections.abc import Iterable
 
 # copying objects
 from copy import copy
@@ -43,10 +42,11 @@ class RandomizedQueue(Collection):
 
     @abstractmethod
     def __init__(self, random_state=None):
+        """Initializes instance."""
         self._random_state = random_state
 
     def __copy__(self):
-        """Returns a copy of this instance."""
+        """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self).from_iterable(self)
         return copy_of_self
 
@@ -112,15 +112,18 @@ class ArrayRandomizedQueue(RandomizedQueue):
         return self
 
     def __init__(self, random_state=None):
+        """Initializes instance."""
         super().__init__(random_state=random_state)
         self._values = []
 
     def __copy__(self):
+        """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
         copy_of_self._values = copy(self._values)
         return copy_of_self
 
     def __iter__(self):
+        """Returns an iterator version of this instance."""
         seed(self._random_state)
         np_seed(self._random_state)
         if self._random_state is not None:
@@ -131,23 +134,28 @@ class ArrayRandomizedQueue(RandomizedQueue):
         return iter(self._values)
 
     def __len__(self):
+        """Returns the number of values in this instance."""
         return len(self._values)
 
     def __repr__(self):
+        """Returns a developer-friendly string representation of this instance,
+        which may be used for debugging."""
         return '{}({})'.format(type(self).__name__, repr(self._values))
 
     def __str__(self):
+        """Returns a user-friendly string representation of this instance,
+        which may be used for printing."""
         return ' '.join(str(value) for value in self._values)
 
     def __contains__(self, value):
+        """Checks whether the given value is contained in this instance."""
         return value in self._values
 
-    def __iadd__(self, other):
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
+    def __iadd__(self, values):
+        """Enqueues values to this instance."""
+        self._validate_iterability(values)
 
-        self._values += other
+        self._values += values
 
         return self
 
@@ -193,6 +201,7 @@ class LinkedRandomizedQueue(RandomizedQueue):
         pass
 
     def __init__(self, random_state=None):
+        """Initializes instance."""
         super().__init__(random_state=random_state)
         self._front = None
         self._current_node = None
@@ -200,6 +209,7 @@ class LinkedRandomizedQueue(RandomizedQueue):
         self._len = 0
 
     def __iter__(self):
+        """Returns an iterator version of this instance."""
         seed(self._random_state)
         np_seed(self._random_state)
         if self._random_state is not None:
@@ -209,6 +219,8 @@ class LinkedRandomizedQueue(RandomizedQueue):
             yield self._get_node(idx).value
 
     def __repr__(self):
+        """Returns a developer-friendly string representation of this instance,
+        which may be used for debugging."""
         self._reset_current_node()
 
         # determine first seven values (at most)
@@ -221,13 +233,17 @@ class LinkedRandomizedQueue(RandomizedQueue):
         return '{}({})'.format(type(self).__name__, repr(first_values))
 
     def __str__(self):
+        """Returns a user-friendly string representation of this instance,
+        which may be used for printing."""
         self._reset_current_node()
         return ' '.join(str(node.value) for node in self._traversal())
 
     def __len__(self):
+        """Returns the number of values in this instance."""
         return self._len
 
     def _reset_current_node(self):
+        """Resets current node to front node."""
         if self:
             self._current_idx = 0
             self._current_node = self._front
@@ -351,11 +367,13 @@ class DoublyLinkedRandomizedQueue(RandomizedQueue):
         pass
 
     def __init__(self, random_state=None):
+        """Initializes instance."""
         super().__init__(random_state=random_state)
         self._current_node = None
         self._len = 0
 
     def __iter__(self):
+        """Returns an iterator version of this instance."""
         seed(self._random_state)
         np_seed(self._random_state)
         if self._random_state is not None:
@@ -376,6 +394,8 @@ class DoublyLinkedRandomizedQueue(RandomizedQueue):
             yield self._current_node.value
 
     def __repr__(self):
+        """Returns a developer-friendly string representation of this instance,
+        which may be used for debugging."""
         # determine first seven values (at most)
         first_values = []
         for _ in range(len(self)):
@@ -387,6 +407,8 @@ class DoublyLinkedRandomizedQueue(RandomizedQueue):
         return '{}({})'.format(type(self).__name__, repr(first_values))
 
     def __str__(self):
+        """Returns a user-friendly string representation of this instance,
+        which may be used for printing."""
         values = []
         for _ in range(len(self)):
             values.append(self._current_node.value)
@@ -394,11 +416,11 @@ class DoublyLinkedRandomizedQueue(RandomizedQueue):
         return ' '.join(str(value) for value in values)
 
     def __len__(self):
+        """Returns the number of values in this instance."""
         return self._len
 
     def _move_to_node(self, steps):
-        # assume key is an integer, count of steps to make
-        """Returns node at index."""
+        """Moves given number of steps."""
         self._validate_non_emptiness()
 
         # traverse instance, return current node if item at index is

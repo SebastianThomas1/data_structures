@@ -2,7 +2,6 @@
 
 # abstract base classes
 from abc import abstractmethod
-from collections.abc import Iterable
 
 # copying objects
 from copy import copy
@@ -69,11 +68,13 @@ class PriorityQueue(Collection):
 
     @abstractmethod
     def __init__(self, extreme_key):
+        """Initializes instance."""
         self._validate_extreme_key(extreme_key)
 
         self._extreme_key = extreme_key
 
     def __eq__(self, other):
+        """Checks whether this instance is equal to the other object."""
         if self is other:
             return True
 
@@ -108,9 +109,14 @@ class PriorityQueue(Collection):
                 return False
 
     def __copy__(self):
-        """Returns a copy of this instance."""
+        """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self).from_iterable(self, self._extreme_key)
         return copy_of_self
+
+    def __str__(self):
+        """Returns a user-friendly string representation of this instance,
+        which may be used for printing."""
+        return ' '.join(str(value) for value in self)
 
     def __getitem__(self, key):
         """Returns the extreme value of this instance.
@@ -205,21 +211,27 @@ class ArrayPriorityQueue(PriorityQueue):
         return self
 
     def __init__(self, extreme_key):
+        """Initializes instance."""
         super().__init__(extreme_key)
         self._values = []
 
     def __copy__(self):
+        """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)(self._extreme_key)
         copy_of_self._values = copy(self._values)
         return copy_of_self
 
     def __iter__(self):
+        """Returns an iterator version of this instance."""
         return iter(sorted(self._values, reverse=self._extreme_key == MAX))
 
     def __len__(self):
+        """Returns the number of values in this instance."""
         return len(self._values)
 
     def __repr__(self):
+        """Returns a developer-friendly string representation of this instance,
+        which may be used for debugging."""
         # determine seven most extreme values (at most)
         extreme_values = []
         for value in self._values[:7]:
@@ -236,17 +248,17 @@ class ArrayPriorityQueue(PriorityQueue):
         return '{}({})'.format(type(self).__name__, repr(extreme_values))
 
     def __contains__(self, value):
+        """Checks whether the given value is contained in this instance."""
         return value in self._values
 
-    def __iadd__(self, other):
-        if not isinstance(other, Iterable):
-            raise TypeError('\'{}\' object is not iterable.'.format(type(other)
-                                                                    .__name__))
+    def __iadd__(self, values):
+        """Enqueues values to this instance."""
+        self._validate_iterability(values)
 
-        for value in other:
+        for value in values:
             self._validate_comparability(value)
 
-        self._values += other
+        self._values += values
 
         return self
 
@@ -313,14 +325,17 @@ class ArrayMinPriorityQueue(ArrayPriorityQueue):
         return self
 
     def __init__(self):
+        """Initializes instance."""
         super().__init__(MIN)
 
     def __copy__(self):
+        """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
         copy_of_self._values = copy(self._values)
         return copy_of_self
 
     def __iter__(self):
+        """Returns an iterator version of this instance."""
         return iter(sorted(self._values, reverse=False))
 
     @property
@@ -351,14 +366,17 @@ class ArrayMaxPriorityQueue(ArrayPriorityQueue):
         return self
 
     def __init__(self):
+        """Initializes instance."""
         super().__init__(MAX)
 
     def __copy__(self):
+        """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
         copy_of_self._values = copy(self._values)
         return copy_of_self
 
     def __iter__(self):
+        """Returns an iterator version of this instance."""
         return iter(sorted(self._values, reverse=True))
 
     @property
@@ -388,9 +406,12 @@ class OrderedArrayPriorityQueue(ArrayPriorityQueue):
         return self
 
     def __iter__(self):
+        """Returns an iterator version of this instance."""
         return reversed(self._values)
 
     def __repr__(self):
+        """Returns a developer-friendly string representation of this instance,
+        which may be used for debugging."""
         # determine seven most extreme values (at most)
         extreme_values = self._values[-7:]
         extreme_values.reverse()
@@ -398,6 +419,7 @@ class OrderedArrayPriorityQueue(ArrayPriorityQueue):
         return '{}({})'.format(type(self).__name__, repr(extreme_values))
 
     def __iadd__(self, other):
+        """Enqueues values to this instance."""
         return PriorityQueue.__iadd__(self, other)
 
     @property
@@ -437,9 +459,11 @@ class OrderedArrayMinPriorityQueue(OrderedArrayPriorityQueue):
         return self
 
     def __init__(self):
+        """Initializes instance."""
         super().__init__(MIN)
 
     def __copy__(self):
+        """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
         copy_of_self._values = copy(self._values)
         return copy_of_self
@@ -467,9 +491,11 @@ class OrderedArrayMaxPriorityQueue(OrderedArrayPriorityQueue):
         return self
 
     def __init__(self):
+        """Initializes instance."""
         super().__init__(MAX)
 
     def __copy__(self):
+        """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
         copy_of_self._values = copy(self._values)
         return copy_of_self
@@ -499,19 +525,24 @@ class HeapPriorityQueue(ArrayPriorityQueue):
         return self
 
     def __init__(self, extreme_key):
+        """Initializes instance."""
         super().__init__(extreme_key)
         self._values = [None]
 
     def __iter__(self):
+        """Returns an iterator version of this instance."""
         copy_of_self = copy(self)
 
         while copy_of_self:
             yield copy_of_self.dequeue()
 
     def __len__(self):
+        """Returns the number of values in this instance."""
         return len(self._values) - 1
 
     def __repr__(self):
+        """Returns a developer-friendly string representation of this instance,
+        which may be used for debugging."""
         # determine seven most extreme values (at most)
         extreme_values = []
         for value in self._values[1:8]:
@@ -523,9 +554,11 @@ class HeapPriorityQueue(ArrayPriorityQueue):
         return '{}({})'.format(type(self).__name__, repr(extreme_values))
 
     def __contains__(self, value):
+        """Checks whether the given value is contained in this instance."""
         return value in self._values[1:]
 
     def __iadd__(self, other):
+        """Enqueues values to this instance."""
         return PriorityQueue.__iadd__(self, other)
 
     @property
@@ -552,6 +585,8 @@ class HeapPriorityQueue(ArrayPriorityQueue):
         return child_idx
 
     def _swim(self, idx):
+        """Swims value at given index (upwards) such that heap order is
+        restored."""
         value = self._values[idx]
 
         parent_idx = self._parent_idx(idx)
@@ -568,6 +603,8 @@ class HeapPriorityQueue(ArrayPriorityQueue):
         self._values[idx] = value
 
     def _sink(self, idx):
+        """Sinks value at given index (downwards) such that heap order is
+        restored."""
         value = self._values[idx]
 
         child_idx = self._child_idx(idx)
@@ -648,9 +685,11 @@ class HeapMinPriorityQueue(HeapPriorityQueue):
         return self
 
     def __init__(self):
+        """Initializes instance."""
         super().__init__(MIN)
 
     def __copy__(self):
+        """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
         copy_of_self._values = copy(self._values)
         return copy_of_self
@@ -665,6 +704,8 @@ class HeapMinPriorityQueue(HeapPriorityQueue):
         return child_idx
 
     def _swim(self, idx):
+        """Swims value at given index (upwards) such that heap order is
+        restored."""
         value = self._values[idx]
 
         parent_idx = self._parent_idx(idx)
@@ -680,6 +721,8 @@ class HeapMinPriorityQueue(HeapPriorityQueue):
         self._values[idx] = value
 
     def _sink(self, idx):
+        """Sinks value at given index (downwards) such that heap order is
+         restored."""
         value = self._values[idx]
 
         child_idx = self._child_idx(idx)
@@ -714,9 +757,11 @@ class HeapMaxPriorityQueue(HeapPriorityQueue):
         return self
 
     def __init__(self):
+        """Initializes instance."""
         super().__init__(MAX)
 
     def __copy__(self):
+        """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
         copy_of_self._values = copy(self._values)
         return copy_of_self
@@ -731,6 +776,8 @@ class HeapMaxPriorityQueue(HeapPriorityQueue):
         return child_idx
 
     def _swim(self, idx):
+        """Swims value at given index (upwards) such that heap order is
+        restored."""
         value = self._values[idx]
 
         parent_idx = self._parent_idx(idx)
@@ -746,6 +793,8 @@ class HeapMaxPriorityQueue(HeapPriorityQueue):
         self._values[idx] = value
 
     def _sink(self, idx):
+        """Sinks value at given index (downwards) such that heap order is
+         restored."""
         value = self._values[idx]
 
         child_idx = self._child_idx(idx)
