@@ -85,7 +85,7 @@ class TestList(unittest.TestCase):
         self.assertEqual(repr(self.tested_class.from_iterable(range(10))),
                          '{}([0, 1, 2, 3, 4, 5, ...])'.format(class_name))
 
-    def test_get_item(self):
+    def test_getitem(self):
         self.assertEqual(self.list_length_1[-1], 0)
         self.assertEqual(self.list_length_1[0], 0)
         self.assertEqual(self.range_list[-4], 0)
@@ -122,7 +122,7 @@ class TestList(unittest.TestCase):
         with self.assertRaises(IndexError):
             _ = self.list[5]
 
-    def test_set_item(self):
+    def test_setitem(self):
         self.list_length_1[0] = 1
         self.assertEqual(self.list_length_1[0], 1)
 
@@ -166,7 +166,7 @@ class TestList(unittest.TestCase):
         with self.assertRaises(IndexError):
             self.list[5] = 0
 
-    def test_del_item(self):
+    def test_delitem(self):
         with self.assertRaises(IndexError):
             del self.empty_list[0]
         with self.assertRaises(IndexError):
