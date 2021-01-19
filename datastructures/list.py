@@ -12,7 +12,7 @@ from copy import copy
 from reprlib import repr
 
 # custom modules
-from datastructures.base import PredictableIterMixin
+from datastructures.base import PredictableIterable
 from datastructures.node import LinkedNode, DoublyLinkedNode
 
 
@@ -21,11 +21,13 @@ __all__ = ['List', 'ArrayList', 'BasicLinkedList', 'LinkedList',
            'CircularDoublyLinkedList']
 
 
-class List(PredictableIterMixin, MutableSequence):
+class List(PredictableIterable, MutableSequence):
     """Abstract base class for the abstract data type list.
 
     Concrete subclasses must provide: __new__ or __init__, __getitem__,
     __setitem__, __delitem__, __len__, insert_before and insert_after."""
+
+    __slots__ = ()
 
     @classmethod
     def from_iterable(cls, values):
@@ -219,6 +221,8 @@ class ArrayList(List):
 
     It is essentially a wrapper for Python's builtin lists."""
 
+    __slots__ = '_values',
+
     @classmethod
     def from_iterable(cls, values):
         cls._validate_iterability(values)
@@ -331,6 +335,8 @@ class BasicLinkedList(List):
 
     This implementation is more inefficient than necessary from a runtime point
     of view."""
+
+    __slots__ = '_head',
 
     class Node(LinkedNode):
         """Internal node class for (singly) linked lists."""
@@ -699,6 +705,8 @@ class LinkedList(BasicLinkedList):
     reference to the tail node as well as the length. This speeds up some of
     the methods."""
 
+    __slots__ = '_tail', '_len'
+
     @classmethod
     def from_iterable(cls, values):
         cls._validate_iterability(values)
@@ -821,6 +829,8 @@ class LinkedList(BasicLinkedList):
 
 class CircularLinkedList(BasicLinkedList):
     """Class that implements a (singly) circular linked list."""
+
+    __slots__ = '_len',
 
     @classmethod
     def from_iterable(cls, values):
@@ -1060,6 +1070,8 @@ class CircularLinkedList(BasicLinkedList):
 class DoublyLinkedList(LinkedList):
     """Class that implements a doubly linked list."""
 
+    __slots__ = ()
+
     class Node(DoublyLinkedNode):
         """Internal node class for doubly linked lists."""
         pass
@@ -1272,6 +1284,8 @@ class DoublyLinkedList(LinkedList):
 
 class CircularDoublyLinkedList(CircularLinkedList):
     """Class that implements a circular doubly linked list."""
+
+    __slots__ = ()
 
     class Node(DoublyLinkedList.Node):
         """Internal node class for doubly linked lists."""

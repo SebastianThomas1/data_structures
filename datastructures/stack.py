@@ -11,7 +11,7 @@ from reprlib import repr
 
 # custom modules
 from datastructures.base import Collection, CollectionWithReferences, \
-    PredictableIterMixin
+    PredictableIterable
 from datastructures.node import LinkedNode
 
 
@@ -21,11 +21,13 @@ __all__ = ['ArrayStack', 'LinkedStack', 'Stack', 'TOP']
 TOP = 'top'
 
 
-class Stack(PredictableIterMixin, Collection, CollectionWithReferences):
+class Stack(PredictableIterable, Collection, CollectionWithReferences):
     """Abstract base class for the abstract data type stack.
 
     Concrete subclasses must provide: __new__ or __init__, predictable
     __iter__, peek, push and delete."""
+
+    __slots__ = ()
 
     @classmethod
     def from_iterable(cls, values):
@@ -44,6 +46,18 @@ class Stack(PredictableIterMixin, Collection, CollectionWithReferences):
         reverse_copy_of_self = type(self).from_iterable(self)
         copy_of_self = type(self).from_iterable(reverse_copy_of_self)
         return copy_of_self
+
+    def __repr__(self):
+        """Returns a developer-friendly string representation of this instance,
+        which may be used for debugging."""
+        # determine values of first seven values (at most)
+        first_values = []
+        for value in self:
+            first_values.append(value)
+            if len(first_values) == 7:
+                break
+
+        return '{}({})'.format(type(self).__name__, repr(first_values))
 
     def __str__(self):
         """Returns a user-friendly string representation of this instance,
@@ -136,6 +150,8 @@ class ArrayStack(Stack):
     """Class that implements a stack based on an internal dynamic array (python
     list)."""
 
+    __slots__ = '_values',
+
     @classmethod
     def from_iterable(cls, values):
         """Constructs instance from iterable values."""
@@ -224,6 +240,8 @@ class ArrayStack(Stack):
 class LinkedStack(Stack):
     """Class that implements a stack based on linked nodes."""
 
+    __slots__ = '_top', '_len'
+
     class Node(LinkedNode):
         """Internal node class for linked stacks."""
         pass
@@ -261,18 +279,6 @@ class LinkedStack(Stack):
     def __len__(self):
         """Returns the number of values in this instance."""
         return self._len
-
-    def __repr__(self):
-        """Returns a developer-friendly string representation of this instance,
-        which may be used for debugging."""
-        # determine values of first seven values (at most)
-        first_values = []
-        for value in self:
-            first_values.append(value)
-            if len(first_values) == 7:
-                break
-
-        return '{}({})'.format(type(self).__name__, repr(first_values))
 
     def is_empty(self):
         """Checks whether this instance is empty."""

@@ -11,7 +11,7 @@ from reprlib import repr
 
 # custom modules
 from datastructures.base import Collection, CollectionWithReferences, \
-    PredictableIterMixin
+    PredictableIterable
 from datastructures.node import LinkedNode
 
 
@@ -22,11 +22,13 @@ REAR = 'rear'
 FRONT = 'front'
 
 
-class Queue(PredictableIterMixin, Collection, CollectionWithReferences):
+class Queue(PredictableIterable, Collection, CollectionWithReferences):
     """Abstract base class for the abstract data type queue.
 
     Concrete subclasses must provide: __new__ or __init__, predictable
     __iter__, peek, enqueue and dequeue."""
+
+    __slots__ = ()
 
     @classmethod
     def from_iterable(cls, values):
@@ -44,6 +46,18 @@ class Queue(PredictableIterMixin, Collection, CollectionWithReferences):
         """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self).from_iterable(self)
         return copy_of_self
+
+    def __repr__(self):
+        """Returns a developer-friendly string representation of this instance,
+        which may be used for debugging."""
+        # determine values of first seven values (at most)
+        first_values = []
+        for value in self:
+            first_values.append(value)
+            if len(first_values) == 7:
+                break
+
+        return '{}({})'.format(type(self).__name__, repr(first_values))
 
     def __str__(self):
         """Returns a user-friendly string representation of this instance,
@@ -138,6 +152,8 @@ class ArrayQueue(Queue):
     """Class that implements a queue based on an internal dynamic array (python
     list)."""
 
+    __slots__ = '_values'
+
     @classmethod
     def from_iterable(cls, values):
         """Constructs instance from iterable values."""
@@ -217,6 +233,8 @@ class ArrayQueue(Queue):
 class LinkedQueue(Queue):
     """Class that implements a queue based on linked nodes."""
 
+    __slots__ = '_front', '_rear', '_len'
+
     class Node(LinkedNode):
         """Internal node class for linked queues."""
         pass
@@ -280,18 +298,6 @@ class LinkedQueue(Queue):
     def __len__(self):
         """Returns the number of values in this instance."""
         return self._len
-
-    def __repr__(self):
-        """Returns a developer-friendly string representation of this instance,
-        which may be used for debugging."""
-        # determine values of first seven values (at most)
-        first_values = []
-        for value in self:
-            first_values.append(value)
-            if len(first_values) == 7:
-                break
-
-        return '{}({})'.format(type(self).__name__, repr(first_values))
 
     def is_empty(self):
         """Checks whether this instance is empty."""

@@ -4,6 +4,8 @@
 class LinkedNode:
     """Node class for eg (singly) linked lists, linked stacks, ..."""
 
+    __slots__ = 'value', 'successor'
+
     def __init__(self, value, successor=None):
         self.value = value
         self.successor = successor
@@ -17,6 +19,8 @@ class LinkedNode:
 
 class LinkedNodeWithKey(LinkedNode):
     """Node class with a key field, eg for linked dictionaries."""
+
+    __slots__ = 'key', 'value', 'successor'
 
     def __init__(self, key, value, successor=None):
         super().__init__(value, successor=successor)
@@ -33,6 +37,8 @@ class LinkedNodeWithKey(LinkedNode):
 
 class DoublyLinkedNode(LinkedNode):
     """Node class for eg doubly linked lists, ..."""
+
+    __slots__ = 'value', 'predecessor', 'successor'
 
     def __init__(self, value, predecessor=None, successor=None):
         super().__init__(value, successor=successor)

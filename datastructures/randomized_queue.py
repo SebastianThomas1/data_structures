@@ -28,6 +28,8 @@ class RandomizedQueue(Collection):
     Concrete subclasses must provide: __init__, __iter__, choice, enqueue,
     dequeue."""
 
+    __slots__ = '_random_state',
+
     @classmethod
     def from_iterable(cls, values, random_state=None):
         """Constructs instance from iterable values."""
@@ -100,6 +102,8 @@ class RandomizedQueue(Collection):
 class ArrayRandomizedQueue(RandomizedQueue):
     """Class that implements a randomized queue based on an internal dynamic
     array (python list)."""
+
+    __slots__ = '_values'
 
     @classmethod
     def from_iterable(cls, values, random_state=None):
@@ -195,6 +199,8 @@ class ArrayRandomizedQueue(RandomizedQueue):
 
 class LinkedRandomizedQueue(RandomizedQueue):
     """Class that implements a randomized queue based on linked nodes."""
+
+    __slots__ = '_front', '_current_node', '_current_idx', '_len'
 
     class Node(LinkedNode):
         """Internal node class for linked randomized queues."""
@@ -361,6 +367,8 @@ class LinkedRandomizedQueue(RandomizedQueue):
 class DoublyLinkedRandomizedQueue(RandomizedQueue):
     """Class that implements a randomized queue based on doubly linked
     nodes."""
+
+    __slots__ = '_current_node', '_len'
 
     class Node(DoublyLinkedNode):
         """Internal node class for linked randomized queues."""
