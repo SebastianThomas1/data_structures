@@ -1,7 +1,13 @@
 # Sebastian Thomas (datascience at sebastianthomas dot de)
 
+from __future__ import annotations
+
+# type hints
+from typing import Optional, NoReturn, Any, Generator
+
 # abstract base classes
 from abc import abstractmethod, ABCMeta
+from collections import Iterable, Iterator
 # from collections.abc import KeysView, ItemsView, ValuesView
 
 # copying objects
@@ -29,7 +35,7 @@ class Dictionary(CollectionWithReferences):
     __slots__ = ()
 
     @classmethod
-    def from_dictionary(cls, other):
+    def from_dictionary(cls, other: Dictionary) -> Dictionary:
         """Constructs instance from dictionary other."""
         cls._validate_dictionary(other)
 
@@ -41,7 +47,7 @@ class Dictionary(CollectionWithReferences):
         return self
 
     @classmethod
-    def from_iterable(cls, pairs):
+    def from_iterable(cls, pairs: Iterable[tuple[Any, Any]]) -> Dictionary:
         """Constructs instance from iterable pairs."""
         cls._validate_iterability(pairs)
 
@@ -52,10 +58,10 @@ class Dictionary(CollectionWithReferences):
 
         return self
 
-    def __copy__(self):
+    def __copy__(self) -> Dictionary:
         return type(self).from_dictionary(self)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Returns a developer-friendly string representation of this instance,
         which may be used for debugging."""
         # determine first seven items (at most)
@@ -67,72 +73,72 @@ class Dictionary(CollectionWithReferences):
 
         return '{}({})'.format(type(self).__name__, repr(dict(first_items)))
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Returns a user-friendly string representation of this instance,
         which may be used for printing."""
         return ', '.join('{}: {}'.format(key, self[key]) for key in self)
 
     @abstractmethod
-    def __getitem__(self, key):
+    def __getitem__(self, key: Any) -> Any:
         """Returns the value of this instance at the given key."""
         self._validate_key(key)
 
         raise NotImplementedError
 
     @abstractmethod
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: Any, value: Any) -> NoReturn:
         """Updates the value of this instance at the given key."""
         self._validate_key(key)
 
         raise NotImplementedError
 
     @abstractmethod
-    def __delitem__(self, key):
+    def __delitem__(self, key: Any) -> NoReturn:
         """Deletes the value of this instance at the given key."""
         self._validate_key(key)
 
         raise NotImplementedError
 
     @staticmethod
-    def _validate_dictionary(other):
+    def _validate_dictionary(other: Dictionary) -> NoReturn:
         """Validates that other is a dictionary."""
         if not isinstance(other, Dictionary):
             raise TypeError('\'{}\' object is not a '
                             'dictionary.'.format(type(other).__name__))
 
-    def _validate_key(self, key):
+    def _validate_key(self, key: Any) -> NoReturn:
         """Validates that key is a key of this instance."""
         if key not in self:
             raise KeyError('{} is not a key of this instance'.format(key))
 
-    def _validate_non_key(self, key):
+    def _validate_non_key(self, key: Any) -> NoReturn:
         """Validates that key is not a key of this instance."""
         if key in self:
             raise KeyError('{} is already a key of this instance'.format(key))
 
     @abstractmethod
-    def insert(self, key, value):
+    def insert(self, key: Any, value: Any) -> NoReturn:
         """Inserts the value into this instance at the given key."""
         self._validate_non_key(key)
 
         raise NotImplementedError
 
-    def clear(self):
+    def clear(self) -> NoReturn:
         """Removes all values."""
         for key in self:
             del self[key]
 
-    def keys(self):
+    def keys(self) -> KeysView:
         """Returns an untouchable collection providing a view on the keys of
         this instance."""
         return KeysView(self)
 
-    def items(self):
+    def items(self) -> ItemsView:
         """Returns an untouchable collection providing a view on the items of
         this instance."""
         return ItemsView(self)
 
-    def values(self):
+    def values(self) -> ValuesView:
         """Returns an untouchable collection providing a view on the values of
         this instance."""
         return ValuesView(self)
@@ -147,14 +153,14 @@ class DictionaryView(UntouchableCollection, metaclass=ABCMeta):
 
     __slots__ = '_dictionary',
 
-    def __init__(self, dictionary):
+    def __init__(self, dictionary: Dictionary):
         self._dictionary = dictionary
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._dictionary)
 
-    def __repr__(self):
-        return '{}({})'.format(type(self).__name__, repr(self._dictionary))
+    def __repr__(self) -> str:
+        return f'{type(self).__name__}({repr(self._dictionary)})'
 
 
 class KeysView(DictionaryView):
@@ -163,10 +169,10 @@ class KeysView(DictionaryView):
 
     __slots__ = ()
 
-    def __contains__(self, key):
+    def __contains__(self, key: Any) -> bool:
         return key in self._dictionary
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         yield from self._dictionary
 
 
@@ -176,7 +182,7 @@ class ItemsView(DictionaryView):
 
     __slots__ = ()
 
-    def __contains__(self, item):
+    def __contains__(self, item: Any) -> bool:
         key, value = item
         try:
             self._dictionary[key] == value
@@ -185,7 +191,7 @@ class ItemsView(DictionaryView):
         else:
             return True
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         for key in self._dictionary:
             yield key, self._dictionary[key]
 
@@ -196,7 +202,7 @@ class ValuesView(DictionaryView):
 
     __slots__ = ()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         for key in self._dictionary:
             yield self._dictionary[key]
 
@@ -211,7 +217,8 @@ class LinkedDictionary(Dictionary):
         pass
 
     @classmethod
-    def from_iterable(cls, pairs):
+    def from_iterable(cls, pairs: Iterable[tuple[Any, Any]]) \
+            -> LinkedDictionary:
         """Constructs instance from iterable pairs."""
         cls._validate_iterability(pairs)
 
@@ -231,36 +238,37 @@ class LinkedDictionary(Dictionary):
 
         return self
 
-    def __init__(self):
+    def __init__(self) -> NoReturn:
         """Initializes instance."""
         self._head = None
         self._len = 0
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """Returns an iterator of the keys of this instance."""
         for node in self._traversal():
             yield node.key
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self._len
 
-    def __contains__(self, key):
+    def __contains__(self, key: Any) -> bool:
         return UntouchableCollection.__contains__(self, key)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Any) -> Any:
         """Returns the value of this instance at the given key."""
         return self._get_node(key).value
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: Any, value: Any) -> NoReturn:
         """Updates the value of this instance at the given key."""
         self._get_node(key).value = value
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: Any) -> NoReturn:
         """Deletes the value of this instance at the given key."""
         node, predecessor = self._get_node_with_predecessor(key)
         self._remove_node(node, predecessor)
 
-    def _traversal(self, start_node=None):
+    def _traversal(self, start_node: Optional[LinkedNodeWithKey] = None) \
+            -> Generator[LinkedNodeWithKey]:
         """Traverses instance, beginning with start_node (default: head)."""
         if start_node is None:
             start_node = self._head
@@ -270,7 +278,7 @@ class LinkedDictionary(Dictionary):
             yield current_node
             current_node = current_node.successor
 
-    def _get_node(self, key):
+    def _get_node(self, key: Any) -> LinkedNodeWithKey:
         """Returns node with given key."""
         self._validate_key(key)
 
@@ -280,7 +288,8 @@ class LinkedDictionary(Dictionary):
             if node.key == key:
                 return node
 
-    def _get_node_with_predecessor(self, key):
+    def _get_node_with_predecessor(self, key: Any) \
+            -> tuple[LinkedNodeWithKey, Optional[LinkedNodeWithKey]]:
         """Returns node with given key together with predecessor."""
         self._validate_key(key)
 
@@ -292,7 +301,8 @@ class LinkedDictionary(Dictionary):
                 return node, predecessor
             predecessor = node
 
-    def _remove_node(self, node, predecessor):
+    def _remove_node(self, node: LinkedNodeWithKey,
+                     predecessor: Optional[LinkedNodeWithKey]) -> NoReturn:
         """Removes node by connecting predecessor with successor."""
         if predecessor:
             predecessor.successor = node.successor
@@ -301,7 +311,7 @@ class LinkedDictionary(Dictionary):
 
         self._len -= 1
 
-    def insert(self, key, value):
+    def insert(self, key: Any, value: Any) -> NoReturn:
         """Inserts the value into this instance at the given key."""
         self._validate_non_key(key)
 

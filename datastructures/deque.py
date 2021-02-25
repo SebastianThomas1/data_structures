@@ -1,7 +1,13 @@
 # Sebastian Thomas (datascience at sebastianthomas dot de)
 
+from __future__ import annotations
+
+# type hints
+from typing import Union, NoReturn, Any
+
 # abstract base classes
 from abc import abstractmethod
+from collections import Iterable, Iterator
 
 # copying objects
 from copy import copy
@@ -31,7 +37,7 @@ class Deque(PredictableIterable, Collection, CollectionWithReferences):
     __slots__ = ()
 
     @classmethod
-    def from_iterable(cls, values):
+    def from_iterable(cls, values: Iterable) -> Deque:
         """Constructs instance from iterable values."""
         cls._validate_iterability(values)
 
@@ -42,12 +48,12 @@ class Deque(PredictableIterable, Collection, CollectionWithReferences):
 
         return self
 
-    def __copy__(self):
+    def __copy__(self) -> Deque:
         """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self).from_iterable(self)
         return copy_of_self
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Returns a developer-friendly string representation of this instance,
         which may be used for debugging."""
         # determine values of first seven nodes (at most)
@@ -57,18 +63,18 @@ class Deque(PredictableIterable, Collection, CollectionWithReferences):
             if len(first_values) == 7:
                 break
 
-        return '{}({})'.format(type(self).__name__, repr(first_values))
+        return f'{type(self).__name__}({repr(first_values)})'
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Returns a user-friendly string representation of this instance,
         which may be used for printing."""
         return ' '.join(str(value) for value in self)
 
-    def __contains__(self, value):
+    def __contains__(self, value: Any) -> bool:
         """Checks whether the given value is contained in this instance."""
         return Collection.__contains__(self, value)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Union[type(REAR), type(FRONT)]) -> Any:
         """Returns the value on one end of this instance.
 
         The parameter key must be REAR or FRONT."""
@@ -76,7 +82,8 @@ class Deque(PredictableIterable, Collection, CollectionWithReferences):
 
         return self.peek_rear() if key is REAR else self.peek_front()
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: Union[type(REAR), type(FRONT)], value: Any) \
+            -> NoReturn:
         """Updates the value on one end of this instance.
 
         The parameter key must be REAR or FRONT."""
@@ -89,24 +96,24 @@ class Deque(PredictableIterable, Collection, CollectionWithReferences):
             self.dequeue_front()
             self.enqueue_front(value)
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: Union[type(REAR), type(FRONT)]) -> NoReturn:
         """Deletes the value on one end of this instance.
 
         The parameter key must be REAR or FRONT."""
         self.pop(key)
 
     @staticmethod
-    def _validate_key(key):
+    def _validate_key(key: Union[type(REAR), type(FRONT)]) -> NoReturn:
         """Validates that key is REAR or FRONT."""
         if key is not REAR and key is not FRONT:
             raise KeyError('key must be REAR or FRONT')
 
-    def get(self):
+    def get(self) -> Any:
         """Alias to __getitem__(FRONT): returns the value at the front of this
         instance."""
         return self.peek_front()
 
-    def peek_rear(self):
+    def peek_rear(self) -> Any:
         """Alias to __getitem__(REAR): returns the value at the rear of this
         instance."""
         self._validate_non_emptiness()
@@ -116,7 +123,7 @@ class Deque(PredictableIterable, Collection, CollectionWithReferences):
 
         return value
 
-    def peek_front(self):
+    def peek_front(self) -> Any:
         """Alias to __getitem__(FRONT): returns the value at the front of this
         instance."""
         self._validate_non_emptiness()
@@ -126,7 +133,8 @@ class Deque(PredictableIterable, Collection, CollectionWithReferences):
 
         return value
 
-    def insert(self, key, value):
+    def insert(self, key: Union[type(REAR), type(FRONT)], value: Any) \
+            -> NoReturn:
         """Inserts the value on one end of this instance.
 
         The parameter key must be REAR or FRONT."""
@@ -137,29 +145,29 @@ class Deque(PredictableIterable, Collection, CollectionWithReferences):
         else:  # key is FRONT
             self.enqueue_front(value)
 
-    def post(self, value):
+    def post(self, value: Any) -> NoReturn:
         """Alias to insert(REAR, value): posts the value to this instance
         and places it at the rear."""
         self.enqueue_rear(value)
 
     @abstractmethod
-    def enqueue_rear(self, value):
+    def enqueue_rear(self, value: Any) -> NoReturn:
         """Alias to insert(REAR, value): enqueues the value on the rear of
         this instance."""
         raise NotImplementedError
 
     @abstractmethod
-    def enqueue_front(self, value):
+    def enqueue_front(self, value: Any) -> NoReturn:
         """Alias to insert(FRONT, value): enqueues the value on the front of
         this instance."""
         raise NotImplementedError
 
-    def delete(self):
+    def delete(self) -> NoReturn:
         """Alias to __delitem__(FRONT): deletes the value on the front of this
         instance."""
         self.dequeue_front()
 
-    def pop(self, key):
+    def pop(self, key: Union[type(REAR), type(FRONT)]) -> Any:
         """Removes and returns the value on one end of this instance.
 
         The parameter key must be REAR or FRONT."""
@@ -171,7 +179,7 @@ class Deque(PredictableIterable, Collection, CollectionWithReferences):
             return self.dequeue_front()
 
     @abstractmethod
-    def dequeue_rear(self):
+    def dequeue_rear(self) -> Any:
         """Alias to pop(REAR): dequeues the value at the rear of this
         instance."""
         self._validate_non_emptiness()
@@ -179,7 +187,7 @@ class Deque(PredictableIterable, Collection, CollectionWithReferences):
         raise NotImplementedError
 
     @abstractmethod
-    def dequeue_front(self):
+    def dequeue_front(self) -> Any:
         """Alias to pop(FRONT): dequeues the value at the front of this
         instance."""
         self._validate_non_emptiness()
@@ -194,7 +202,7 @@ class ArrayDeque(Deque):
     __slots__ = '_values',
 
     @classmethod
-    def from_iterable(cls, values):
+    def from_iterable(cls, values: Iterable) -> ArrayDeque:
         """Constructs instance from iterable values."""
         cls._validate_iterability(values)
 
@@ -203,34 +211,35 @@ class ArrayDeque(Deque):
 
         return self
 
-    def __init__(self):
+    def __init__(self) -> NoReturn:
         """Initializes instance."""
         self._values = []
 
-    def __copy__(self):
+    def __copy__(self) -> ArrayDeque:
         """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
         copy_of_self._values = copy(self._values)
         return copy_of_self
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """Returns an iterator version of this instance."""
         return iter(self._values)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns the number of values in this instance."""
         return len(self._values)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Returns a developer-friendly string representation of this instance,
         which may be used for debugging."""
         return '{}({})'.format(type(self).__name__, repr(self._values))
 
-    def __contains__(self, value):
+    def __contains__(self, value: Any) -> bool:
         """Checks whether the given value is contained in this instance."""
         return value in self._values
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: Union[type(REAR), type(FRONT)], value: Any) \
+            -> NoReturn:
         """Updates the value on one end of this instance.
 
         The parameter key must be REAR or FRONT."""
@@ -242,7 +251,7 @@ class ArrayDeque(Deque):
         else:  # key is FRONT
             self._values[0] = value
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: Union[type(REAR), type(FRONT)]) -> NoReturn:
         """Deletes the value on one end of this instance.
 
         The parameter key must be REAR or FRONT."""
@@ -254,7 +263,7 @@ class ArrayDeque(Deque):
         else:  # key is FRONT
             del self._values[0]
 
-    def __iadd__(self, values):
+    def __iadd__(self, values: Iterable) -> ArrayDeque:
         """Enqueues values on the rear of this instance."""
         self._validate_iterability(values)
 
@@ -262,44 +271,44 @@ class ArrayDeque(Deque):
 
         return self
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """Checks whether this instance is empty."""
         return not bool(self._values)
 
-    def peek_rear(self):
+    def peek_rear(self) -> Any:
         """Returns item at rear of the deque."""
         self._validate_non_emptiness()
 
         return self._values[-1]
 
-    def peek_front(self):
+    def peek_front(self) -> Any:
         """Returns item at front of the deque."""
         self._validate_non_emptiness()
 
         return self._values[0]
 
-    def enqueue_rear(self, value):
+    def enqueue_rear(self, value: Any) -> NoReturn:
         """Alias to insert(REAR, value): enqueues the value on the rear of
         this instance."""
         self._values.append(value)
 
-    def enqueue_front(self, value):
+    def enqueue_front(self, value: Any) -> NoReturn:
         """Alias to insert(FRONT, value): enqueues the value on the front of
         this instance."""
         self._values.insert(0, value)
 
-    def clear(self):
+    def clear(self) -> NoReturn:
         """Removes all items."""
         self._values.clear()
 
-    def dequeue_rear(self):
+    def dequeue_rear(self) -> Any:
         """Alias to pop(REAR): dequeues the value at the rear of this
         instance."""
         self._validate_non_emptiness()
 
         return self._values.pop()
 
-    def dequeue_front(self):
+    def dequeue_front(self) -> Any:
         """Alias to pop(FRONT): dequeues the value at the front of this
         instance."""
         self._validate_non_emptiness()
@@ -317,7 +326,7 @@ class LinkedDeque(Deque):
         pass
 
     @classmethod
-    def from_iterable(cls, values):
+    def from_iterable(cls, values: Iterable) -> LinkedDeque:
         """Constructs instance from iterable values."""
         cls._validate_iterability(values)
 
@@ -340,13 +349,13 @@ class LinkedDeque(Deque):
 
         return self
 
-    def __init__(self):
+    def __init__(self) -> NoReturn:
         """Initializes instance."""
         self._front = None
         self._rear = None
         self._len = 0
 
-    def __copy__(self):
+    def __copy__(self) -> LinkedDeque:
         """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
 
@@ -367,18 +376,19 @@ class LinkedDeque(Deque):
 
         return copy_of_self
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """Returns an iterator version of this instance."""
         current_node = self._front
         while current_node:
             yield current_node.value
             current_node = current_node.successor
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns the number of values in this instance."""
         return self._len
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: Union[type(REAR), type(FRONT)], value: Any) \
+            -> NoReturn:
         """Updates the value on one end of this instance.
 
         The parameter key must be REAR or FRONT."""
@@ -390,7 +400,7 @@ class LinkedDeque(Deque):
         else:  # key is FRONT
             self.enqueue_front(value)
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: Union[type(REAR), type(FRONT)]) -> NoReturn:
         """Deletes the value on one end of this instance.
 
         The parameter key must be REAR or FRONT."""
@@ -409,25 +419,25 @@ class LinkedDeque(Deque):
 
         self._len -= 1
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """Checks whether this instance is empty."""
         return self._front is None
 
-    def peek_rear(self):
+    def peek_rear(self) -> Any:
         """Alias to __getitem__(REAR): returns the value at the rear of this
         instance."""
         self._validate_non_emptiness()
 
         return self._rear.value
 
-    def peek_front(self):
+    def peek_front(self) -> Any:
         """Alias to __getitem__(FRONT): returns the value at the front of this
         instance."""
         self._validate_non_emptiness()
 
         return self._front.value
 
-    def enqueue_rear(self, value):
+    def enqueue_rear(self, value: Any) -> NoReturn:
         """Alias to insert(REAR, value): enqueues the value on the rear of
         this instance."""
         if self.is_empty():
@@ -439,7 +449,7 @@ class LinkedDeque(Deque):
 
         self._len += 1
 
-    def enqueue_front(self, value):
+    def enqueue_front(self, value: Any) -> NoReturn:
         """Alias to insert(FRONT, value): enqueues the value on the front of
         this instance."""
         if self.is_empty():
@@ -451,13 +461,13 @@ class LinkedDeque(Deque):
 
         self._len += 1
 
-    def clear(self):
+    def clear(self) -> NoReturn:
         """Removes all values."""
         self._front = None
         self._rear = None
         self._len = 0
 
-    def dequeue_rear(self):
+    def dequeue_rear(self) -> Any:
         """Alias to pop(REAR): dequeues the value at the rear of this
         instance."""
         self._validate_non_emptiness()
@@ -474,7 +484,7 @@ class LinkedDeque(Deque):
 
         return value
 
-    def dequeue_front(self):
+    def dequeue_front(self) -> Any:
         """Alias to pop(FRONT): dequeues the value at the front of this
         instance."""
         self._validate_non_emptiness()

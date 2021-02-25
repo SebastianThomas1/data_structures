@@ -1,11 +1,13 @@
 # Sebastian Thomas (datascience at sebastianthomas dot de)
 
+from __future__ import annotations
+
+# type hints
+from typing import NoReturn, Any
+
 # abstract base classes
 from abc import abstractmethod, ABCMeta
 from collections.abc import Iterable, Collection as PyCollection
-
-# representations of objects
-from reprlib import repr
 
 
 __all__ = ['UntouchableCollection', 'PredictableIterable',
@@ -15,7 +17,7 @@ __all__ = ['UntouchableCollection', 'PredictableIterable',
            'EmptyCollectionException']
 
 
-def _validate_iterability(values):
+def _validate_iterability(values: Iterable) -> NoReturn:
     """Validates that values is iterable."""
     if not isinstance(values, Iterable):
         raise TypeError('\'{}\' object is not '
@@ -30,7 +32,7 @@ class PredictableIterable(Iterable, metaclass=ABCMeta):
 
     __slots__ = ()
 
-    def __eq__(self, other):
+    def __eq__(self, other: PredictableIterable) -> bool:
         """Checks whether this instance is equal to the other object."""
         if self is other:
             return True
@@ -70,7 +72,7 @@ class UntouchableCollection(PyCollection, metaclass=ABCMeta):
 
     __slots__ = ()
 
-    def __eq__(self, other):
+    def __eq__(self, other: UntouchableCollection) -> bool:
         """Checks whether this instance is equal to the other object."""
         if self is other:
             return True
@@ -93,15 +95,15 @@ class UntouchableCollection(PyCollection, metaclass=ABCMeta):
 
         return True
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         """Returns boolean representation of this instance."""
         return not self.is_empty()
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns the number of values in this instance."""
         return sum(1 for _ in self)
 
-    def __contains__(self, value):
+    def __contains__(self, value: Any) -> bool:
         """Checks whether the given value is contained in this instance."""
         for entry in self:
             if entry == value:
@@ -109,13 +111,13 @@ class UntouchableCollection(PyCollection, metaclass=ABCMeta):
 
         return False
 
-    def _validate_non_emptiness(self):
+    def _validate_non_emptiness(self) -> NoReturn:
         """Validates that this instance is not empty."""
         if self.is_empty():
             raise EmptyCollectionException('can\'t access entry in empty '
                                            'collection')
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """Checks whether this instance is empty."""
         try:
             next(iter(self))
@@ -124,7 +126,7 @@ class UntouchableCollection(PyCollection, metaclass=ABCMeta):
         else:
             return False
 
-    def count(self, value):
+    def count(self, value: Any) -> int:
         """Returns number of occurrences of value."""
         return sum(1 for entry in self if entry == value)
 
@@ -137,7 +139,7 @@ class StaticCollection(UntouchableCollection):
     __slots__ = ()
 
     @abstractmethod
-    def get(self):
+    def get(self) -> Any:
         """Returns a value of the instance."""
         self._validate_non_emptiness()
 
@@ -154,13 +156,13 @@ class StaticCollectionWithReferences(UntouchableCollection):
     __slots__ = ()
 
     @abstractmethod
-    def __getitem__(self, key):
+    def __getitem__(self, key: Any) -> Any:
         """Returns the value of this instance at the given key."""
         self._validate_non_emptiness()
 
         raise NotImplementedError
 
-    def __contains__(self, key):
+    def __contains__(self, key: Any) -> bool:
         """Checks whether the given key is contained in this instance."""
         try:
             self[key]
@@ -176,7 +178,7 @@ class Collection(StaticCollection):
     Concrete subclasses must provide: __new__ or __init__, __iter__,
     get, post and delete."""
 
-    def __iadd__(self, values):
+    def __iadd__(self, values: Iterable) -> Collection:
         """Adds values to this instance."""
         self._validate_iterability(values)
 
@@ -186,23 +188,23 @@ class Collection(StaticCollection):
         return self
 
     @staticmethod
-    def _validate_iterability(values):
+    def _validate_iterability(values: Iterable):
         """Validates that values is iterable."""
         return _validate_iterability(values)
 
     @abstractmethod
-    def post(self, value):
+    def post(self, value: Any) -> NoReturn:
         """Posts the value to the instance."""
         raise NotImplementedError
 
     @abstractmethod
-    def delete(self):
+    def delete(self) -> Any:
         """Deletes a value from the instance."""
         self._validate_non_emptiness()
 
         raise NotImplementedError
 
-    def clear(self):
+    def clear(self) -> NoReturn:
         """Removes all values."""
         try:
             while True:
@@ -221,23 +223,23 @@ class CollectionWithReferences(StaticCollectionWithReferences):
     __slots__ = ()
 
     @abstractmethod
-    def __delitem__(self, key):
+    def __delitem__(self, key: Any) -> NoReturn:
         """Deletes the value at the key."""
         self._validate_non_emptiness()
 
         raise NotImplementedError
 
     @staticmethod
-    def _validate_iterability(values):
+    def _validate_iterability(values: Iterable) -> NoReturn:
         """Validates that values is iterable."""
         return _validate_iterability(values)
 
     @abstractmethod
-    def insert(self, key, value):
+    def insert(self, key: Any, value: Any) -> NoReturn:
         """Inserts the value at the key."""
         raise NotImplementedError
 
-    def pop(self, key):
+    def pop(self, key: Any) -> Any:
         """Removes and returns the value at the key."""
         value = self[key]
         del self[key]
