@@ -1,7 +1,13 @@
 # Sebastian Thomas (datascience at sebastianthomas dot de)
 
+from __future__ import annotations
+
+# type hints
+from typing import NoReturn, Any
+
 # abstract base classes
 from abc import abstractmethod
+from collections import Iterable, Iterator
 
 # copying objects
 from copy import copy
@@ -31,7 +37,7 @@ class Queue(PredictableIterable, Collection, CollectionWithReferences):
     __slots__ = ()
 
     @classmethod
-    def from_iterable(cls, values):
+    def from_iterable(cls, values: Iterable) -> Queue:
         """Constructs instance from iterable values."""
         cls._validate_iterability(values)
 
@@ -42,12 +48,12 @@ class Queue(PredictableIterable, Collection, CollectionWithReferences):
 
         return self
 
-    def __copy__(self):
+    def __copy__(self) -> Queue:
         """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self).from_iterable(self)
         return copy_of_self
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Returns a developer-friendly string representation of this instance,
         which may be used for debugging."""
         # determine values of first seven values (at most)
@@ -57,18 +63,18 @@ class Queue(PredictableIterable, Collection, CollectionWithReferences):
             if len(first_values) == 7:
                 break
 
-        return '{}({})'.format(type(self).__name__, repr(first_values))
+        return f'{type(self).__name__}({repr(first_values)})'
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Returns a user-friendly string representation of this instance,
         which may be used for printing."""
         return ' '.join(str(value) for value in self)
 
-    def __contains__(self, value):
+    def __contains__(self, value: Any) -> bool:
         """Checks whether the given value is contained in this instance."""
         return Collection.__contains__(self, value)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: type(FRONT)) -> Any:
         """Returns the value on the front of this instance.
 
         The parameter key must be FRONT."""
@@ -76,12 +82,12 @@ class Queue(PredictableIterable, Collection, CollectionWithReferences):
 
         return self.peek()
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value: Any) -> NoReturn:
         """Raises TypeError."""
-        raise TypeError('\'{}\' object does not support item assignment'
-                        .format(type(self).__name__))
+        raise TypeError(f'\'{type(self).__name__}\' object does not support '
+                        f'item assignment')
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: type(FRONT)) -> NoReturn:
         """Deletes the value on the front of this instance.
 
         The parameter key must be FRONT."""
@@ -90,49 +96,49 @@ class Queue(PredictableIterable, Collection, CollectionWithReferences):
         self.delete()
 
     @staticmethod
-    def _validate_key_rear(key):
+    def _validate_key_rear(key: type(REAR)) -> NoReturn:
         """Validates that key is REAR."""
         if key is not REAR:
             raise KeyError('key must be REAR')
 
     @staticmethod
-    def _validate_key_front(key):
+    def _validate_key_front(key: type(FRONT)) -> NoReturn:
         """Validates that key is FRONT."""
         if key is not FRONT:
             raise KeyError('key must be FRONT')
 
-    def get(self):
+    def get(self) -> Any:
         """Returns the value at the front of this instance."""
         return self.peek()
 
     @abstractmethod
-    def peek(self):
+    def peek(self) -> Any:
         """Alias to get: returns the value at the front of this instance."""
         self._validate_non_emptiness()
 
         raise NotImplementedError
 
-    def insert(self, key, value):
+    def insert(self, key: type(REAR), value: Any) -> NoReturn:
         """Inserts the value at the key.
 
         The parameter key must be REAR."""
         self._validate_key_rear(key)
         self.enqueue(value)
 
-    def post(self, value):
+    def post(self, value: Any) -> NoReturn:
         """Posts the value to this instance and places it on the rear."""
         self.enqueue(value)
 
     @abstractmethod
-    def enqueue(self, value):
+    def enqueue(self, value: Any) -> NoReturn:
         """Alias to post: enqueues the value to this instance."""
         raise NotImplementedError
 
-    def delete(self):
+    def delete(self) -> Any:
         """Deletes the value on the front of this instance."""
         self.dequeue()
 
-    def pop(self, key=FRONT):
+    def pop(self, key: type(FRONT) = FRONT) -> Any:
         """Removes and returns the value on the front of this instance.
 
         The parameter key must be FRONT (default)."""
@@ -141,7 +147,7 @@ class Queue(PredictableIterable, Collection, CollectionWithReferences):
         return self.dequeue()
 
     @abstractmethod
-    def dequeue(self):
+    def dequeue(self) -> Any:
         """Alias to pop: dequeues the value at the front of this instance."""
         self._validate_non_emptiness()
 
@@ -155,7 +161,7 @@ class ArrayQueue(Queue):
     __slots__ = '_values'
 
     @classmethod
-    def from_iterable(cls, values):
+    def from_iterable(cls, values: Iterable) -> ArrayQueue:
         """Constructs instance from iterable values."""
         cls._validate_iterability(values)
 
@@ -164,34 +170,34 @@ class ArrayQueue(Queue):
 
         return self
 
-    def __init__(self):
+    def __init__(self) -> NoReturn:
         """Initializes instance."""
         self._values = []
 
-    def __copy__(self):
+    def __copy__(self) -> ArrayQueue:
         """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
         copy_of_self._values = copy(self._values)
         return copy_of_self
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """Returns an iterator version of this instance."""
         return iter(self._values)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns the number of values in this instance."""
         return len(self._values)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Returns a developer-friendly string representation of this instance,
         which may be used for debugging."""
-        return '{}({})'.format(type(self).__name__, repr(self._values))
+        return f'{type(self).__name__}({repr(self._values)})'
 
-    def __contains__(self, value):
+    def __contains__(self, value: Any) -> bool:
         """Checks whether the given value is contained in this instance."""
         return value in self._values
 
-    def __iadd__(self, values):
+    def __iadd__(self, values: Iterable) -> ArrayQueue:
         """Enqueues values to this instance."""
         self._validate_iterability(values)
 
@@ -199,31 +205,31 @@ class ArrayQueue(Queue):
 
         return self
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """Checks whether this instance is empty."""
         return not bool(self._values)
 
-    def peek(self):
+    def peek(self) -> Any:
         """Alias to get: returns the value at the front of this instance."""
         self._validate_non_emptiness()
 
         return self._values[0]
 
-    def enqueue(self, value):
+    def enqueue(self, value: Any) -> NoReturn:
         """Alias to post: enqueues the value to this instance."""
         self._values.append(value)
 
-    def delete(self):
+    def delete(self) -> NoReturn:
         """Deletes the value on the front of this instance."""
         self._validate_non_emptiness()
 
         del self._values[0]
 
-    def clear(self):
+    def clear(self) -> NoReturn:
         """Removes all values."""
         self._values.clear()
 
-    def dequeue(self):
+    def dequeue(self) -> Any:
         """Alias to pop: dequeues the value at the front of this instance."""
         self._validate_non_emptiness()
 
@@ -240,7 +246,7 @@ class LinkedQueue(Queue):
         pass
 
     @classmethod
-    def from_iterable(cls, values):
+    def from_iterable(cls, values: Iterable) -> LinkedQueue:
         """Constructs instance from iterable values."""
         cls._validate_iterability(values)
 
@@ -262,13 +268,13 @@ class LinkedQueue(Queue):
 
         return self
 
-    def __init__(self):
+    def __init__(self) -> NoReturn:
         """Initializes instance."""
         self._front = None
         self._rear = None
         self._len = 0
 
-    def __copy__(self):
+    def __copy__(self) -> LinkedQueue:
         """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
 
@@ -288,28 +294,28 @@ class LinkedQueue(Queue):
 
         return copy_of_self
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """Returns an iterator version of this instance."""
         current_node = self._front
         while current_node:
             yield current_node.value
             current_node = current_node.successor
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns the number of values in this instance."""
         return self._len
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """Checks whether this instance is empty."""
         return self._front is None
 
-    def peek(self):
+    def peek(self) -> Any:
         """Alias to get: returns the value at the front of this instance."""
         self._validate_non_emptiness()
 
         return self._front.value
 
-    def enqueue(self, value):
+    def enqueue(self, value: Any) -> NoReturn:
         """Alias to post: enqueues the value to this instance."""
         if self.is_empty():
             self._rear = self.Node(value)
@@ -320,7 +326,7 @@ class LinkedQueue(Queue):
 
         self._len += 1
 
-    def delete(self):
+    def delete(self) -> NoReturn:
         """Deletes the value on the front of this instance."""
         self._validate_non_emptiness()
 
@@ -328,13 +334,13 @@ class LinkedQueue(Queue):
 
         self._len -= 1
 
-    def clear(self):
+    def clear(self) -> NoReturn:
         """Removes all values."""
         self._front = None
         self._rear = None
         self._len = 0
 
-    def dequeue(self):
+    def dequeue(self) -> Any:
         """Alias to pop: dequeues the value at the front of this instance."""
         self._validate_non_emptiness()
 
