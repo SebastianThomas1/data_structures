@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # type hints
-from typing import NoReturn, Any
+from typing import Any
 
 # abstract base classes
 from abc import abstractmethod
@@ -82,7 +82,7 @@ class Stack(PredictableIterable, Collection, CollectionWithReferences):
 
         return self.peek()
 
-    def __setitem__(self, key: type(TOP), value: Any) -> NoReturn:
+    def __setitem__(self, key: type(TOP), value: Any) -> None:
         """Updates the value on the top of this instance.
 
         The parameter key must be TOP."""
@@ -90,7 +90,7 @@ class Stack(PredictableIterable, Collection, CollectionWithReferences):
 
         self.replace(value)
 
-    def __delitem__(self, key: type(TOP)) -> NoReturn:
+    def __delitem__(self, key: type(TOP)) -> None:
         """Deletes the value on the top of this instance.
 
         The parameter key must be TOP."""
@@ -115,29 +115,29 @@ class Stack(PredictableIterable, Collection, CollectionWithReferences):
 
         raise NotImplementedError
 
-    def insert(self, key: type(TOP), value: Any) -> NoReturn:
+    def insert(self, key: type(TOP), value: Any) -> None:
         """Inserts the value at the key.
 
         The parameter key must be TOP."""
         self._validate_key(key)
         self.push(value)
 
-    def post(self, value: Any) -> NoReturn:
+    def post(self, value: Any) -> None:
         """Posts the value to this instance and places it on the top."""
         self.push(value)
 
     @abstractmethod
-    def push(self, value: Any) -> NoReturn:
+    def push(self, value: Any) -> None:
         """Alias to post: pushes the value on the top of this instance."""
         raise NotImplementedError
 
-    def replace(self, value: Any) -> NoReturn:
+    def replace(self, value: Any) -> None:
         """Updates the value on the top of this instance."""
         self.delete()
         self.push(value)
 
     @abstractmethod
-    def delete(self) -> NoReturn:
+    def delete(self) -> None:
         """Deletes the value on the top of this instance."""
         self._validate_non_emptiness()
 
@@ -168,7 +168,7 @@ class ArrayStack(Stack):
 
         return self
 
-    def __init__(self) -> NoReturn:
+    def __init__(self) -> None:
         """Initializes instance."""
         self._values = []
 
@@ -213,23 +213,23 @@ class ArrayStack(Stack):
 
         return self._values[-1]
 
-    def push(self, value: Any) -> NoReturn:
+    def push(self, value: Any) -> None:
         """Alias to post: pushes the value on the top of this instance."""
         self._values.append(value)
 
-    def replace(self, value: Any) -> NoReturn:
+    def replace(self, value: Any) -> None:
         """Updates the value on the top of this instance."""
         self._validate_non_emptiness()
 
         self._values[-1] = value
 
-    def delete(self) -> NoReturn:
+    def delete(self) -> None:
         """Deletes the value on the top of this instance."""
         self._validate_non_emptiness()
 
         del self._values[-1]
 
-    def clear(self) -> NoReturn:
+    def clear(self) -> None:
         """Removes all values."""
         self._values.clear()
 
@@ -252,7 +252,7 @@ class LinkedStack(Stack):
         """Internal node class for linked stacks."""
         pass
 
-    def __init__(self) -> NoReturn:
+    def __init__(self) -> None:
         """Initializes instance."""
         self._top = None
         self._len = 0
@@ -297,20 +297,20 @@ class LinkedStack(Stack):
 
         return self._top.value
 
-    def push(self, value: Any) -> NoReturn:
+    def push(self, value: Any) -> None:
         """Alias to insert(TOP, value): pushes the value on the top of this
         instance."""
         self._top = self.Node(value, successor=self._top)
 
         self._len += 1
 
-    def replace(self, value: Any) -> NoReturn:
+    def replace(self, value: Any) -> None:
         """Updates the value on the top of this instance."""
         self._validate_non_emptiness()
 
         self._top.value = value
 
-    def delete(self) -> NoReturn:
+    def delete(self) -> None:
         """Deletes the value on the top of this instance."""
         self._validate_non_emptiness()
 
@@ -318,7 +318,7 @@ class LinkedStack(Stack):
 
         self._len -= 1
 
-    def clear(self) -> NoReturn:
+    def clear(self) -> None:
         """Removes all values."""
         self._top = None
         self._len = 0

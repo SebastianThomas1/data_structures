@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # type hints
-from typing import NoReturn, Optional, Any
+from typing import Optional, Any
 
 
 class LinkedNode:
@@ -11,8 +11,8 @@ class LinkedNode:
 
     __slots__ = 'value', 'successor'
 
-    def __init__(self, value: Any, successor: Optional[LinkedNode] = None) \
-            -> NoReturn:
+    def __init__(self, value: Any,
+                 successor: Optional[LinkedNode] = None) -> None:
         self.value = value
         self.successor = successor
 
@@ -29,7 +29,7 @@ class LinkedNodeWithKey(LinkedNode):
     __slots__ = 'key', 'value', 'successor'
 
     def __init__(self, key: Any, value: Any,
-                 successor: Optional[LinkedNodeWithKey] = None) -> NoReturn:
+                 successor: Optional[LinkedNodeWithKey] = None) -> None:
         super().__init__(value, successor=successor)
         self.key = key
 
@@ -48,6 +48,6 @@ class DoublyLinkedNode(LinkedNode):
 
     def __init__(self, value: Any,
                  predecessor: Optional[DoublyLinkedNode] = None,
-                 successor: Optional[DoublyLinkedNode] = None) -> NoReturn:
+                 successor: Optional[DoublyLinkedNode] = None) -> None:
         super().__init__(value, successor=successor)
         self.predecessor = predecessor

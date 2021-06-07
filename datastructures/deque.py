@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # type hints
-from typing import Union, NoReturn, Any
+from typing import Union, Any
 
 # abstract base classes
 from abc import abstractmethod
@@ -83,7 +83,7 @@ class Deque(PredictableIterable, Collection, CollectionWithReferences):
         return self.peek_rear() if key is REAR else self.peek_front()
 
     def __setitem__(self, key: Union[type(REAR), type(FRONT)], value: Any) \
-            -> NoReturn:
+            -> None:
         """Updates the value on one end of this instance.
 
         The parameter key must be REAR or FRONT."""
@@ -96,14 +96,14 @@ class Deque(PredictableIterable, Collection, CollectionWithReferences):
             self.dequeue_front()
             self.enqueue_front(value)
 
-    def __delitem__(self, key: Union[type(REAR), type(FRONT)]) -> NoReturn:
+    def __delitem__(self, key: Union[type(REAR), type(FRONT)]) -> None:
         """Deletes the value on one end of this instance.
 
         The parameter key must be REAR or FRONT."""
         self.pop(key)
 
     @staticmethod
-    def _validate_key(key: Union[type(REAR), type(FRONT)]) -> NoReturn:
+    def _validate_key(key: Union[type(REAR), type(FRONT)]) -> None:
         """Validates that key is REAR or FRONT."""
         if key is not REAR and key is not FRONT:
             raise KeyError('key must be REAR or FRONT')
@@ -134,7 +134,7 @@ class Deque(PredictableIterable, Collection, CollectionWithReferences):
         return value
 
     def insert(self, key: Union[type(REAR), type(FRONT)], value: Any) \
-            -> NoReturn:
+            -> None:
         """Inserts the value on one end of this instance.
 
         The parameter key must be REAR or FRONT."""
@@ -145,24 +145,24 @@ class Deque(PredictableIterable, Collection, CollectionWithReferences):
         else:  # key is FRONT
             self.enqueue_front(value)
 
-    def post(self, value: Any) -> NoReturn:
+    def post(self, value: Any) -> None:
         """Alias to insert(REAR, value): posts the value to this instance
         and places it at the rear."""
         self.enqueue_rear(value)
 
     @abstractmethod
-    def enqueue_rear(self, value: Any) -> NoReturn:
+    def enqueue_rear(self, value: Any) -> None:
         """Alias to insert(REAR, value): enqueues the value on the rear of
         this instance."""
         raise NotImplementedError
 
     @abstractmethod
-    def enqueue_front(self, value: Any) -> NoReturn:
+    def enqueue_front(self, value: Any) -> None:
         """Alias to insert(FRONT, value): enqueues the value on the front of
         this instance."""
         raise NotImplementedError
 
-    def delete(self) -> NoReturn:
+    def delete(self) -> None:
         """Alias to __delitem__(FRONT): deletes the value on the front of this
         instance."""
         self.dequeue_front()
@@ -211,7 +211,7 @@ class ArrayDeque(Deque):
 
         return self
 
-    def __init__(self) -> NoReturn:
+    def __init__(self) -> None:
         """Initializes instance."""
         self._values = []
 
@@ -239,7 +239,7 @@ class ArrayDeque(Deque):
         return value in self._values
 
     def __setitem__(self, key: Union[type(REAR), type(FRONT)], value: Any) \
-            -> NoReturn:
+            -> None:
         """Updates the value on one end of this instance.
 
         The parameter key must be REAR or FRONT."""
@@ -251,7 +251,7 @@ class ArrayDeque(Deque):
         else:  # key is FRONT
             self._values[0] = value
 
-    def __delitem__(self, key: Union[type(REAR), type(FRONT)]) -> NoReturn:
+    def __delitem__(self, key: Union[type(REAR), type(FRONT)]) -> None:
         """Deletes the value on one end of this instance.
 
         The parameter key must be REAR or FRONT."""
@@ -287,17 +287,17 @@ class ArrayDeque(Deque):
 
         return self._values[0]
 
-    def enqueue_rear(self, value: Any) -> NoReturn:
+    def enqueue_rear(self, value: Any) -> None:
         """Alias to insert(REAR, value): enqueues the value on the rear of
         this instance."""
         self._values.append(value)
 
-    def enqueue_front(self, value: Any) -> NoReturn:
+    def enqueue_front(self, value: Any) -> None:
         """Alias to insert(FRONT, value): enqueues the value on the front of
         this instance."""
         self._values.insert(0, value)
 
-    def clear(self) -> NoReturn:
+    def clear(self) -> None:
         """Removes all items."""
         self._values.clear()
 
@@ -349,7 +349,7 @@ class LinkedDeque(Deque):
 
         return self
 
-    def __init__(self) -> NoReturn:
+    def __init__(self) -> None:
         """Initializes instance."""
         self._front = None
         self._rear = None
@@ -388,7 +388,7 @@ class LinkedDeque(Deque):
         return self._len
 
     def __setitem__(self, key: Union[type(REAR), type(FRONT)], value: Any) \
-            -> NoReturn:
+            -> None:
         """Updates the value on one end of this instance.
 
         The parameter key must be REAR or FRONT."""
@@ -400,7 +400,7 @@ class LinkedDeque(Deque):
         else:  # key is FRONT
             self.enqueue_front(value)
 
-    def __delitem__(self, key: Union[type(REAR), type(FRONT)]) -> NoReturn:
+    def __delitem__(self, key: Union[type(REAR), type(FRONT)]) -> None:
         """Deletes the value on one end of this instance.
 
         The parameter key must be REAR or FRONT."""
@@ -437,7 +437,7 @@ class LinkedDeque(Deque):
 
         return self._front.value
 
-    def enqueue_rear(self, value: Any) -> NoReturn:
+    def enqueue_rear(self, value: Any) -> None:
         """Alias to insert(REAR, value): enqueues the value on the rear of
         this instance."""
         if self.is_empty():
@@ -449,7 +449,7 @@ class LinkedDeque(Deque):
 
         self._len += 1
 
-    def enqueue_front(self, value: Any) -> NoReturn:
+    def enqueue_front(self, value: Any) -> None:
         """Alias to insert(FRONT, value): enqueues the value on the front of
         this instance."""
         if self.is_empty():
@@ -461,7 +461,7 @@ class LinkedDeque(Deque):
 
         self._len += 1
 
-    def clear(self) -> NoReturn:
+    def clear(self) -> None:
         """Removes all values."""
         self._front = None
         self._rear = None

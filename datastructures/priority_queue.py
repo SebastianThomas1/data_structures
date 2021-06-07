@@ -1,7 +1,13 @@
 # Sebastian Thomas (datascience at sebastianthomas dot de)
 
+from __future__ import annotations
+
+# type hints
+from typing import Optional, Union, Any
+
 # abstract base classes
 from abc import abstractmethod
+from collections import Iterable, Iterator
 
 # copying objects
 from copy import copy
@@ -29,7 +35,7 @@ MAX = 'max'
 
 # Source: https://github.com/python/cpython/blob/master/Lib/bisect.py,
 # https://stackoverflow.com/a/2247433/10816965
-def reverse_insort(a, x, lo=0, hi=None):
+def reverse_insort(a: list, x: Any, lo: int = 0, hi: Optional[int] = None):
     """Insert item x in list a, and keep it reverse-sorted assuming a
     is reverse-sorted.
     If x is already in a, insert it to the right of the rightmost x.
@@ -57,7 +63,9 @@ class PriorityQueue(Collection):
     __slots__ = ()
 
     @classmethod
-    def from_iterable(cls, values, extreme_key):
+    def from_iterable(cls, values: Iterable,
+                      extreme_key: Union[type(MIN), type(MAX)]) \
+            -> PriorityQueue:
         """Constructs instance from iterable values."""
         cls._validate_iterability(values)
 
@@ -69,13 +77,15 @@ class PriorityQueue(Collection):
         return self
 
     @abstractmethod
-    def __init__(self, extreme_key):
-        """Initializes instance."""
+    def __init__(self, extreme_key: Union[type(MIN), type(MAX)]) -> None:
+        """Initializes instance.
+
+        The parameter extreme_key must be either MIN or MAX."""
         self._validate_extreme_key(extreme_key)
 
         self._extreme_key = extreme_key
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         """Checks whether this instance is equal to the other object."""
         if self is other:
             return True
@@ -110,12 +120,12 @@ class PriorityQueue(Collection):
             if value_of_self != value_of_other:
                 return False
 
-    def __copy__(self):
+    def __copy__(self) -> PriorityQueue:
         """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self).from_iterable(self, self._extreme_key)
         return copy_of_self
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Returns a developer-friendly string representation of this instance,
         which may be used for debugging."""
         # determine seven most extreme values (at most)
@@ -127,14 +137,14 @@ class PriorityQueue(Collection):
         except StopIteration:
             pass
 
-        return '{}({})'.format(type(self).__name__, repr(extreme_values))
+        return f'{type(self).__name__}({repr(extreme_values)})'
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Returns a user-friendly string representation of this instance,
         which may be used for printing."""
         return ' '.join(str(value) for value in self)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Union[type(MIN), type(MAX)]) -> Any:
         """Returns the extreme value of this instance.
 
         The parameter key must be the chosen extreme key."""
@@ -142,7 +152,7 @@ class PriorityQueue(Collection):
 
         return self.peek()
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: Any) -> None:
         """Deletes the extreme value of this instance.
 
         The parameter key must be the chosen extreme key."""
@@ -150,52 +160,53 @@ class PriorityQueue(Collection):
 
         self.delete()
 
-    def _validate_comparability(self, value):
+    def _validate_comparability(self, value: Any) -> None:
         """Validates that value is comparable to the values in the instance."""
         if not self.is_empty():
             _ = self.peek() < value
 
     @staticmethod
-    def _validate_extreme_key(extreme_key):
+    def _validate_extreme_key(extreme_key: Union[type(MIN), type(MAX)]) \
+            -> None:
         """Validates that extreme_key is MAX or MIN."""
         if extreme_key is not MAX and extreme_key is not MIN:
             raise KeyError('extreme_key must be MAX or MIN')
 
-    def _validate_key(self, key):
+    def _validate_key(self, key: Union[type(MIN), type(MAX)]) -> None:
         """Validates that key is the extreme key."""
         if key is not self._extreme_key:
             raise KeyError('key must be the chosen extreme key')
 
-    def get(self):
+    def get(self) -> Any:
         """Returns the extreme value of this instance."""
         return self.peek()
 
     @abstractmethod
-    def peek(self):
+    def peek(self) -> Any:
         """Alias to get: returns the extreme value of this instance."""
         self._validate_non_emptiness()
 
         raise NotImplementedError
 
-    def post(self, value):
+    def post(self, value: Any) -> None:
         """Posts the value to this instance."""
         self.enqueue(value)
 
     @abstractmethod
-    def enqueue(self, value):
+    def enqueue(self, value: Any) -> None:
         """Alias to post: enqueues the value to this instance."""
         self._validate_comparability(value)
 
         raise NotImplementedError
 
     @abstractmethod
-    def delete(self):
+    def delete(self) -> None:
         """Deletes the extreme value of this instance."""
         self._validate_non_emptiness()
 
         raise NotImplementedError
 
-    def pop(self, key):
+    def pop(self, key: Any) -> Any:
         """Removes and returns the extreme value of this instance.
 
         The parameter key must be the chosen extreme key."""
@@ -203,7 +214,7 @@ class PriorityQueue(Collection):
 
         return self.dequeue()
 
-    def dequeue(self):
+    def dequeue(self) -> Any:
         """Alias to pop(extreme_key): dequeues the extreme value of this
         instance."""
         value = self.peek()
@@ -219,7 +230,9 @@ class ArrayPriorityQueue(PriorityQueue):
     __slots__ = '_values',
 
     @classmethod
-    def from_iterable(cls, values, extreme_key):
+    def from_iterable(cls, values: Iterable,
+                      extreme_key: Union[type(MIN), type(MAX)]) \
+            -> ArrayPriorityQueue:
         """Constructs instance from iterable values."""
         cls._validate_iterability(values)
 
@@ -228,26 +241,26 @@ class ArrayPriorityQueue(PriorityQueue):
 
         return self
 
-    def __init__(self, extreme_key):
+    def __init__(self, extreme_key: Union[type(MIN), type(MAX)]) -> None:
         """Initializes instance."""
         super().__init__(extreme_key)
         self._values = []
 
-    def __copy__(self):
+    def __copy__(self) -> ArrayPriorityQueue:
         """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)(self._extreme_key)
         copy_of_self._values = copy(self._values)
         return copy_of_self
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """Returns an iterator version of this instance."""
         return iter(sorted(self._values, reverse=self._extreme_key == MAX))
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns the number of values in this instance."""
         return len(self._values)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Returns a developer-friendly string representation of this instance,
         which may be used for debugging."""
         # determine seven most extreme values (at most)
@@ -268,13 +281,13 @@ class ArrayPriorityQueue(PriorityQueue):
                     insort(extreme_values, value)
                     del extreme_values[-1]
 
-        return '{}({})'.format(type(self).__name__, repr(extreme_values))
+        return f'{type(self).__name__}({repr(extreme_values)})'
 
-    def __contains__(self, value):
+    def __contains__(self, value: Any) -> bool:
         """Checks whether the given value is contained in this instance."""
         return value in self._values
 
-    def __iadd__(self, values):
+    def __iadd__(self, values: Iterable) -> ArrayPriorityQueue:
         """Enqueues values to this instance."""
         self._validate_iterability(values)
 
@@ -286,41 +299,41 @@ class ArrayPriorityQueue(PriorityQueue):
         return self
 
     @property
-    def _idx_of_extreme_value(self):
+    def _idx_of_extreme_value(self) -> int:
         """Returns the index of the extreme value of this instance."""
         return (max(range(len(self._values)), key=self._values.__getitem__)
                 if self._extreme_key == MAX
                 else min(range(len(self._values)),
                          key=self._values.__getitem__))
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """Checks whether this instance is an empty array priority queue."""
         return not bool(self._values)
 
-    def peek(self):
+    def peek(self) -> Any:
         """Alias to get: returns the extreme value of this instance."""
         self._validate_non_emptiness()
 
         return (max(self._values) if self._extreme_key == MAX
                 else min(self._values))
 
-    def enqueue(self, value):
+    def enqueue(self, value: Any) -> None:
         """Alias to post: enqueues the value to this instance."""
         self._validate_comparability(value)
 
         self._values.append(value)
 
-    def delete(self):
+    def delete(self) -> None:
         """Deletes the extreme value of this instance."""
         self._validate_non_emptiness()
 
         del self._values[self._idx_of_extreme_value]
 
-    def clear(self):
+    def clear(self) -> None:
         """Removes all items."""
         self._values.clear()
 
-    def dequeue(self):
+    def dequeue(self) -> Any:
         """Alias to pop(extreme_key): dequeues the extreme value of this
         instance."""
         self._validate_non_emptiness()
@@ -340,7 +353,7 @@ class ArrayMinPriorityQueue(ArrayPriorityQueue):
 
     # noinspection PyMethodOverriding
     @classmethod
-    def from_iterable(cls, values):
+    def from_iterable(cls, values: Iterable) -> ArrayMinPriorityQueue:
         """Constructs instance from iterable values."""
         cls._validate_iterability(values)
 
@@ -349,26 +362,26 @@ class ArrayMinPriorityQueue(ArrayPriorityQueue):
 
         return self
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes instance."""
         super().__init__(MIN)
 
-    def __copy__(self):
+    def __copy__(self) -> ArrayMinPriorityQueue:
         """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
         copy_of_self._values = copy(self._values)
         return copy_of_self
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """Returns an iterator version of this instance."""
         return iter(sorted(self._values, reverse=False))
 
     @property
-    def _idx_of_extreme_value(self):
+    def _idx_of_extreme_value(self) -> int:
         """Returns the index of the minimal value of this instance."""
         return min(range(len(self._values)), key=self._values.__getitem__)
 
-    def peek(self):
+    def peek(self) -> Any:
         """Alias to get: returns the minimal value of this instance."""
         self._validate_non_emptiness()
 
@@ -383,7 +396,7 @@ class ArrayMaxPriorityQueue(ArrayPriorityQueue):
 
     # noinspection PyMethodOverriding
     @classmethod
-    def from_iterable(cls, values):
+    def from_iterable(cls, values: Iterable) -> ArrayMaxPriorityQueue:
         """Constructs instance from iterable values."""
         cls._validate_iterability(values)
 
@@ -392,26 +405,26 @@ class ArrayMaxPriorityQueue(ArrayPriorityQueue):
 
         return self
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes instance."""
         super().__init__(MAX)
 
-    def __copy__(self):
+    def __copy__(self) -> ArrayMaxPriorityQueue:
         """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
         copy_of_self._values = copy(self._values)
         return copy_of_self
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """Returns an iterator version of this instance."""
         return iter(sorted(self._values, reverse=True))
 
     @property
-    def _idx_of_extreme_value(self):
+    def _idx_of_extreme_value(self) -> int:
         """Returns the index of the maximal value of this instance."""
         return max(range(len(self._values)), key=self._values.__getitem__)
 
-    def peek(self):
+    def peek(self) -> Any:
         """Alias to get: returns the maximal value of this instance."""
         self._validate_non_emptiness()
 
@@ -425,7 +438,9 @@ class OrderedArrayPriorityQueue(ArrayPriorityQueue):
     __slots__ = ()
 
     @classmethod
-    def from_iterable(cls, values, extreme_key):
+    def from_iterable(cls, values: Iterable,
+                      extreme_key: Union[type(MIN), type(MAX)]) \
+            -> OrderedArrayPriorityQueue:
         """Constructs instance from iterable values."""
         cls._validate_iterability(values)
 
@@ -434,35 +449,35 @@ class OrderedArrayPriorityQueue(ArrayPriorityQueue):
 
         return self
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """Returns an iterator version of this instance."""
         return reversed(self._values)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Returns a developer-friendly string representation of this instance,
         which may be used for debugging."""
         # determine seven most extreme values (at most)
         extreme_values = self._values[-7:]
         extreme_values.reverse()
 
-        return '{}({})'.format(type(self).__name__, repr(extreme_values))
+        return f'{type(self).__name__}({repr(extreme_values)})'
 
-    def __iadd__(self, other):
+    def __iadd__(self, other: Iterable) -> OrderedArrayPriorityQueue:
         """Enqueues values to this instance."""
         return PriorityQueue.__iadd__(self, other)
 
     @property
-    def _idx_of_extreme_value(self):
+    def _idx_of_extreme_value(self) -> int:
         """Returns the index of the extreme value of this instance."""
         return -1
 
-    def peek(self):
+    def peek(self) -> Any:
         """Alias to get: returns the extreme value of this instance."""
         self._validate_non_emptiness()
 
         return self._values[self._idx_of_extreme_value]
 
-    def enqueue(self, value):
+    def enqueue(self, value: Any) -> None:
         """Alias to post: enqueues the value to this instance."""
         self._validate_comparability(value)
 
@@ -480,7 +495,7 @@ class OrderedArrayMinPriorityQueue(OrderedArrayPriorityQueue):
 
     # noinspection PyMethodOverriding
     @classmethod
-    def from_iterable(cls, values):
+    def from_iterable(cls, values: Iterable) -> OrderedArrayMinPriorityQueue:
         """Constructs instance from iterable values."""
         cls._validate_iterability(values)
 
@@ -489,17 +504,17 @@ class OrderedArrayMinPriorityQueue(OrderedArrayPriorityQueue):
 
         return self
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes instance."""
         super().__init__(MIN)
 
-    def __copy__(self):
+    def __copy__(self) -> OrderedArrayMinPriorityQueue:
         """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
         copy_of_self._values = copy(self._values)
         return copy_of_self
 
-    def enqueue(self, value):
+    def enqueue(self, value: Any) -> None:
         """Alias to post: enqueues the value to this instance."""
         self._validate_comparability(value)
 
@@ -514,7 +529,7 @@ class OrderedArrayMaxPriorityQueue(OrderedArrayPriorityQueue):
 
     # noinspection PyMethodOverriding
     @classmethod
-    def from_iterable(cls, values):
+    def from_iterable(cls, values: Iterable) -> OrderedArrayMaxPriorityQueue:
         """Constructs instance from iterable values."""
         cls._validate_iterability(values)
 
@@ -523,17 +538,17 @@ class OrderedArrayMaxPriorityQueue(OrderedArrayPriorityQueue):
 
         return self
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes instance."""
         super().__init__(MAX)
 
-    def __copy__(self):
+    def __copy__(self) -> OrderedArrayMaxPriorityQueue:
         """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
         copy_of_self._values = copy(self._values)
         return copy_of_self
 
-    def enqueue(self, value):
+    def enqueue(self, value: Any) -> None:
         """Alias to post: enqueues the value to this instance."""
         self._validate_comparability(value)
 
@@ -547,7 +562,9 @@ class HeapPriorityQueue(ArrayPriorityQueue):
     __slots__ = ()
 
     @classmethod
-    def from_iterable(cls, values, extreme_key):
+    def from_iterable(cls, values: Iterable,
+                      extreme_key: Union[type(MIN), type(MAX)]) \
+            -> HeapPriorityQueue:
         """Constructs instance from iterable values."""
         cls._validate_iterability(values)
 
@@ -559,23 +576,23 @@ class HeapPriorityQueue(ArrayPriorityQueue):
 
         return self
 
-    def __init__(self, extreme_key):
+    def __init__(self, extreme_key: Union[type(MIN), type(MAX)]) -> None:
         """Initializes instance."""
         super().__init__(extreme_key)
         self._values = [None]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """Returns an iterator version of this instance."""
         copy_of_self = copy(self)
 
         while copy_of_self:
             yield copy_of_self.dequeue()
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns the number of values in this instance."""
         return len(self._values) - 1
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Returns a developer-friendly string representation of this instance,
         which may be used for debugging."""
         # determine seven most extreme values (at most)
@@ -586,28 +603,28 @@ class HeapPriorityQueue(ArrayPriorityQueue):
         if self._extreme_key == MAX:
             extreme_values.reverse()
 
-        return '{}({})'.format(type(self).__name__, repr(extreme_values))
+        return f'{type(self).__name__}({repr(extreme_values)})'
 
-    def __contains__(self, value):
+    def __contains__(self, value: Any) -> bool:
         """Checks whether the given value is contained in this instance."""
         return value in self._values[1:]
 
-    def __iadd__(self, other):
+    def __iadd__(self, other: Iterable) -> HeapPriorityQueue:
         """Enqueues values to this instance."""
         return PriorityQueue.__iadd__(self, other)
 
     @property
-    def _idx_of_extreme_value(self):
+    def _idx_of_extreme_value(self) -> int:
         """Returns the index of the extreme value of this instance."""
         return 1
 
     @staticmethod
-    def _parent_idx(idx):
-        """Returns index of parent value."""
+    def _parent_idx(idx: int) -> int:
+        """Returns index of parent."""
         return idx >> 1  # idx // 2
 
-    def _child_idx(self, idx):
-        """Returns index of more extreme child value."""
+    def _child_idx(self, idx: int) -> int:
+        """Returns index of child with more extreme value."""
         child_idx = idx << 1  # child_idx = 2*idx
         if child_idx < len(self) \
                 and (self._extreme_key == MAX
@@ -619,7 +636,7 @@ class HeapPriorityQueue(ArrayPriorityQueue):
 
         return child_idx
 
-    def _swim(self, idx):
+    def _swim(self, idx: int) -> None:
         """Swims value at given index (upwards) such that heap order is
         restored."""
         value = self._values[idx]
@@ -637,7 +654,7 @@ class HeapPriorityQueue(ArrayPriorityQueue):
 
         self._values[idx] = value
 
-    def _sink(self, idx):
+    def _sink(self, idx: int) -> None:
         """Sinks value at given index (downwards) such that heap order is
         restored."""
         value = self._values[idx]
@@ -655,22 +672,22 @@ class HeapPriorityQueue(ArrayPriorityQueue):
 
         self._values[idx] = value
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """Checks whether this instance is an empty heap priority queue."""
         return len(self._values) == 1
 
-    def peek(self):
+    def peek(self) -> Any:
         """Alias to get: returns the extreme value of this instance."""
         self._validate_non_emptiness()
 
         return self._values[1]
 
-    def enqueue(self, value):
+    def enqueue(self, value: Any) -> None:
         """Alias to post: enqueues the value to this instance."""
         super().enqueue(value)
         self._swim(len(self))
 
-    def delete(self):
+    def delete(self) -> None:
         """Deletes the extreme value of this instance."""
         self._validate_non_emptiness()
 
@@ -681,12 +698,12 @@ class HeapPriorityQueue(ArrayPriorityQueue):
         if self:
             self._sink(1)
 
-    def clear(self):
+    def clear(self) -> None:
         """Removes all items."""
         self._values.clear()
         self._values.append(None)
 
-    def dequeue(self):
+    def dequeue(self) -> Any:
         """Alias to pop(extreme_key): dequeues the extreme value of this
         instance."""
         self._validate_non_emptiness()
@@ -709,7 +726,7 @@ class HeapMinPriorityQueue(HeapPriorityQueue):
 
     # noinspection PyMethodOverriding
     @classmethod
-    def from_iterable(cls, values):
+    def from_iterable(cls, values: Iterable) -> HeapMinPriorityQueue:
         """Constructs instance from iterable values."""
         cls._validate_iterability(values)
 
@@ -721,17 +738,17 @@ class HeapMinPriorityQueue(HeapPriorityQueue):
 
         return self
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes instance."""
         super().__init__(MIN)
 
-    def __copy__(self):
+    def __copy__(self) -> HeapMinPriorityQueue:
         """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
         copy_of_self._values = copy(self._values)
         return copy_of_self
 
-    def _child_idx(self, idx):
+    def _child_idx(self, idx: int) -> int:
         """Returns index of smaller child value."""
         child_idx = idx << 1  # child_idx = 2*idx
         if child_idx < len(self) \
@@ -740,7 +757,7 @@ class HeapMinPriorityQueue(HeapPriorityQueue):
 
         return child_idx
 
-    def _swim(self, idx):
+    def _swim(self, idx: int) -> None:
         """Swims value at given index (upwards) such that heap order is
         restored."""
         value = self._values[idx]
@@ -757,7 +774,7 @@ class HeapMinPriorityQueue(HeapPriorityQueue):
 
         self._values[idx] = value
 
-    def _sink(self, idx):
+    def _sink(self, idx: int) -> None:
         """Sinks value at given index (downwards) such that heap order is
          restored."""
         value = self._values[idx]
@@ -783,7 +800,7 @@ class HeapMaxPriorityQueue(HeapPriorityQueue):
 
     # noinspection PyMethodOverriding
     @classmethod
-    def from_iterable(cls, values):
+    def from_iterable(cls, values: Iterable) -> HeapMaxPriorityQueue:
         """Constructs instance from iterable values."""
         cls._validate_iterability(values)
 
@@ -795,17 +812,17 @@ class HeapMaxPriorityQueue(HeapPriorityQueue):
 
         return self
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes instance."""
         super().__init__(MAX)
 
-    def __copy__(self):
+    def __copy__(self) -> HeapMaxPriorityQueue:
         """Returns a (shallow) copy of this instance."""
         copy_of_self = type(self)()
         copy_of_self._values = copy(self._values)
         return copy_of_self
 
-    def _child_idx(self, idx):
+    def _child_idx(self, idx: int) -> int:
         """Returns index of larger child value."""
         child_idx = idx << 1  # child_idx = 2*idx
         if child_idx < len(self) \
@@ -814,7 +831,7 @@ class HeapMaxPriorityQueue(HeapPriorityQueue):
 
         return child_idx
 
-    def _swim(self, idx):
+    def _swim(self, idx: int) -> None:
         """Swims value at given index (upwards) such that heap order is
         restored."""
         value = self._values[idx]
@@ -831,7 +848,7 @@ class HeapMaxPriorityQueue(HeapPriorityQueue):
 
         self._values[idx] = value
 
-    def _sink(self, idx):
+    def _sink(self, idx: int) -> None:
         """Sinks value at given index (downwards) such that heap order is
          restored."""
         value = self._values[idx]

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # type hints
-from typing import NoReturn, Any
+from typing import Any
 
 # abstract base classes
 from abc import abstractmethod
@@ -82,12 +82,12 @@ class Queue(PredictableIterable, Collection, CollectionWithReferences):
 
         return self.peek()
 
-    def __setitem__(self, key, value: Any) -> NoReturn:
+    def __setitem__(self, key, value: Any) -> None:
         """Raises TypeError."""
         raise TypeError(f'\'{type(self).__name__}\' object does not support '
                         f'item assignment')
 
-    def __delitem__(self, key: type(FRONT)) -> NoReturn:
+    def __delitem__(self, key: type(FRONT)) -> None:
         """Deletes the value on the front of this instance.
 
         The parameter key must be FRONT."""
@@ -96,13 +96,13 @@ class Queue(PredictableIterable, Collection, CollectionWithReferences):
         self.delete()
 
     @staticmethod
-    def _validate_key_rear(key: type(REAR)) -> NoReturn:
+    def _validate_key_rear(key: type(REAR)) -> None:
         """Validates that key is REAR."""
         if key is not REAR:
             raise KeyError('key must be REAR')
 
     @staticmethod
-    def _validate_key_front(key: type(FRONT)) -> NoReturn:
+    def _validate_key_front(key: type(FRONT)) -> None:
         """Validates that key is FRONT."""
         if key is not FRONT:
             raise KeyError('key must be FRONT')
@@ -118,19 +118,15 @@ class Queue(PredictableIterable, Collection, CollectionWithReferences):
 
         raise NotImplementedError
 
-    def insert(self, key: type(REAR), value: Any) -> NoReturn:
+    def insert(self, key: type(REAR), value: Any) -> None:
         """Inserts the value at the key.
 
         The parameter key must be REAR."""
         self._validate_key_rear(key)
         self.enqueue(value)
 
-    def post(self, value: Any) -> NoReturn:
-        """Posts the value to this instance and places it on the rear."""
-        self.enqueue(value)
-
     @abstractmethod
-    def enqueue(self, value: Any) -> NoReturn:
+    def enqueue(self, value: Any) -> None:
         """Alias to post: enqueues the value to this instance."""
         raise NotImplementedError
 
@@ -170,7 +166,7 @@ class ArrayQueue(Queue):
 
         return self
 
-    def __init__(self) -> NoReturn:
+    def __init__(self) -> None:
         """Initializes instance."""
         self._values = []
 
@@ -215,17 +211,17 @@ class ArrayQueue(Queue):
 
         return self._values[0]
 
-    def enqueue(self, value: Any) -> NoReturn:
+    def enqueue(self, value: Any) -> None:
         """Alias to post: enqueues the value to this instance."""
         self._values.append(value)
 
-    def delete(self) -> NoReturn:
+    def delete(self) -> None:
         """Deletes the value on the front of this instance."""
         self._validate_non_emptiness()
 
         del self._values[0]
 
-    def clear(self) -> NoReturn:
+    def clear(self) -> None:
         """Removes all values."""
         self._values.clear()
 
@@ -268,7 +264,7 @@ class LinkedQueue(Queue):
 
         return self
 
-    def __init__(self) -> NoReturn:
+    def __init__(self) -> None:
         """Initializes instance."""
         self._front = None
         self._rear = None
@@ -315,7 +311,7 @@ class LinkedQueue(Queue):
 
         return self._front.value
 
-    def enqueue(self, value: Any) -> NoReturn:
+    def enqueue(self, value: Any) -> None:
         """Alias to post: enqueues the value to this instance."""
         if self.is_empty():
             self._rear = self.Node(value)
@@ -326,7 +322,7 @@ class LinkedQueue(Queue):
 
         self._len += 1
 
-    def delete(self) -> NoReturn:
+    def delete(self) -> None:
         """Deletes the value on the front of this instance."""
         self._validate_non_emptiness()
 
@@ -334,7 +330,7 @@ class LinkedQueue(Queue):
 
         self._len -= 1
 
-    def clear(self) -> NoReturn:
+    def clear(self) -> None:
         """Removes all values."""
         self._front = None
         self._rear = None

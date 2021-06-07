@@ -32,7 +32,7 @@ class PredictableIterable(Iterable, metaclass=ABCMeta):
 
     __slots__ = ()
 
-    def __eq__(self, other: PredictableIterable) -> bool:
+    def __eq__(self, other: Any) -> bool:
         """Checks whether this instance is equal to the other object."""
         if self is other:
             return True
@@ -72,7 +72,7 @@ class UntouchableCollection(PyCollection, metaclass=ABCMeta):
 
     __slots__ = ()
 
-    def __eq__(self, other: UntouchableCollection) -> bool:
+    def __eq__(self, other: Any) -> bool:
         """Checks whether this instance is equal to the other object."""
         if self is other:
             return True
