@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # type hints
-from typing import NoReturn, Any
+from typing import Any
 
 # abstract base classes
 from abc import abstractmethod, ABCMeta
@@ -17,7 +17,7 @@ __all__ = ['UntouchableCollection', 'PredictableIterable',
            'EmptyCollectionException']
 
 
-def _validate_iterability(values: Iterable) -> NoReturn:
+def _validate_iterability(values: Iterable) -> None:
     """Validates that values is iterable."""
     if not isinstance(values, Iterable):
         raise TypeError('\'{}\' object is not '
@@ -111,7 +111,7 @@ class UntouchableCollection(PyCollection, metaclass=ABCMeta):
 
         return False
 
-    def _validate_non_emptiness(self) -> NoReturn:
+    def _validate_non_emptiness(self) -> None:
         """Validates that this instance is not empty."""
         if self.is_empty():
             raise EmptyCollectionException('can\'t access entry in empty '
@@ -193,18 +193,18 @@ class Collection(StaticCollection):
         return _validate_iterability(values)
 
     @abstractmethod
-    def post(self, value: Any) -> NoReturn:
+    def post(self, value: Any) -> None:
         """Posts the value to the instance."""
         raise NotImplementedError
 
     @abstractmethod
-    def delete(self) -> Any:
+    def delete(self) -> None:
         """Deletes a value from the instance."""
         self._validate_non_emptiness()
 
         raise NotImplementedError
 
-    def clear(self) -> NoReturn:
+    def clear(self) -> None:
         """Removes all values."""
         try:
             while True:
@@ -223,19 +223,19 @@ class CollectionWithReferences(StaticCollectionWithReferences):
     __slots__ = ()
 
     @abstractmethod
-    def __delitem__(self, key: Any) -> NoReturn:
+    def __delitem__(self, key: Any) -> None:
         """Deletes the value at the key."""
         self._validate_non_emptiness()
 
         raise NotImplementedError
 
     @staticmethod
-    def _validate_iterability(values: Iterable) -> NoReturn:
+    def _validate_iterability(values: Iterable) -> None:
         """Validates that values is iterable."""
         return _validate_iterability(values)
 
     @abstractmethod
-    def insert(self, key: Any, value: Any) -> NoReturn:
+    def insert(self, key: Any, value: Any) -> None:
         """Inserts the value at the key."""
         raise NotImplementedError
 

@@ -3,15 +3,11 @@
 from __future__ import annotations
 
 # type hints
-from typing import Optional, NoReturn, Any, Generator
+from typing import Optional, Any, Generator
 
 # abstract base classes
 from abc import abstractmethod, ABCMeta
 from collections import Iterable, Iterator
-# from collections.abc import KeysView, ItemsView, ValuesView
-
-# copying objects
-# from copy import copy
 
 # representations of objects
 from reprlib import repr
@@ -71,12 +67,12 @@ class Dictionary(CollectionWithReferences):
             if len(first_items) == 7:
                 break
 
-        return '{}({})'.format(type(self).__name__, repr(dict(first_items)))
+        return f'{type(self).__name__}({repr(dict(first_items))})'
 
     def __str__(self) -> str:
         """Returns a user-friendly string representation of this instance,
         which may be used for printing."""
-        return ', '.join('{}: {}'.format(key, self[key]) for key in self)
+        return ', '.join(f'{key}: {self[key]}' for key in self)
 
     @abstractmethod
     def __getitem__(self, key: Any) -> Any:
@@ -86,44 +82,44 @@ class Dictionary(CollectionWithReferences):
         raise NotImplementedError
 
     @abstractmethod
-    def __setitem__(self, key: Any, value: Any) -> NoReturn:
+    def __setitem__(self, key: Any, value: Any) -> None:
         """Updates the value of this instance at the given key."""
         self._validate_key(key)
 
         raise NotImplementedError
 
     @abstractmethod
-    def __delitem__(self, key: Any) -> NoReturn:
+    def __delitem__(self, key: Any) -> None:
         """Deletes the value of this instance at the given key."""
         self._validate_key(key)
 
         raise NotImplementedError
 
     @staticmethod
-    def _validate_dictionary(other: Dictionary) -> NoReturn:
+    def _validate_dictionary(other: Dictionary) -> None:
         """Validates that other is a dictionary."""
         if not isinstance(other, Dictionary):
             raise TypeError('\'{}\' object is not a '
                             'dictionary.'.format(type(other).__name__))
 
-    def _validate_key(self, key: Any) -> NoReturn:
+    def _validate_key(self, key: Any) -> None:
         """Validates that key is a key of this instance."""
         if key not in self:
-            raise KeyError('{} is not a key of this instance'.format(key))
+            raise KeyError(f'{key} is not a key of this instance')
 
-    def _validate_non_key(self, key: Any) -> NoReturn:
+    def _validate_non_key(self, key: Any) -> None:
         """Validates that key is not a key of this instance."""
         if key in self:
-            raise KeyError('{} is already a key of this instance'.format(key))
+            raise KeyError(f'{key} is already a key of this instance')
 
     @abstractmethod
-    def insert(self, key: Any, value: Any) -> NoReturn:
+    def insert(self, key: Any, value: Any) -> None:
         """Inserts the value into this instance at the given key."""
         self._validate_non_key(key)
 
         raise NotImplementedError
 
-    def clear(self) -> NoReturn:
+    def clear(self) -> None:
         """Removes all values."""
         for key in self:
             del self[key]
@@ -238,7 +234,7 @@ class LinkedDictionary(Dictionary):
 
         return self
 
-    def __init__(self) -> NoReturn:
+    def __init__(self) -> None:
         """Initializes instance."""
         self._head = None
         self._len = 0
@@ -258,17 +254,17 @@ class LinkedDictionary(Dictionary):
         """Returns the value of this instance at the given key."""
         return self._get_node(key).value
 
-    def __setitem__(self, key: Any, value: Any) -> NoReturn:
+    def __setitem__(self, key: Any, value: Any) -> None:
         """Updates the value of this instance at the given key."""
         self._get_node(key).value = value
 
-    def __delitem__(self, key: Any) -> NoReturn:
+    def __delitem__(self, key: Any) -> None:
         """Deletes the value of this instance at the given key."""
         node, predecessor = self._get_node_with_predecessor(key)
         self._remove_node(node, predecessor)
 
-    def _traversal(self, start_node: Optional[LinkedNodeWithKey] = None) \
-            -> Generator[LinkedNodeWithKey]:
+    def _traversal(self, start_node: Optional[LinkedDictionary.Node] = None) \
+            -> Generator[LinkedDictionary.Node]:
         """Traverses instance, beginning with start_node (default: head)."""
         if start_node is None:
             start_node = self._head
@@ -278,7 +274,7 @@ class LinkedDictionary(Dictionary):
             yield current_node
             current_node = current_node.successor
 
-    def _get_node(self, key: Any) -> LinkedNodeWithKey:
+    def _get_node(self, key: Any) -> LinkedDictionary.Node:
         """Returns node with given key."""
         self._validate_key(key)
 
@@ -289,7 +285,7 @@ class LinkedDictionary(Dictionary):
                 return node
 
     def _get_node_with_predecessor(self, key: Any) \
-            -> tuple[LinkedNodeWithKey, Optional[LinkedNodeWithKey]]:
+            -> tuple[LinkedDictionary.Node, Optional[LinkedDictionary.Node]]:
         """Returns node with given key together with predecessor."""
         self._validate_key(key)
 
@@ -301,8 +297,8 @@ class LinkedDictionary(Dictionary):
                 return node, predecessor
             predecessor = node
 
-    def _remove_node(self, node: LinkedNodeWithKey,
-                     predecessor: Optional[LinkedNodeWithKey]) -> NoReturn:
+    def _remove_node(self, node: LinkedDictionary.Node,
+                     predecessor: Optional[LinkedDictionary.Node]) -> None:
         """Removes node by connecting predecessor with successor."""
         if predecessor:
             predecessor.successor = node.successor
@@ -311,7 +307,7 @@ class LinkedDictionary(Dictionary):
 
         self._len -= 1
 
-    def insert(self, key: Any, value: Any) -> NoReturn:
+    def insert(self, key: Any, value: Any) -> None:
         """Inserts the value into this instance at the given key."""
         self._validate_non_key(key)
 
